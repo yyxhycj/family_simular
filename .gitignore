@@ -18,3 +18,6 @@ templates/
 tools/
 urhox-libs/
 # <<< TapTap Maker AI dev kit (local only) <<<
+
+# 本地诊断输出，不参与 Maker 远端提交。
+logs/*.log
