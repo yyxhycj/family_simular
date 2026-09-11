@@ -82,22 +82,23 @@ function App:Random(max)
     return math.floor(self.draft.rngSeed / 2147483647 * max) + 1
 end
 
-function App:RandomName(sex)
+function App:RandomName(sex, surname)
     local surnames = Data.Surnames
     local givenNames = Data.GivenNames[sex == "男" and "male" or "female"]
-    return surnames[self:Random(#surnames)] .. givenNames[self:Random(#givenNames)]
+    return (surname or surnames[self:Random(#surnames)]) .. givenNames[self:Random(#givenNames)]
 end
 
-function App:RandomFamilyName()
-    local oldFamily = self.draft.family
+function App:RandomFamilyName(draft)
+    local target = draft or self.draft
+    local oldFamily = target.family
     local nextFamily = Data.Surnames[self:Random(#Data.Surnames)]
-    self.draft.family = nextFamily
-    for _, member in ipairs(self.draft.members) do
+    target.family = nextFamily
+    for _, member in ipairs(target.members) do
         if member.name:sub(1, #oldFamily) == oldFamily then
             member.name = nextFamily .. member.name:sub(#oldFamily + 1)
         end
     end
-    self:Render()
+    if not draft then self:Render() end
 end
 
 function App:UpdatePreview()
@@ -147,9 +148,20 @@ function App:RandomizePage(page)
             candidate.selectedRelicIds = {}
             for relicId in pairs(self.profile.unlockedRelicIds) do if self:Random(2) == 1 then table.insert(candidate.selectedRelicIds, relicId) end end
         end
-        if #State.ValidateDraft(candidate, self.profile, false) == 0 then self.draft = candidate; generated = true; break end
+        if #State.ValidateDraft(candidate, self.profile, false) == 0 then
+            if page == "world" then
+                self:RandomFamilyName(candidate)
+            elseif page == "people" then
+                for _, member in ipairs(candidate.members) do
+                    local surname = member.name:sub(1, #candidate.family) == candidate.family and candidate.family or nil
+                    member.name = self:RandomName(member.sex, surname)
+                end
+            end
+            candidate.rngSeed = self.draft.rngSeed
+            self.draft = candidate; generated = true; break
+        end
     end
-    if generated then self.undo[page] = before; self:Render(); self:Notify("已随机本页，其他页面保持不变。", "success") else self:Notify("当前其他页面已占用过多预算，无法生成合法本页方案。", "warning") end
+    if generated then self.undo[page] = before; self:Render(); self:Notify(page == "world" and "已随机本页，同姓族人已同步家姓。" or "已随机本页，其他页面保持不变。", "success") else self:Notify("当前其他页面已占用过多预算，无法生成合法本页方案。", "warning") end
 end
 
 function App:UndoPage(page)
