@@ -1,4 +1,5 @@
 local Data = require "Jiaye.Data"
+---@diagnostic disable: undefined-global -- UrhoX runtime injects File/fileSystem/cjson.
 
 local State = {}
 
