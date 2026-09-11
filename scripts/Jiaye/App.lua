@@ -159,6 +159,32 @@ function App:IsPlayableDraft(candidate)
     return #State.ValidateDraft(candidate, self.profile, false) == 0
 end
 
+function App:SafeRandomPage(before, page)
+    local candidate = State.Copy(before)
+    if page == "world" then
+        candidate.periodId = "unrest"; candidate.calendar = Data.Period("unrest").years[1]
+        candidate.originId = "plain"; candidate.placeId = "village"
+        self:RandomFamilyName(candidate)
+    elseif page == "people" then
+        for _, member in ipairs(candidate.members) do
+            member.talent = 1
+            local choices = self:EligibleExperiences(member)
+            table.sort(choices, function(a, b) return a.cost < b.cost end)
+            if not choices[1] then return nil end
+            member.experienceId = choices[1].id
+            local surname = member.name:sub(1, #candidate.family) == candidate.family and candidate.family or nil
+            member.name = self:RandomName(member.sex, surname)
+        end
+    elseif page == "estate" then
+        candidate.money = 0; candidate.grain = 0; candidate.land = 0
+        candidate.homeId = "rented"; candidate.workshop = false; candidate.shop = false
+        candidate.habitId = "none"; candidate.tieId = "none"
+    elseif page == "relics" then
+        candidate.selectedRelicIds = {}
+    end
+    return self:IsPlayableDraft(candidate) and candidate or nil
+end
+
 function App:RandomizePage(page)
     local before = State.Copy(self.draft)
     local generated = false
@@ -194,6 +220,13 @@ function App:RandomizePage(page)
             end
             candidate.rngSeed = self.draft.rngSeed
             self.draft = candidate; generated = true; break
+        end
+    end
+    if not generated then
+        local fallback = self:SafeRandomPage(before, page)
+        if fallback then
+            fallback.rngSeed = self.draft.rngSeed
+            self.draft = fallback; generated = true
         end
     end
     if generated then
