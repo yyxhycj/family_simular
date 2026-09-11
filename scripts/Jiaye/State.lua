@@ -78,6 +78,20 @@ function State.FindMember(members, id)
     return nil
 end
 
+function State.Generation(members, memberId, visited)
+    local member = State.FindMember(members, memberId)
+    if not member then return 1 end
+    visited = visited or {}
+    if visited[memberId] then return 1 end
+    visited[memberId] = true
+    local generation = 1
+    for _, parentId in ipairs(member.parents or {}) do
+        generation = math.max(generation, State.Generation(members, parentId, visited) + 1)
+    end
+    visited[memberId] = nil
+    return generation
+end
+
 local function HasCycle(members, member, targetId, visited)
     if member.id == targetId then return true end
     if visited[member.id] then return false end
@@ -104,7 +118,18 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
         if ids[member.id] then table.insert(issues, "成员编号重复：" .. tostring(member.id)) end
         ids[member.id] = true
         if type(member.age) ~= "number" or member.age < 0 or member.age > 92 or member.age ~= math.floor(member.age) then table.insert(issues, member.name .. "的年龄无效。") end
-        if not Data.Talents[member.talent] or not Data.Experience(member.experienceId) or not Data.Jobs[member.jobId] then table.insert(issues, member.name .. "的数据不完整。") end
+        local experience, job = Data.Experience(member.experienceId), Data.Jobs[member.jobId]
+        if not Data.Talents[member.talent] or not experience or not job then
+            table.insert(issues, member.name .. "的数据不完整。")
+        elseif member.age < job.min then
+            table.insert(issues, member.name .. "的当前安排年龄不足。")
+        elseif member.age < 18 and member.experienceId ~= "none" and member.experienceId ~= "basic" then
+            table.insert(issues, "未成年族人只能选择“尚未专精”或“略通一二”。")
+        elseif member.age < 8 and member.experienceId ~= "none" then
+            table.insert(issues, "8 岁前不能带入已有本领。")
+        elseif job.req and (experience.values[job.req[1]] or 0) < job.req[2] then
+            table.insert(issues, member.name .. "的当前安排尚未满足能力要求。")
+        end
     end
     for _, member in ipairs(draft.members) do
         if member.spouseId then
@@ -151,6 +176,10 @@ function State.NewRun(draft, profile)
         member.health = 60 + member.talent * 8
         member.stats = State.Copy(experience.values)
         member.jobYears = {}
+        member.birthPlan = true
+        member.lastBirthYear = -5
+        member.hadHomeAfterGuard = false
+        member.generation = State.Generation(draft.members, member.id)
         member.biography = { "大晟历 " .. tostring(draft.calendar) .. " 年，以“" .. Data.Jobs[member.jobId].name .. "”开始这一段人生。" }
         table.insert(members, member)
     end
@@ -160,7 +189,7 @@ function State.NewRun(draft, profile)
     if draft.homeId == "estate" then reputation = reputation + 8 end
     return {
         runId = "run-" .. tostring(os.time()), schemaVersion = 1, rulesVersion = Data.RULES_VERSION,
-        openingSnapshot = State.Copy(draft), yearIndex = 0, calendar = draft.calendar, eraId = period.era,
+        openingSnapshot = State.Copy(draft), yearIndex = 0, calendar = draft.calendar, eraId = period.era, eraSinceYear = 0,
         placeId = draft.placeId, originId = draft.originId, habitId = draft.habitId, tieId = draft.tieId,
         members = members, leaderId = draft.leaderId, leaderTerms = { { memberId = draft.leaderId, startYear = 0, endYear = nil, effective = false, reason = "开局任命" } },
         money = draft.money, grain = draft.grain, land = draft.land, homeId = draft.homeId, workshop = draft.workshop, shop = draft.shop,
@@ -197,6 +226,16 @@ function State.Load()
     local ok, value = pcall(cjson.decode, raw)
     if not ok or type(value) ~= "table" then return nil, "存档格式无效，未覆盖当前进度。" end
     return value, "已读取最近存档。"
+end
+
+function State.Import(raw)
+    local ok, value = pcall(cjson.decode, raw)
+    if not ok or type(value) ~= "table" or type(value.profile) ~= "table" or type(value.draft) ~= "table" then
+        return nil, "备份格式无效，未覆盖当前进度。"
+    end
+    value.profile.unlockedRelicIds = value.profile.unlockedRelicIds or { book = true, ruler = true, letter = true }
+    value.profile.endingRecords = value.profile.endingRecords or {}
+    return value, "备份结构有效，可安全载入。"
 end
 
 function State.Export(profile, draft, run)
