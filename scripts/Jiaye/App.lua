@@ -82,6 +82,24 @@ function App:Random(max)
     return math.floor(self.draft.rngSeed / 2147483647 * max) + 1
 end
 
+function App:RandomName(sex)
+    local surnames = Data.Surnames
+    local givenNames = Data.GivenNames[sex == "男" and "male" or "female"]
+    return surnames[self:Random(#surnames)] .. givenNames[self:Random(#givenNames)]
+end
+
+function App:RandomFamilyName()
+    local oldFamily = self.draft.family
+    local nextFamily = Data.Surnames[self:Random(#Data.Surnames)]
+    self.draft.family = nextFamily
+    for _, member in ipairs(self.draft.members) do
+        if member.name:sub(1, #oldFamily) == oldFamily then
+            member.name = nextFamily .. member.name:sub(#oldFamily + 1)
+        end
+    end
+    self:Render()
+end
+
 function App:UpdatePreview()
     if self.previewLabel then
         local total = State.TotalPoints(self.draft)
@@ -215,11 +233,20 @@ function App:BuildOptionList(items, selectedId, onSelect, description)
     local children = {}
     for _, item in ipairs(items) do
         local active = item.id == selectedId
-        table.insert(children, Card({
-            UI.Row { justifyContent = "space-between", children = { Label(item.name, { fontSize = 16, fontWeight = "bold" }), Label(tostring(item.cost or 0) .. " 点", { fontSize = 12, fontColor = active and C.green or C.muted }) } },
-            item.desc and Label(item.desc, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }) or UI.Box(1, 1),
-            Button(active and "已选择" or "选择", function() onSelect(item.id) end, { height = 36, backgroundColor = active and C.green or C.pale, textColor = active and { 255, 255, 255, 255 } or C.green, fontSize = 12 }),
-        }, { borderColor = active and C.green or C.line }))
+        local detail = item.desc or ""
+        if item.burden then detail = detail .. "\n" .. item.burden end
+        table.insert(children, Button((active and "✓ " or "") .. item.name .. " · " .. tostring(item.cost or 0) .. " 点\n" .. detail, function()
+            onSelect(item.id)
+        end, {
+            height = item.burden and 76 or 60,
+            backgroundColor = active and C.green or C.card,
+            textColor = active and { 255, 255, 255, 255 } or C.ink,
+            borderColor = active and C.green or C.line,
+            borderWidth = 1,
+            textAlign = "left",
+            paddingHorizontal = 12,
+            fontSize = 13,
+        }))
     end
     return UI.Panel { gap = 9, children = children }
 end
@@ -231,7 +258,10 @@ function App:BuildWorldPage()
     local used, capacity = State.PageBudget(self.draft, "world")
     return UI.Panel { gap = 12, children = {
         Card({ Label("世道与来处", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点 · 时期与年份联动，年份不重复收费。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-            Label("姓氏", { fontSize = 13 }), UI.TextField { value = self.draft.family, placeholder = "请输入姓氏", fontSize = 16, onChange = function(_, value) self.draft.family = value ~= "" and value or "林"; self:UpdatePreview() end },
+            Label("家姓", { fontSize = 13 }), UI.Row { gap = 8, children = {
+                UI.TextField { value = self.draft.family, placeholder = "请输入姓氏", fontSize = 16, flex = 1, onChange = function(_, value) self.draft.family = value ~= "" and value or "林"; self:UpdatePreview() end },
+                Button("随机", function() self:RandomFamilyName() end, { width = 72, height = 40, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }),
+            } },
             Label("开局时期", { fontSize = 13, fontWeight = "bold" }), self:BuildOptionList(Data.Periods, self.draft.periodId, function(id) self:SelectPeriod(id) end),
             Label("当前时期可选年份 · 推导时世：" .. period.name, { fontSize = 13, fontColor = C.muted }), UI.Row { gap = 6, children = years },
         }),
@@ -261,8 +291,15 @@ function App:OpenDraftMember(memberId)
     if not original then return end
     local editing = State.Copy(original)
     local modal = UI.Modal { title = editing.name .. " · 编辑", size = "fullscreen", closeOnOverlay = false, onClose = function(selfModal) selfModal:Destroy() end }
+    local nameField = UI.TextField { value = editing.name, flex = 1, onChange = function(_, value) if value ~= "" then editing.name = value end end }
     local content = UI.ScrollView { height = "70%", flexBasis = 0, padding = 14, children = { UI.Panel { gap = 10, children = {
-        Label("姓名", { fontSize = 13 }), UI.TextField { value = editing.name, onChange = function(_, value) if value ~= "" then editing.name = value end end },
+        Label("姓名", { fontSize = 13 }), UI.Row { gap = 8, children = {
+            nameField,
+            Button("随机姓名", function()
+                editing.name = self:RandomName(editing.sex)
+                nameField:SetValue(editing.name)
+            end, { width = 92, height = 40, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }),
+        } },
         Label("年龄：" .. tostring(editing.age), { fontSize = 13 }), UI.Stepper { value = editing.age, min = 0, max = 92, step = 1, onChange = function(_, value) editing.age = math.floor(value) end },
         Label("资质", { fontSize = 13, fontWeight = "bold" }),
     } } } }
@@ -443,12 +480,14 @@ function App:BuildEstateTab()
     local placeButtons = {}
     for _, place in ipairs(Data.Places) do
         local placeId = place.id
-        table.insert(placeButtons, Button("迁居 " .. place.short, function()
+        table.insert(placeButtons, Button("迁居 " .. place.short .. "\n" .. place.desc .. " " .. place.burden, function()
             self:RunAction(function() return Simulation.MoveFamily(self.run, placeId) end)
         end, {
-            height = 36,
+            height = 66,
             backgroundColor = self.run.placeId == placeId and C.green or C.pale,
             textColor = self.run.placeId == placeId and { 255, 255, 255, 255 } or C.green,
+            textAlign = "left",
+            paddingHorizontal = 12,
             fontSize = 12,
         }))
     end
@@ -529,7 +568,23 @@ function App:BuildGame()
 end
 
 function App:Render()
-    self.root = UI.SafeAreaView { width = "100%", height = "100%", edges = "all", children = { self.run and self:BuildGame() or self:BuildOpening() } }
+    local page = self.run and self:BuildGame() or self:BuildOpening()
+    local phoneFrame = UI.Panel {
+        width = "100%",
+        maxWidth = 480,
+        height = "100%",
+        backgroundColor = C.paper,
+        overflow = "hidden",
+        children = { page },
+    }
+    self.root = UI.SafeAreaView {
+        width = "100%",
+        height = "100%",
+        edges = "all",
+        backgroundColor = C.dark,
+        alignItems = "center",
+        children = { phoneFrame },
+    }
     UI.SetRoot(self.root, true)
 end
 

@@ -228,6 +228,7 @@ end
 local function ApplyIncome(run, member, job, period, place)
     local money, grain = job.money or 0, job.grain or 0
     money = math.floor(money * period.wage)
+    if member.jobId ~= "farm" then money = math.floor(money * (place.incomeMultiplier or 1)) end
     if member.jobId == "craft" and place.id == "mountain" then money = math.floor(money * 1.1) end
     if member.jobId == "doctor" and place.id == "mountain" then money = math.floor(money * 1.1) end
     if member.jobId == "guard" and place.id == "border" then money = math.floor(money * 1.2) end
@@ -236,7 +237,7 @@ local function ApplyIncome(run, member, job, period, place)
     if member.jobId == "guard" and run.originId == "military" then money = math.floor(money * 1.1) end
     if member.jobId == "trade" and run.tieId == "partner" then money = money + 3 end
     if member.jobId == "teach" and run.tieId == "teacher" then money = money + 2 end
-    if member.jobId == "farm" then grain = grain + run.land * 2 + (place.id == "village" and 2 or 0) + (run.originId == "plain" and 1 or 0) end
+    if member.jobId == "farm" then grain = grain + run.land * 2 + (place.id == "village" and 2 or 0) + (place.farmGrainModifier or 0) + (run.originId == "plain" and 1 or 0) end
     run.money = run.money + money; run.grain = run.grain + grain
     if job.stat == "health" then
         member.health = math.min(100, member.health + math.max(0, job.gain or 0))
@@ -244,6 +245,7 @@ local function ApplyIncome(run, member, job, period, place)
         local talent = Data.Talent(math.tointeger(member.talent) or 1)
         local gain = (job.gain or 0) + talent.gain
         if run.habitId == "education" and member.jobId == "study" then gain = gain + 1 end
+        if place.id == "county" and member.jobId == "study" then gain = gain + 1 end
         if run.tieId == "healer" and member.jobId == "medical" then gain = gain + 1 end
         if run.originId == "artisan" and (member.jobId == "apprentice" or member.jobId == "craft") then gain = gain + 1 end
         if run.originId == "scholar" and member.jobId == "study" then gain = gain + 2 end
@@ -256,14 +258,14 @@ end
 
 local function ResolveLivingCosts(run, living, period, place)
     local home = Data.Home(run.homeId)
-    local expense = math.floor((#living * 2 + home.upkeep) * period.expense * (place.id == "border" or place.id == "county" or place.id == "port" and 1.05 or 1))
+    local expense = math.floor((#living * 2 + home.upkeep) * period.expense * (place.expenseMultiplier or 1))
     for _, member in ipairs(living) do if member.jobId == "home" then expense = math.max(0, expense - 3); break end end
     if run.habitId == "frugal" then expense = math.floor(expense * 0.9) end
     run.money = run.money - expense
     local foodNeed = #living
     if run.grain >= foodNeed then run.grain = run.grain - foodNeed; run.metrics.foodYears = run.metrics.foodYears + 1 else
         local missing = foodNeed - run.grain; run.grain = 0
-        local price = period.food * missing
+        local price = math.ceil(period.food * missing * (place.foodMultiplier or 1))
         if run.money >= price then run.money = run.money - price; run.metrics.foodYears = run.metrics.foodYears + 1 else run.money = math.max(0, run.money); State.AddLog(run, "口粮不足，家中度过了艰难的一年。") end
     end
     if run.money < 0 and run.grain > 0 then
@@ -272,6 +274,12 @@ local function ResolveLivingCosts(run, living, period, place)
         State.AddLog(run, "卖出 " .. tostring(sold) .. " 石粮以补足日常开支。")
     end
     if run.money >= 0 then run.metrics.stable = run.metrics.stable + 1 else run.metrics.stable = 0 end
+end
+
+local function ApplyPlaceBurden(run, living, place)
+    if not place.healthPenalty then return end
+    for _, member in ipairs(living) do member.health = math.max(0, member.health - place.healthPenalty) end
+    State.AddLog(run, place.short .. "的劳顿使全家体魄各减 " .. tostring(place.healthPenalty) .. " 点。")
 end
 
 local function AgeAndLife(run, living)
@@ -317,6 +325,7 @@ function Simulation.AdvanceYear(run, profile)
         if hasTrade then run.money = run.money + 16 else State.AddLog(run, "商铺无人经营，今年没有额外收益。") end
     end
     ResolveLivingCosts(run, living, period, place)
+    ApplyPlaceBurden(run, living, place)
     run.yearIndex = run.yearIndex + 1; run.calendar = run.calendar + 1
     AgeAndLife(run, living); QueueDueRelicEvents(run); HandleLeadership(run)
     if not HasRelic(run, "notes") then
@@ -369,9 +378,10 @@ end
 
 function Simulation.AvailableEndings(run)
     local ready = {}
-    for _, ending in ipairs(Data.Endings) do
+    for _, entry in ipairs(Data.Endings) do
+        local ending = entry --[[@as table<string, any>]]
         local ok = true
-        for _, item in ipairs(Simulation.EndingProgress(run, ending.id)) do if item[2] < item[3] then ok = false end end
+        for _, item in ipairs(Simulation.EndingProgress(run, ending["id"])) do if item[2] < item[3] then ok = false end end
         if ok then table.insert(ready, ending) end
     end
     return ready

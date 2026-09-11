@@ -21,11 +21,17 @@ Data.Origins = {
 }
 
 Data.Places = {
-    { id = "village", name = "河畔乡村", short = "青石村", cost = 0, desc = "耕作族人每年多收 2 石粮。" },
-    { id = "mountain", name = "山间小镇", short = "青岚镇", cost = 2, desc = "手艺、行医收入 +10%。" },
-    { id = "border", name = "边地驿镇", short = "北望驿", cost = 3, desc = "护卫收入 +20%，生活开支 +5%。" },
-    { id = "county", name = "县城近郊", short = "临川县", cost = 7, desc = "读书每年额外学识 +1，生活开支 +15%。" },
-    { id = "port", name = "江口商埠", short = "江口埠", cost = 10, desc = "经商收入 +20%，生活开支 +15%。" },
+    { id = "village", name = "河畔乡村", short = "青石村", cost = 0, desc = "收益：耕作每年多收 2 石粮。", burden = "代价：非耕作收入 -8%。", incomeMultiplier = 0.92 },
+    { id = "mountain", name = "山间小镇", short = "青岚镇", cost = 2, desc = "收益：手艺、行医收入 +10%。", burden = "代价：耕作每年少收 2 石粮。", farmGrainModifier = -2 },
+    { id = "border", name = "边地驿镇", short = "北望驿", cost = 3, desc = "收益：护卫收入 +20%。", burden = "代价：生活开支 +8%，全家每年劳损 1 点。", expenseMultiplier = 1.08, healthPenalty = 1 },
+    { id = "county", name = "县城近郊", short = "临川县", cost = 7, desc = "收益：读书每年额外学识 +1。", burden = "代价：生活开支 +15%。", expenseMultiplier = 1.15 },
+    { id = "port", name = "江口商埠", short = "江口埠", cost = 10, desc = "收益：经商收入 +20%。", burden = "代价：生活开支 +20%，缺粮时购粮价 +10%。", expenseMultiplier = 1.20, foodMultiplier = 1.10 },
+}
+
+Data.Surnames = { "林", "沈", "顾", "陆", "程", "许", "周", "宋", "苏", "叶", "闻", "姜" }
+Data.GivenNames = {
+    male = { "成", "安", "远", "砚", "衡", "川", "允", "修", "明", "知" },
+    female = { "青", "芸", "宁", "禾", "昭", "瑶", "微", "晚", "棠", "绮" },
 }
 
 Data.Talents = {
