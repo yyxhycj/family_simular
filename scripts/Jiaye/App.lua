@@ -14,19 +14,21 @@ local C = {
 
 local function Label(text, props)
     props = props or {}; props.text = text; props.fontColor = props.fontColor or C.ink
+    if props.fontSize then props.fontSize = math.max(10, math.floor(props.fontSize * 0.85)) end
     return UI.Label(props)
 end
 
 local function Button(text, onClick, props)
-    props = props or {}; props.text = text; props.onClick = onClick; props.height = props.height or 46
+    props = props or {}; props.text = text; props.onClick = onClick; props.height = props.height or 40
     props.backgroundColor = props.backgroundColor or C.green; props.textColor = props.textColor or { 255, 255, 255, 255 }
-    props.borderRadius = props.borderRadius or 10
+    props.borderRadius = props.borderRadius or 8
+    if props.fontSize then props.fontSize = math.max(10, math.floor(props.fontSize * 0.9)) end
     return UI.Button(props)
 end
 
 local function Card(children, props)
     props = props or {}; props.backgroundColor = props.backgroundColor or C.card; props.borderColor = props.borderColor or C.line
-    props.borderWidth = props.borderWidth or 1; props.borderRadius = props.borderRadius or 14; props.padding = props.padding or 14; props.gap = props.gap or 9
+    props.borderWidth = props.borderWidth or 1; props.borderRadius = props.borderRadius or 10; props.padding = props.padding or 11; props.gap = props.gap or 7
     props.flexDirection = "column"; props.children = children
     return UI.Panel(props)
 end
@@ -60,10 +62,14 @@ function App:Init()
     self.previewLabel = nil
     self.peopleFilter = "all"
     self.peopleQuery = ""
+    self.openingFeedback = ""
+    UI.Toast.GetGlobal({ position = "bottom", maxToasts = 1 })
 end
 
 function App:Notify(message, variant)
-    UI.Toast.Show(message, { variant = variant or "info", duration = 2.8, position = "top" })
+    local toast = UI.Toast.GetGlobal()
+    toast:DismissAll()
+    UI.Toast.Show(message, { variant = variant or "info", duration = 2.2, showClose = false })
 end
 
 function App:Save()
@@ -121,6 +127,7 @@ end
 
 function App:SetOpeningPage(page)
     self.openingPage = page
+    self.openingFeedback = ""
     self:Render()
 end
 
@@ -137,10 +144,25 @@ function App:ToggleRelic(id)
     self:Render()
 end
 
+function App:EligibleExperiences(member)
+    local job, choices = Data.Jobs[member.jobId], {}
+    if not job or member.age < job.min then return choices end
+    for _, experience in ipairs(Data.Experiences) do
+        local childAllowed = member.age >= 18 or experience.id == "none" or experience.id == "basic"
+        local requirementMet = not job.req or (experience.values[job.req[1]] or 0) >= job.req[2]
+        if childAllowed and requirementMet then table.insert(choices, experience) end
+    end
+    return choices
+end
+
+function App:IsPlayableDraft(candidate)
+    return #State.ValidateDraft(candidate, self.profile, false) == 0
+end
+
 function App:RandomizePage(page)
     local before = State.Copy(self.draft)
     local generated = false
-    for _ = 1, 20 do
+    for _ = 1, 120 do
         local candidate = State.Copy(before)
         if page == "world" then
             local period = Data.Periods[self:Random(#Data.Periods)]
@@ -149,7 +171,9 @@ function App:RandomizePage(page)
         elseif page == "people" then
             for _, member in ipairs(candidate.members) do
                 member.talent = self:Random(#Data.Talents)
-                member.experienceId = Data.Experiences[self:Random(#Data.Experiences)].id
+                local choices = self:EligibleExperiences(member)
+                if #choices == 0 then break end
+                member.experienceId = choices[self:Random(#choices)].id
             end
         elseif page == "estate" then
             candidate.money = (self:Random(10) - 1) * 10; candidate.grain = (self:Random(10) - 1) * 4; candidate.land = self:Random(4) - 1
@@ -159,7 +183,7 @@ function App:RandomizePage(page)
             candidate.selectedRelicIds = {}
             for relicId in pairs(self.profile.unlockedRelicIds) do if self:Random(2) == 1 then table.insert(candidate.selectedRelicIds, relicId) end end
         end
-        if #State.ValidateDraft(candidate, self.profile, false) == 0 then
+        if self:IsPlayableDraft(candidate) then
             if page == "world" then
                 self:RandomFamilyName(candidate)
             elseif page == "people" then
@@ -172,12 +196,18 @@ function App:RandomizePage(page)
             self.draft = candidate; generated = true; break
         end
     end
-    if generated then self.undo[page] = before; self:Render(); self:Notify(page == "world" and "已随机本页，同姓族人已同步家姓。" or "已随机本页，其他页面保持不变。", "success") else self:Notify("当前其他页面已占用过多预算，无法生成合法本页方案。", "warning") end
+    if generated then
+        self.undo[page] = before
+        self.openingFeedback = "已随机本页：总分 " .. tostring(State.TotalPoints(self.draft)) .. "/100，仍可直接开局。"
+    else
+        self.openingFeedback = "这一页没有可开局的新组合；先减少其他页的点数后再试。"
+    end
+    self:Render()
 end
 
 function App:UndoPage(page)
     if not self.undo[page] then self:Notify("本页没有可撤销的随机结果。", "warning"); return end
-    self.draft = self.undo[page]; self.undo[page] = nil; self:Render(); self:Notify("已撤销本页随机。", "success")
+    self.draft = self.undo[page]; self.undo[page] = nil; self.openingFeedback = "已恢复随机前的本页配置。"; self:Render()
 end
 
 function App:AddMember()
@@ -217,27 +247,26 @@ end
 
 function App:BuildHeader(title, subtitle)
     return UI.Panel {
-        height = 62, flexDirection = "row", alignItems = "center", justifyContent = "space-between", paddingHorizontal = 16,
+        height = 54, flexDirection = "row", alignItems = "center", justifyContent = "space-between", paddingHorizontal = 12,
         backgroundColor = C.paper, borderBottomWidth = 1, borderBottomColor = C.line,
         children = {
-            UI.Panel { flexDirection = "column", pointerEvents = "none", children = { Label(title, { fontSize = 25, fontWeight = "bold", fontColor = C.green }), Label(subtitle, { fontSize = 11, fontColor = C.muted }) } },
-            Button("存档", function() self:Save() end, { width = 62, height = 36, fontSize = 12, backgroundColor = C.pale, textColor = C.green }),
+            UI.Panel { flexDirection = "column", pointerEvents = "none", children = { Label(title, { fontSize = 22, fontWeight = "bold", fontColor = C.green }), Label(subtitle, { fontSize = 10, fontColor = C.muted }) } },
+            Button("存档", function() self:Save() end, { width = 56, height = 32, fontSize = 11, backgroundColor = C.pale, textColor = C.green }),
         },
     }
 end
 
 function App:BuildOpeningFooter()
-    local order = { world = "世道", people = "族人", estate = "家底", relics = "信物", final = "落笔" }
     local pages = { "world", "people", "estate", "relics", "final" }
     local index = 1; for i, page in ipairs(pages) do if page == self.openingPage then index = i end end
     local total = State.TotalPoints(self.draft)
     return UI.Panel {
-        flexDirection = "column", backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, padding = 10, gap = 7,
+        flexDirection = "column", backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, padding = 8, gap = 5,
         children = {
-            Label("总分 " .. tostring(total) .. "/100" .. (total > 100 and " · 超分草案可继续编辑，但不能开局" or " · 自由组合，无需用尽"), { fontSize = 12, fontColor = total > 100 and C.warning or C.muted, textAlign = "center" }),
+            Label("总分 " .. tostring(total) .. "/100" .. (total > 100 and " · 超分，暂不能开局" or " · 可直接开局"), { fontSize = 11, fontColor = total > 100 and C.warning or C.muted, textAlign = "center" }),
             UI.Row { gap = 8, children = {
-                index > 1 and Button("上一步", function() self:SetOpeningPage(pages[index - 1]) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }) or UI.Box(1, 1),
-                index < #pages and Button("下一步", function() self:SetOpeningPage(pages[index + 1]) end, { flex = 1 }) or Button("开始家业", function() self:StartRun() end, { flex = 1, backgroundColor = total > 100 and C.warning or C.green }),
+                index > 1 and Button("上一步", function() self:SetOpeningPage(pages[index - 1]) end, { flex = 1, height = 36, backgroundColor = C.pale, textColor = C.green }) or UI.Box(1, 1),
+                index < #pages and Button("下一步", function() self:SetOpeningPage(pages[index + 1]) end, { flex = 1, height = 36 }) or Button("开始家业", function() self:StartRun() end, { flex = 1, height = 36, backgroundColor = total > 100 and C.warning or C.green }),
             } },
         },
     }
@@ -249,7 +278,7 @@ function App:BuildOpeningNav()
     for _, page in ipairs(pages) do
         table.insert(children, Button(page.text, function() self:SetOpeningPage(page.id) end, { flex = 1, height = 34, fontSize = 11, backgroundColor = self.openingPage == page.id and C.green or C.pale, textColor = self.openingPage == page.id and { 255, 255, 255, 255 } or C.green }))
     end
-    return UI.Panel { padding = 10, backgroundColor = C.paper, children = { UI.Row { gap = 4, children = children } } }
+    return UI.Panel { padding = 6, backgroundColor = C.paper, children = { UI.Row { gap = 4, children = children } } }
 end
 
 function App:BuildOptionList(items, selectedId, onSelect, description)
@@ -261,13 +290,13 @@ function App:BuildOptionList(items, selectedId, onSelect, description)
         table.insert(children, Button((active and "✓ " or "") .. item.name .. " · " .. tostring(item.cost or 0) .. " 点\n" .. detail, function()
             onSelect(item.id)
         end, {
-            height = item.burden and 76 or 60,
+            height = item.burden and 64 or 50,
             backgroundColor = active and C.green or C.card,
             textColor = active and { 255, 255, 255, 255 } or C.ink,
             borderColor = active and C.green or C.line,
             borderWidth = 1,
             textAlign = "left",
-            paddingHorizontal = 12,
+            paddingHorizontal = 10,
             fontSize = 13,
         }))
     end
@@ -295,7 +324,7 @@ end
 
 function App:BuildPeoplePage()
     local used, capacity = State.PageBudget(self.draft, "people")
-    local cards = { Card({ Label("家中这些人", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点。每个人都能独立查看与安排。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), Button("添加族人", function() self:AddMember() end, { height = 38 }) }) }
+    local cards = { Card({ Label("家中这些人", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点。每个人都能独立查看与安排。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), Button("添加族人", function() self:AddMember() end, { height = 34 }) }) }
     for _, member in ipairs(self.draft.members) do
         local talentIndex = tonumber(member.talent) or 1
         local talent = Data.Talent(talentIndex)
@@ -303,7 +332,7 @@ function App:BuildPeoplePage()
         table.insert(cards, Card({
             UI.Row { justifyContent = "space-between", children = { Label(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 17, fontWeight = "bold" }), Label(member.id == self.draft.leaderId and "首任族长" or "", { fontSize = 12, fontColor = C.green }) } },
             Label("" .. talent.name .. " · " .. experience.name .. " · " .. Data.Jobs[member.jobId].name .. " · " .. tostring(State.MemberCost(member)) .. " 点", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
-            UI.Row { gap = 8, children = { Button("查看与编辑", function() self:OpenDraftMember(member.id) end, { flex = 1, height = 38 }), Button("设为族长", function() self.draft.leaderId = member.id; self:Render() end, { flex = 1, height = 38, backgroundColor = C.pale, textColor = C.green }) } },
+            UI.Row { gap = 8, children = { Button("查看与编辑", function() self:OpenDraftMember(member.id) end, { flex = 1, height = 34 }), Button("设为族长", function() self.draft.leaderId = member.id; self:Render() end, { flex = 1, height = 34, backgroundColor = C.pale, textColor = C.green }) } },
         }))
     end
     return UI.Panel { gap = 10, children = cards }
@@ -448,11 +477,14 @@ function App:BuildOpening()
     local builders = { world = function() return self:BuildWorldPage() end, people = function() return self:BuildPeoplePage() end, estate = function() return self:BuildEstatePage() end, relics = function() return self:BuildRelicPage() end, final = function() return self:BuildFinalPage() end }
     local page = self.openingPage
     local pageActions = UI.Row { gap = 8, children = {
-        Button("随机本页", function() self:RandomizePage(page) end, { flex = 1, height = 36, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }),
-        Button("撤销随机", function() self:UndoPage(page) end, { flex = 1, height = 36, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }),
+        Button("随机本页", function() self:RandomizePage(page) end, { flex = 1, height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }),
+        Button("撤销随机", function() self:UndoPage(page) end, { flex = 1, height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }),
     } }
-    local pageContent = UI.Panel { gap = 12, children = { pageActions, builders[page]() } }
-    local scroll = UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 12, children = { pageContent } }
+    local pageChildren = { pageActions }
+    if self.openingFeedback ~= "" then table.insert(pageChildren, Label(self.openingFeedback, { fontSize = 11, fontColor = C.green, backgroundColor = C.pale, padding = 8, borderRadius = 8, whiteSpace = "normal" })) end
+    table.insert(pageChildren, builders[page]())
+    local pageContent = UI.Panel { gap = 8, children = pageChildren }
+    local scroll = UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 8, children = { pageContent } }
     return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, flexDirection = "column", children = {
         self:BuildHeader("家业", "凡世王朝 · 开局立谱"),
         self:BuildOpeningNav(),
@@ -464,8 +496,8 @@ end
 function App:BuildGameNav()
     local tabs = { { id = "family", text = "家族" }, { id = "people", text = "族人" }, { id = "estate", text = "家业" }, { id = "relics", text = "藏阁" }, { id = "history", text = "家史" } }
     local children = {}
-    for _, tab in ipairs(tabs) do table.insert(children, Button(tab.text, function() self.gameTab = tab.id; self:Render() end, { flex = 1, height = 42, fontSize = 12, backgroundColor = self.gameTab == tab.id and C.pale or C.card, textColor = self.gameTab == tab.id and C.green or C.muted })) end
-    return UI.Panel { padding = 7, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = { UI.Row { gap = 3, children = children } } }
+    for _, tab in ipairs(tabs) do table.insert(children, Button(tab.text, function() self.gameTab = tab.id; self:Render() end, { flex = 1, height = 36, fontSize = 11, backgroundColor = self.gameTab == tab.id and C.pale or C.card, textColor = self.gameTab == tab.id and C.green or C.muted })) end
+    return UI.Panel { padding = 5, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = { UI.Row { gap = 3, children = children } } }
 end
 
 function App:BuildPendingEvent(event)
@@ -541,25 +573,52 @@ end
 
 function App:BuildFamilyTab()
     local leader = State.FindMember(self.run.members, self.run.leaderId)
-    local living = 0; for _, member in ipairs(self.run.members) do if member.alive then living = living + 1 end end
+    local living, foodNeed = 0, 0
+    for _, member in ipairs(self.run.members) do
+        if member.alive then
+            living = living + 1
+            foodNeed = foodNeed + (member.age >= 18 and 2 or 1)
+        end
+    end
     local pending = Simulation.PendingEvents(self.run)
     local completedEnding = TableValue(self.run.ending)
-    local endingTitle = completedEnding["title"] or "从这一年，慢慢过成一个家。"
+    local title = completedEnding["title"] or (self.run.yearIndex == 0 and "第一年，先把这一家安顿好" or "这一年，家里的事由你决定")
     local hero = Card({
-        Label("家族第 " .. tostring(self.run.yearIndex + 1) .. " 年 · " .. Data.WORLD_NAME .. "历 " .. tostring(self.run.calendar) .. " 年", { fontSize = 13, fontColor = C.muted }),
-        Label(tostring(endingTitle), { fontSize = 25, fontWeight = "bold", whiteSpace = "normal", lineHeight = 1.45, fontColor = { 255, 254, 250, 255 } }),
-        Label("族长：" .. (leader and leader.name or "暂缺") .. " · " .. Data.Place(self.run.placeId).short, { fontSize = 14, fontColor = { 226, 235, 220, 255 } }),
+        Label("第 " .. tostring(self.run.yearIndex + 1) .. " 年 · " .. Data.WORLD_NAME .. "历 " .. tostring(self.run.calendar) .. " 年", { fontSize = 11, fontColor = { 226, 235, 220, 255 } }),
+        Label(tostring(title), { fontSize = 20, fontWeight = "bold", whiteSpace = "normal", lineHeight = 1.3, fontColor = { 255, 254, 250, 255 } }),
+        Label("族长 " .. (leader and leader.name or "暂缺") .. " · " .. Data.Place(self.run.placeId).short, { fontSize = 12, fontColor = { 226, 235, 220, 255 } }),
     }, { backgroundColor = C.dark, borderColor = C.dark })
     local metrics = UI.Row { justifyContent = "space-between", children = {
-        Label("在世族人\n" .. tostring(living) .. " 人", { fontSize = 14, whiteSpace = "normal" }),
-        Label("公库\n" .. tostring(self.run.money) .. " 两", { fontSize = 14, whiteSpace = "normal" }),
-        Label("存粮\n" .. tostring(self.run.grain) .. " 石", { fontSize = 14, whiteSpace = "normal" }),
-        Label("声望\n" .. tostring(self.run.reputation), { fontSize = 14, whiteSpace = "normal" }),
+        Label("族人\n" .. tostring(living), { fontSize = 12, whiteSpace = "normal" }),
+        Label("公库\n" .. tostring(self.run.money), { fontSize = 12, whiteSpace = "normal" }),
+        Label("存粮\n" .. tostring(self.run.grain) .. "/" .. tostring(foodNeed), { fontSize = 12, whiteSpace = "normal" }),
+        Label("声望\n" .. tostring(self.run.reputation), { fontSize = 12, whiteSpace = "normal" }),
     } }
     local children = { hero, Card({ metrics }) }
-    if self.run.ending then table.insert(children, Card({ Label("本局已落笔", { fontSize = 18, fontWeight = "bold" }), Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 14, whiteSpace = "normal" }), Button("新立家谱", function() self.run = nil; self.draft = State.NewDraft(); self.openingPage = "world"; self:Render() end, { height = 40 }) }))
-    elseif #pending > 0 then for _, event in ipairs(pending) do table.insert(children, self:BuildPendingEvent(event)) end
-    else table.insert(children, Card({ Label("这一年的安排已经保留", { fontSize = 18, fontWeight = "bold" }), Label("年度推进会按年初在世成员的主业结算收入、粮食、成长与人生变化。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), Button("推进这一年 →", function() self:RunAction(function() return Simulation.AdvanceYear(self.run, self.profile) end) end) })) end
+    if self.run.ending then
+        table.insert(children, Card({ Label("本局已落笔", { fontSize = 17, fontWeight = "bold" }), Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }), Button("新立家谱", function() self.run = nil; self.screen = "opening"; self.draft = State.NewDraft(); self.openingPage = "world"; self:Render() end, { height = 36 }) }))
+    elseif #pending > 0 then
+        table.insert(children, Card({ Label("先处理眼前这件事", { fontSize = 16, fontWeight = "bold" }), Label("事件处理后，才能结算下一年。", { fontSize = 11, fontColor = C.muted }) }))
+        for _, event in ipairs(pending) do table.insert(children, self:BuildPendingEvent(event)) end
+    else
+        local firstYear = self.run.yearIndex == 0
+        local guidance = firstYear and "先看每位族人的主业；如果手艺人或经商者没有产业，再到“家业”页置办。确认后，点底部“推进这一年”。" or (self.run.grain < foodNeed and "粮食不足以覆盖这一年：先在“族人”页安排耕作，或到“家业”页购粮、置办田地。" or "本年已有安排。你可以微调族人主业、置办家业，或直接推进年度结算。")
+        table.insert(children, Card({
+            Label(firstYear and "第一年这样开始" or "这一年的优先事项", { fontSize = 16, fontWeight = "bold" }),
+            Label(guidance, { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+            UI.Row { gap = 7, children = {
+                Button("安排族人", function() self.gameTab = "people"; self:Render() end, { flex = 1, height = 34, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }),
+                Button("查看家业", function() self.gameTab = "estate"; self:Render() end, { flex = 1, height = 34, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }),
+            } },
+        }))
+        local arrangements = { Label("本年安排", { fontSize = 16, fontWeight = "bold" }), Label("点一位族人即可改主业、婚配或安排传承。", { fontSize = 11, fontColor = C.muted }) }
+        for _, member in ipairs(self.run.members) do
+            if member.alive then
+                table.insert(arrangements, Button(member.name .. " · " .. Data.Jobs[member.jobId].name .. " · " .. tostring(member.age) .. " 岁", function() self:OpenRunMember(member.id) end, { height = 32, backgroundColor = C.pale, textColor = C.green, textAlign = "left", paddingHorizontal = 10, fontSize = 11 }))
+            end
+        end
+        table.insert(children, Card(arrangements))
+    end
     return UI.Panel { gap = 12, children = children }
 end
 
@@ -681,7 +740,7 @@ function App:BuildAnnualFooter()
     local pending = Simulation.PendingEvents(self.run)
     if #pending > 0 then return UI.Panel { padding = 8, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = { Label("有待决事件 · 请先在家族页作出决定", { textAlign = "center", fontSize = 12, fontColor = C.warning }) } } end
     return UI.Panel { padding = 8, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = {
-        Button("推进这一年", function() self:RunAction(function() return Simulation.AdvanceYear(self.run, self.profile) end) end, { height = 46, fontSize = 15 }),
+        Button("推进这一年", function() self:RunAction(function() return Simulation.AdvanceYear(self.run, self.profile) end) end, { height = 40, fontSize = 14 }),
     } }
 end
 
