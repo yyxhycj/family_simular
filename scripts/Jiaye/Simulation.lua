@@ -139,16 +139,18 @@ function Simulation.AppointLeader(run, memberId, reason)
     if not target or not target.alive or target.age < 18 then return false, "族长必须是在世成年族人。" end
     if run.leaderId == memberId then return false, "此人已是族长。" end
     local old = State.FindMember(run.members, run.leaderId)
+    local wasEffective = false
     for _, term in ipairs(run.leaderTerms) do
         if term.memberId == run.leaderId and not term.endYear then
             term.endYear = run.yearIndex
             term.effective = run.yearIndex - term.startYear >= 1
+            wasEffective = term.effective
         end
     end
     local effective = false
     table.insert(run.leaderTerms, { memberId = memberId, startYear = run.yearIndex, endYear = nil, effective = effective, reason = reason or "主动交接" })
     run.leaderId = memberId
-    if HasRelic(run, "newbook") and old then
+    if HasRelic(run, "newbook") and old and wasEffective then
         run.reputation = run.reputation + 3
         State.AddLog(run, "补完的族谱为这次有效交接添了 3 点声望。")
     end
@@ -293,64 +295,69 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
         return true, "这次机会先记在家史里。"
     end
     if event.type == "plan_work" then
-        event.status = "resolved"
         if choice == "accept" then
             if run.money < 10 then return false, "接下修缮前需要先备好 10 两工料。" end
-            run.money = run.money + 18; run.reputation = run.reputation + 5
+            event.status = "resolved"; run.money = run.money + 18; run.reputation = run.reputation + 5
             State.AddLog(run, "依照营造图完成一桩修缮，净得 18 两并获 5 点声望。")
             return true, "修缮活已完成。"
         end
+        event.status = "resolved"
         State.AddLog(run, "家中婉拒了这次修缮活。")
         return true, "已婉拒。"
     end
     if event.type == "jade_search" then
-        event.status = "resolved"
         if choice == "search" then
             if run.money < 8 then return false, "查访故人需要 8 两路费。" end
-            run.money = run.money - 8; run.flags.jadeReunited = true; run.reputation = run.reputation + 8
+            event.status = "resolved"; run.money = run.money - 8; run.flags.jadeReunited = true; run.reputation = run.reputation + 8
             State.AddLog(run, "半枚玉佩终于找到另一半，故人的名字被重新记下。")
             return true, "重逢已写入家史，声望 +8。"
         end
+        event.status = "resolved"
         State.AddLog(run, "玉佩的线索被小心收好，等待下次查访。")
         return true, "线索暂存。"
     end
     if event.type == "school" then
-        event.status = "resolved"
         if choice == "support" then
             if run.money < 6 then return false, "添置书本需要 6 两。" end
-            run.money = run.money - 6
+            event.status = "resolved"; run.money = run.money - 6
             for _, member in ipairs(run.members) do if member.alive and member.age < 18 then member.stats.learn = math.min(100, (member.stats.learn or 0) + 4) end end
             State.AddLog(run, "家中为孩子添置书本，在读的孩子学识各 +4。")
             return true, "书本已添置。"
         end
+        event.status = "resolved"
         State.AddLog(run, "今年先把书本钱留给日常开销。")
         return true, "已暂缓。"
     end
     if event.type == "community_request" then
+        if choice == "aid" then
+            if run.money < 15 then return false, "接济邻里需要 15 两。" end
+            local ok, message = Simulation.AidCommunity(run)
+            if ok then event.status = "resolved" end
+            return ok, message
+        end
         event.status = "resolved"
-        if choice == "aid" then return Simulation.AidCommunity(run) end
         State.AddLog(run, "家中这次没有接下邻里的周转请求。")
         return true, "已婉拒。"
     end
     if event.type == "roof" then
-        event.status = "resolved"
         if choice == "repair" then
             if run.money < 8 then return false, "修补屋顶需要 8 两。" end
-            run.money = run.money - 8; run.reputation = run.reputation + 2
+            event.status = "resolved"; run.money = run.money - 8; run.reputation = run.reputation + 2
             State.AddLog(run, "屋顶修补妥当，邻里也记下了这份踏实。")
             return true, "屋顶已修补，声望 +2。"
         end
+        event.status = "resolved"
         State.AddLog(run, "屋顶暂未修补，来年仍要留心。")
         return true, "已暂缓。"
     end
     if event.type == "notes_choice" then
-        event.status = "resolved"
         if choice == "print" then
             if run.money < 8 then return false, "刊印医案需要 8 两。" end
-            run.money = run.money - 8; run.reputation = run.reputation + 8
+            event.status = "resolved"; run.money = run.money - 8; run.reputation = run.reputation + 8
             State.AddLog(run, "家中刊印批注医案，声望 +8。")
             return true, "医案已刊印。"
         end
+        event.status = "resolved"
         State.AddLog(run, "批注医案被郑重传给后人保管。")
         return true, "医案已传承。"
     end
@@ -605,7 +612,7 @@ function Simulation.EndingProgress(run, endingId)
         grain = { { "实际经营", run.yearIndex, 15 }, { "连续生活充足", run.metrics.foodYears, 10 }, { "存粮", run.grain, 80 } },
         community = { { "实际经营", run.yearIndex, 12 }, { "援助邻里", run.metrics.aid, 3 }, { "声望", run.reputation, 70 } },
         migration = { { "实际迁居", run.metrics.migrations, 1 }, { "迁居后年数", run.yearIndex - run.metrics.lastMove, 8 }, { "连续生活充足", run.metrics.stable, 5 } },
-        ["return"] = { { "护卫后返家", (function() for _, m in ipairs(Living(run)) do if (m.jobYears.guard or 0) >= 3 and (m.jobId == "rest" or m.jobId == "farm" or m.jobId == "home") then return 1 end end return 0 end)(), 1 }, { "实际经营", run.yearIndex, 8 }, { "真实交接", EffectiveHandovers(run), 1 } },
+        ["return"] = { { "护卫后返家", (function() for _, m in ipairs(run.members) do if m.hadHomeAfterGuard then return 1 end end return 0 end)(), 1 }, { "实际经营", run.yearIndex, 8 }, { "真实交接", EffectiveHandovers(run), 1 } },
         promise = { { "完成旧约", run.flags.promiseKept and 1 or 0, 1 }, { "实际经营", run.yearIndex, 6 }, { "连续生活充足", run.metrics.stable, 3 } },
         ruler = { { "修复旧尺", run.flags.rulerRestored and 1 or 0, 1 }, { "手艺人年", JobYears(run, "craft"), 8 }, { "真实交接", EffectiveHandovers(run), 1 } },
         reunion = { { "重修族谱", run.flags.bookRestored and 1 or 0, 1 }, { "实际经营", run.yearIndex, 6 }, { "真实交接", EffectiveHandovers(run), 1 } },
