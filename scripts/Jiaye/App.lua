@@ -37,6 +37,11 @@ local function TableValue(value)
     return type(value) == "table" and value or {}
 end
 
+local function HasId(values, id)
+    for _, value in ipairs(values or {}) do if value == id then return true end end
+    return false
+end
+
 function App.New()
     local self = setmetatable({}, App)
     self:Init()
@@ -47,11 +52,14 @@ function App:Init()
     self.profile = State.NewProfile()
     self.draft = State.NewDraft()
     self.run = nil
+    self.screen = "cover"
     self.openingPage = "world"
     self.gameTab = "family"
     self.undo = {}
     self.root = nil
     self.previewLabel = nil
+    self.peopleFilter = "all"
+    self.peopleQuery = ""
 end
 
 function App:Notify(message, variant)
@@ -67,7 +75,10 @@ function App:Load()
     local value, message = State.Load()
     if not value then self:Notify(message, "warning"); return end
     if type(value.profile) == "table" and type(value.draft) == "table" then
+        value.profile.unlockedRelicIds = value.profile.unlockedRelicIds or { book = true, ruler = true, letter = true }
+        value.profile.endingRecords = value.profile.endingRecords or {}
         self.profile, self.draft, self.run = value.profile, value.draft, value.run
+        self.screen = self.run and "game" or "opening"
         self:Render(); self:Notify(message, "success")
     else self:Notify("存档缺少必要字段，未覆盖当前进度。", "error") end
 end
@@ -190,7 +201,7 @@ end
 function App:StartRun()
     local run, issues = State.NewRun(self.draft, self.profile)
     if not run then self:Notify(table.concat(issues, " "), "error"); return end
-    self.run = run; self.gameTab = "family"; self:Save(); self:Render(); self:Notify("家谱开篇。每一年的安排都会留下痕迹。", "success")
+    self.run = run; self.screen = "game"; self.gameTab = "family"; self:Save(); self:Render(); self:Notify("家谱开篇。每一年的安排都会留下痕迹。", "success")
 end
 
 function App:RunAction(fn)
@@ -313,16 +324,49 @@ function App:OpenDraftMember(memberId)
             end, { width = 92, height = 40, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }),
         } },
         Label("年龄：" .. tostring(editing.age), { fontSize = 13 }), UI.Stepper { value = editing.age, min = 0, max = 92, step = 1, onChange = function(_, value) editing.age = math.floor(value) end },
+        Label("亲缘与婚配", { fontSize = 16, fontWeight = "bold", marginTop = 6 }),
+        Label("亲缘在保存时校验年龄差与循环；婚配必须双方成年。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
         Label("资质", { fontSize = 13, fontWeight = "bold" }),
     } } } }
-    for index, talent in ipairs(Data.Talents) do content:GetChildAt(1):AddChild(Button(talent.name .. " · " .. tostring(talent.cost) .. " 点", function() editing.talent = index; self:Notify("已在临时预览中选择“" .. talent.name .. "”。") end, { height = 34, backgroundColor = editing.talent == index and C.green or C.pale, textColor = editing.talent == index and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
-    content:GetChildAt(1):AddChild(Label("已有本领", { fontSize = 13, fontWeight = "bold" }))
-    for _, experience in ipairs(Data.Experiences) do content:GetChildAt(1):AddChild(Button(experience.name .. " · " .. tostring(experience.cost) .. " 点", function() editing.experienceId = experience.id; self:Notify("已在临时预览中选择“" .. experience.name .. "”。") end, { height = 34, backgroundColor = editing.experienceId == experience.id and C.green or C.pale, textColor = editing.experienceId == experience.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
+    local panel = content:GetChildAt(1)
+    for _, candidate in ipairs(self.draft.members) do
+        if candidate.id ~= editing.id and candidate.age - editing.age >= 18 then
+            panel:AddChild(Button((HasId(editing.parents, candidate.id) and "✓ " or "") .. "设为父母/养亲：" .. candidate.name, function()
+                if HasId(editing.parents, candidate.id) then
+                    local nextParents = {}; for _, id in ipairs(editing.parents) do if id ~= candidate.id then table.insert(nextParents, id) end end; editing.parents = nextParents
+                elseif #editing.parents < 2 then
+                    table.insert(editing.parents, candidate.id)
+                else self:Notify("最多可设两位父母/养亲。", "warning") end
+            end, { height = 34, backgroundColor = HasId(editing.parents, candidate.id) and C.green or C.pale, textColor = HasId(editing.parents, candidate.id) and { 255, 255, 255, 255 } or C.green, fontSize = 12 }))
+        end
+    end
+    for _, candidate in ipairs(self.draft.members) do
+        if candidate.id ~= editing.id and candidate.age >= 18 and editing.age >= 18 then
+            panel:AddChild(Button((editing.spouseId == candidate.id and "✓ " or "") .. "设为配偶：" .. candidate.name, function()
+                editing.spouseId = editing.spouseId == candidate.id and nil or candidate.id
+                self:Notify("婚配将在保存时双向写入并校验。", "info")
+            end, { height = 34, backgroundColor = editing.spouseId == candidate.id and C.green or C.pale, textColor = editing.spouseId == candidate.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 }))
+        end
+    end
+    for index, talent in ipairs(Data.Talents) do panel:AddChild(Button(talent.name .. " · " .. tostring(talent.cost) .. " 点", function() editing.talent = index; self:Notify("已在临时预览中选择“" .. talent.name .. "”。") end, { height = 34, backgroundColor = editing.talent == index and C.green or C.pale, textColor = editing.talent == index and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
+    panel:AddChild(Label("已有本领", { fontSize = 13, fontWeight = "bold" }))
+    for _, experience in ipairs(Data.Experiences) do panel:AddChild(Button(experience.name .. " · " .. tostring(experience.cost) .. " 点", function() editing.experienceId = experience.id; self:Notify("已在临时预览中选择“" .. experience.name .. "”。") end, { height = 34, backgroundColor = editing.experienceId == experience.id and C.green or C.pale, textColor = editing.experienceId == experience.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
     modal:AddContent(content)
     modal:SetFooter(UI.Row { gap = 8, children = {
         Button("移除", function() modal:Close(); self:RemoveMember(memberId) end, { flex = 1, backgroundColor = C.warning }),
         Button("取消", function() modal:Close() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
-        Button("保存", function() for index, item in ipairs(self.draft.members) do if item.id == memberId then self.draft.members[index] = editing end end; modal:Close(); self:Render(); self:Notify("人物编辑已保存。", "success") end, { flex = 1 }),
+        Button("保存", function()
+            for _, item in ipairs(self.draft.members) do if item.spouseId == memberId then item.spouseId = nil end end
+            if editing.spouseId then
+                local spouse = State.FindMember(self.draft.members, editing.spouseId)
+                if spouse then
+                    if spouse.spouseId then local former = State.FindMember(self.draft.members, spouse.spouseId); if former then former.spouseId = nil end end
+                    spouse.spouseId = memberId
+                end
+            end
+            for index, item in ipairs(self.draft.members) do if item.id == memberId then self.draft.members[index] = editing end end
+            modal:Close(); self:Render(); self:Notify("人物与关系编辑已保存。", "success")
+        end, { flex = 1 }),
     } })
     modal:Open()
 end
@@ -331,8 +375,8 @@ function App:BuildEstatePage()
     local used, capacity = State.PageBudget(self.draft, "estate")
     local homeButtons = {}
     for _, home in ipairs(Data.Homes) do table.insert(homeButtons, Button(home.name .. " · " .. tostring(home.cost) .. " 点", function() self.draft.homeId = home.id; self:Render() end, { height = 38, backgroundColor = self.draft.homeId == home.id and C.green or C.pale, textColor = self.draft.homeId == home.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
-    local habitButtons = {}; for _, habit in ipairs(Data.Habits) do table.insert(habitButtons, Button(habit.name .. " · " .. tostring(habit.cost) .. " 点", function() self.draft.habitId = habit.id; self:Render() end, { height = 36, backgroundColor = self.draft.habitId == habit.id and C.green or C.pale, textColor = self.draft.habitId == habit.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
-    local tieButtons = {}; for _, tie in ipairs(Data.Ties) do table.insert(tieButtons, Button(tie.name .. " · " .. tostring(tie.cost) .. " 点", function() self.draft.tieId = tie.id; self:Render() end, { height = 36, backgroundColor = self.draft.tieId == tie.id and C.green or C.pale, textColor = self.draft.tieId == tie.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
+    local habitButtons = {}; for _, habit in ipairs(Data.Habits) do table.insert(habitButtons, Button(habit.name .. " · " .. tostring(habit.cost) .. " 点\n" .. habit.desc, function() self.draft.habitId = habit.id; self:Render() end, { height = 52, backgroundColor = self.draft.habitId == habit.id and C.green or C.pale, textColor = self.draft.habitId == habit.id and { 255, 255, 255, 255 } or C.green, fontSize = 12, textAlign = "left", paddingHorizontal = 10 })) end
+    local tieButtons = {}; for _, tie in ipairs(Data.Ties) do table.insert(tieButtons, Button(tie.name .. " · " .. tostring(tie.cost) .. " 点\n" .. tie.desc, function() self.draft.tieId = tie.id; self:Render() end, { height = 52, backgroundColor = self.draft.tieId == tie.id and C.green or C.pale, textColor = self.draft.tieId == tie.id and { 255, 255, 255, 255 } or C.green, fontSize = 12, textAlign = "left", paddingHorizontal = 10 })) end
     return UI.Panel { gap = 12, children = {
         Card({ Label("安身家底", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点。初始家底与每年收益分开结算。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
             Label("现银 " .. tostring(self.draft.money) .. " 两（每 10 两 1 点）", { fontSize = 14 }), UI.Stepper { value = self.draft.money, min = 0, max = 300, step = 10, onChange = function(_, value) self.draft.money = math.floor(value); self:UpdatePreview() end },
@@ -388,6 +432,18 @@ function App:BuildFinalPage()
     return UI.Panel { gap = 12, children = { summaryCard, backupCard } }
 end
 
+function App:BuildCover()
+    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.dark, justifyContent = "center", padding = 26, children = {
+        UI.Panel { gap = 16, children = {
+            Label("家业", { fontSize = 42, fontWeight = "bold", fontColor = { 255, 254, 250, 255 } }),
+            Label("一部由选择写成的家谱", { fontSize = 18, fontColor = { 226, 235, 220, 255 } }),
+            Label("立一户人家，过一年算一年。有人出生、有人离去，手艺、声望与旧物都会留在家史里。", { fontSize = 15, fontColor = { 226, 235, 220, 255 }, whiteSpace = "normal", lineHeight = 1.65, marginTop = 12 }),
+            Button("立一部家谱", function() self.screen = "opening"; self:Render() end, { height = 52, fontSize = 17, marginTop = 20 }),
+            Button("读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }),
+        } },
+    } }
+end
+
 function App:BuildOpening()
     local builders = { world = function() return self:BuildWorldPage() end, people = function() return self:BuildPeoplePage() end, estate = function() return self:BuildEstatePage() end, relics = function() return self:BuildRelicPage() end, final = function() return self:BuildFinalPage() end }
     local page = self.openingPage
@@ -433,6 +489,53 @@ function App:BuildPendingEvent(event)
         local choices = {}; for _, member in ipairs(self.run.members) do if member.alive and member.age >= 18 then table.insert(choices, Button("任命 " .. member.name, function() self:RunAction(function() return Simulation.ResolveLeaderEvent(self.run, event.instanceId, member.id) end) end, { height = 38 })) end end
         return Card({ Label("族长之位空缺", { fontSize = 19, fontWeight = "bold" }), Label("家族仍可继续，但需要从在世成年族人中选任族长。", { fontSize = 14, whiteSpace = "normal" }), UI.Panel { gap = 6, children = choices } }, { borderColor = C.warning })
     end
+    local details = {
+        medical_find = "医馆愿意把一册珍贵的批注医案托付给家中。收下后，它会真实进入本局藏阁，并解锁下一局。",
+        plan_work = "有人看中了旧营造图。备好工料接下活计，可换得净收益与声望。",
+        jade_search = "半枚玉佩传来新的去向。付路费查访，或把线索留待以后。",
+        school = "孩子的求学机会就在眼前。添置书本会让所有未成年族人增长学识。",
+        community_request = "邻里手头困难，是否拿出家中余钱周转？",
+        roof = "雨季将近，屋顶的破损需要决定是否现在修补。",
+        notes_choice = "医案已经到手。可以花钱刊印，也可以郑重地传给后人。",
+    }
+    local actions = nil
+    if event.type == "medical_find" then
+        actions = UI.Row { gap = 8, children = {
+            Button("收下医案", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "accept", self.profile) end) end, { flex = 1 }),
+            Button("暂不收下", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "decline", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        } }
+    elseif event.type == "plan_work" then
+        actions = UI.Row { gap = 8, children = {
+            Button("接下修缮", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "accept", self.profile) end) end, { flex = 1 }),
+            Button("婉拒", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "decline", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        } }
+    elseif event.type == "jade_search" then
+        actions = UI.Row { gap = 8, children = {
+            Button("查访（8 两）", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "search", self.profile) end) end, { flex = 1 }),
+            Button("暂存", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "defer", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        } }
+    elseif event.type == "school" then
+        actions = UI.Row { gap = 8, children = {
+            Button("添书（6 两）", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "support", self.profile) end) end, { flex = 1 }),
+            Button("暂缓", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "decline", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        } }
+    elseif event.type == "community_request" then
+        actions = UI.Row { gap = 8, children = {
+            Button("接济（15 两）", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "aid", self.profile) end) end, { flex = 1 }),
+            Button("婉拒", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "decline", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        } }
+    elseif event.type == "roof" then
+        actions = UI.Row { gap = 8, children = {
+            Button("修补（8 两）", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "repair", self.profile) end) end, { flex = 1 }),
+            Button("暂缓", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "decline", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        } }
+    elseif event.type == "notes_choice" then
+        actions = UI.Row { gap = 8, children = {
+            Button("刊印（8 两）", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "print", self.profile) end) end, { flex = 1 }),
+            Button("传给后人", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "pass", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        } }
+    end
+    if actions then return Card({ Label(event.title, { fontSize = 19, fontWeight = "bold" }), Label(details[event.type] or "需要你的决定。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.55 }), actions }, { borderColor = C.green }) end
     return Card({ Label(event.title, { fontSize = 18, fontWeight = "bold" }) })
 end
 
@@ -475,7 +578,18 @@ function App:OpenRunMember(memberId)
         content:GetChildAt(1):AddChild(Button("应试（10 两）", function() self:RunAction(function() return Simulation.TakeExam(self.run, memberId) end); modal:Close() end, { height = 38 }))
         content:GetChildAt(1):AddChild(Button("安排婚配（12 两）", function() self:RunAction(function() return Simulation.Marry(self.run, memberId) end); modal:Close() end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
         content:GetChildAt(1):AddChild(Button("收养孩子（8 两）", function() self:RunAction(function() return Simulation.Adopt(self.run, memberId) end); modal:Close() end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
+        content:GetChildAt(1):AddChild(Button(member.birthPlan == false and "愿意迎来孩子" or "暂不计划生育", function()
+            self:RunAction(function() return Simulation.SetBirthPlan(self.run, memberId, member.birthPlan == false) end); modal:Close()
+        end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
         content:GetChildAt(1):AddChild(Button("任命为族长", function() self:RunAction(function() return Simulation.AppointLeader(self.run, memberId, "主动交接") end); modal:Close() end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
+    end
+    for _, relic in ipairs(self.run.relicInstances) do
+        if relic.status ~= "sold" and relic.custodianId ~= memberId and member.alive then
+            local definition = Data.Relic(relic.definitionId)
+            content:GetChildAt(1):AddChild(Button("交由" .. member.name .. "保管 · " .. definition.name, function()
+                self:RunAction(function() return Simulation.TransferRelic(self.run, relic.instanceId, memberId) end); modal:Close()
+            end, { height = 36, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }))
+        end
     end
     content:GetChildAt(1):AddChild(Label("经历", { fontSize = 16, fontWeight = "bold", marginTop = 8 }))
     for _, line in ipairs(member.biography) do content:GetChildAt(1):AddChild(Label("• " .. line, { fontSize = 13, whiteSpace = "normal", fontColor = C.muted })) end
@@ -483,8 +597,19 @@ function App:OpenRunMember(memberId)
 end
 
 function App:BuildPeopleTab()
-    local cards = { Card({ Label("全体族人", { fontSize = 21, fontWeight = "bold" }), Label("所有成员都可独立安排；死亡不会从家谱中删除。", { fontSize = 13, fontColor = C.muted }) }) }
-    for _, member in ipairs(self.run.members) do table.insert(cards, Card({ UI.Row { justifyContent = "space-between", children = { Label(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 17, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted }), Label(member.id == self.run.leaderId and "族长" or (member.alive and "" or "已故"), { fontSize = 12, fontColor = C.green }) } }, Label(member.alive and Data.Jobs[member.jobId].name or "生平已封存", { fontSize = 13, fontColor = C.muted }), Button(member.alive and "查看与安排" or "阅读生平", function() self:OpenRunMember(member.id) end, { height = 38 }) })) end
+    local cards = { Card({ Label("全体族人", { fontSize = 21, fontWeight = "bold" }), Label("所有成员都可独立安排；死亡不会从家谱中删除。", { fontSize = 13, fontColor = C.muted }),
+        UI.Row { gap = 5, children = {
+            Button("全部", function() self.peopleFilter = "all"; self:Render() end, { flex = 1, height = 34, fontSize = 11, backgroundColor = self.peopleFilter == "all" and C.green or C.pale, textColor = self.peopleFilter == "all" and { 255, 255, 255, 255 } or C.green }),
+            Button("在世", function() self.peopleFilter = "alive"; self:Render() end, { flex = 1, height = 34, fontSize = 11, backgroundColor = self.peopleFilter == "alive" and C.green or C.pale, textColor = self.peopleFilter == "alive" and { 255, 255, 255, 255 } or C.green }),
+            Button("已故", function() self.peopleFilter = "dead"; self:Render() end, { flex = 1, height = 34, fontSize = 11, backgroundColor = self.peopleFilter == "dead" and C.green or C.pale, textColor = self.peopleFilter == "dead" and { 255, 255, 255, 255 } or C.green }),
+        } },
+        UI.TextField { value = self.peopleQuery, placeholder = "按姓名筛选", onChange = function(_, value) self.peopleQuery = value; self:Render() end },
+    }) }
+    for _, member in ipairs(self.run.members) do
+        local visible = self.peopleFilter == "all" or (self.peopleFilter == "alive" and member.alive) or (self.peopleFilter == "dead" and not member.alive)
+        visible = visible and (self.peopleQuery == "" or string.find(member.name, self.peopleQuery, 1, true) ~= nil)
+        if visible then table.insert(cards, Card({ UI.Row { justifyContent = "space-between", children = { Label(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 17, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted }), Label(member.id == self.run.leaderId and "族长" or (member.alive and "" or "已故"), { fontSize = 12, fontColor = C.green }) } }, Label(member.alive and Data.Jobs[member.jobId].name or "生平已封存", { fontSize = 13, fontColor = C.muted }), Button(member.alive and "查看与安排" or "阅读生平", function() self:OpenRunMember(member.id) end, { height = 38 }) })) end
+    end
     return UI.Panel { gap = 10, children = cards }
 end
 
@@ -534,17 +659,30 @@ function App:BuildRelicsTab()
         local actions = nil
         actions = Label("已出售 · 历史和局外资格仍会保留。", { fontSize = 13, fontColor = C.warning })
         if instance.status ~= "sold" then
-            actions = UI.Row { gap = 6, children = {
+            local actionChildren = {
                 Button("快查", function() self:RunAction(function() return Simulation.StartRelicInvestigation(self.run, instance.instanceId, "fast") end) end, { flex = 1, height = 36 }),
                 Button("慢查", function() self:RunAction(function() return Simulation.StartRelicInvestigation(self.run, instance.instanceId, "slow") end) end, { flex = 1, height = 36, backgroundColor = C.pale, textColor = C.green }),
                 Button("出售", function() self:RunAction(function() return Simulation.SellRelic(self.run, instance.instanceId) end) end, { flex = 1, height = 36, backgroundColor = C.warning }),
-            } }
+            }
+            actions = UI.Panel { gap = 6, children = { UI.Row { gap = 6, children = actionChildren } } }
+            if relic.id == "newbook" then
+                actions:AddChild(Button("邀请成年旁支归家（12 两）", function() self:RunAction(function() return Simulation.InviteBranch(self.run, instance.instanceId) end) end, { height = 36, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }))
+            end
         end
         table.insert(cards, Card({ Label(relic.name, { fontSize = 18, fontWeight = "bold" }), Label("状态：" .. instance.status .. " · 保管人：" .. (custodian and custodian.name or "家中"), { fontSize = 13, fontColor = C.muted }), actions,
         }))
     end
     if #self.run.relicInstances == 0 then table.insert(cards, Card({ Label("本局没有带入旧物。", { fontSize = 15, fontColor = C.muted }) })) end
     return UI.Panel { gap = 10, children = cards }
+end
+
+function App:BuildAnnualFooter()
+    if self.run.ending then return nil end
+    local pending = Simulation.PendingEvents(self.run)
+    if #pending > 0 then return UI.Panel { padding = 8, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = { Label("有待决事件 · 请先在家族页作出决定", { textAlign = "center", fontSize = 12, fontColor = C.warning }) } } end
+    return UI.Panel { padding = 8, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = {
+        Button("推进这一年", function() self:RunAction(function() return Simulation.AdvanceYear(self.run, self.profile) end) end, { height = 46, fontSize = 15 }),
+    } }
 end
 
 function App:BuildHistoryTab()
@@ -573,17 +711,21 @@ end
 function App:BuildGame()
     local builders = { family = function() return self:BuildFamilyTab() end, people = function() return self:BuildPeopleTab() end, estate = function() return self:BuildEstateTab() end, relics = function() return self:BuildRelicsTab() end, history = function() return self:BuildHistoryTab() end }
     local openingSnapshot = TableValue(self.run.openingSnapshot)
-    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, flexDirection = "column", children = {
+    local children = {
         self:BuildHeader("家业", tostring(openingSnapshot["family"] or "无名") .. "氏家谱 · " .. Data.Place(self.run.placeId).short),
-        UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 12, children = { builders[self.gameTab]() } }, self:BuildGameNav(),
-    } }
+        UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 12, children = { builders[self.gameTab]() } },
+    }
+    local annualFooter = self:BuildAnnualFooter()
+    if annualFooter then table.insert(children, annualFooter) end
+    table.insert(children, self:BuildGameNav())
+    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, flexDirection = "column", children = children }
 end
 
 function App:Render()
-    local page = self.run and self:BuildGame() or self:BuildOpening()
+    local page = self.screen == "cover" and self:BuildCover() or (self.run and self:BuildGame() or self:BuildOpening())
     local phoneFrame = UI.Panel {
         width = "100%",
-        maxWidth = 480,
+        maxWidth = 430,
         height = "100%",
         backgroundColor = C.paper,
         overflow = "hidden",
