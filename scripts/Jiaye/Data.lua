@@ -5,10 +5,10 @@ Data.WORLD_NAME = "大晟"
 Data.RULES_VERSION = 1
 
 Data.Periods = {
-    { id = "rebuild", name = "乱后重建", era = "rebuild", years = { 12, 24, 36 }, cost = 8, wage = 1.00, food = 2, expense = 1.00, desc = "乱后初定，谋生与学艺都不容易，也都有机会。" },
-    { id = "peace", name = "安定盛年", era = "peace", years = { 48, 60, 72 }, cost = 12, wage = 1.05, food = 2, expense = 1.00, desc = "道路通畅，乡里安稳。" },
-    { id = "strain", name = "盛世渐晚", era = "strain", years = { 96, 108, 120 }, cost = 4, wage = 1.00, food = 3, expense = 1.10, desc = "物价慢慢上涨，过日子要多留一份心。" },
-    { id = "unrest", name = "变局将至", era = "unrest", years = { 132, 144, 156 }, cost = 0, wage = 0.85, food = 4, expense = 1.05, desc = "商路时通时断，先安顿下来，再想明天。" },
+    { id = "rebuild", name = "百废初兴", era = "rebuild", years = { 12, 24, 36 }, cost = 8, wage = 1.00, food = 2, expense = 1.00, desc = "乱后初定，谋生与学艺都不容易，也都有机会。" },
+    { id = "peace", name = "承平岁月", era = "peace", years = { 48, 60, 72 }, cost = 12, wage = 1.05, food = 2, expense = 1.00, desc = "道路通畅，乡里安稳。" },
+    { id = "strain", name = "繁华之下", era = "strain", years = { 96, 108, 120 }, cost = 4, wage = 1.00, food = 3, expense = 1.10, desc = "物价慢慢上涨，过日子要多留一份心。" },
+    { id = "unrest", name = "风雨欲来", era = "unrest", years = { 132, 144, 156 }, cost = 0, wage = 0.85, food = 4, expense = 1.05, desc = "商路时通时断，先安顿下来，再想明天。" },
 }
 
 Data.Origins = {
@@ -21,11 +21,11 @@ Data.Origins = {
 }
 
 Data.Places = {
-    { id = "village", name = "河畔乡村", short = "青石村", cost = 0, desc = "收益：耕作每年多收 2 石粮。", burden = "代价：非耕作收入 -8%。", incomeMultiplier = 0.92 },
-    { id = "mountain", name = "山间小镇", short = "青岚镇", cost = 2, desc = "收益：手艺、行医收入 +10%。", burden = "代价：耕作每年少收 2 石粮。", farmGrainModifier = -2 },
-    { id = "border", name = "边地驿镇", short = "北望驿", cost = 3, desc = "收益：护卫收入 +20%。", burden = "代价：生活开支 +8%，全家每年劳损 1 点。", expenseMultiplier = 1.08, healthPenalty = 1 },
+    { id = "village", name = "河畔乡村", short = "青石村", cost = 0, desc = "收益：耕作每年多收 2 石粮。", burden = "代价：非耕作收入 -5%。", incomeMultiplier = 0.95 },
+    { id = "mountain", name = "山间小镇", short = "青岚镇", cost = 2, desc = "收益：手艺、行医收入 +10%。", burden = "代价：耕作每年少收 1 石粮。", farmGrainModifier = -1 },
+    { id = "border", name = "边地驿镇", short = "北望驿", cost = 3, desc = "收益：护卫收入 +20%。", burden = "代价：生活开支 +5%。", expenseMultiplier = 1.05 },
     { id = "county", name = "县城近郊", short = "临川县", cost = 7, desc = "收益：读书每年额外学识 +1。", burden = "代价：生活开支 +15%。", expenseMultiplier = 1.15 },
-    { id = "port", name = "江口商埠", short = "江口埠", cost = 10, desc = "收益：经商收入 +20%。", burden = "代价：生活开支 +20%，缺粮时购粮价 +10%。", expenseMultiplier = 1.20, foodMultiplier = 1.10 },
+    { id = "port", name = "江口商埠", short = "江口埠", cost = 10, desc = "收益：经商收入 +20%。", burden = "代价：生活开支 +15%。", expenseMultiplier = 1.15 },
 }
 
 Data.Surnames = { "林", "沈", "顾", "陆", "程", "许", "周", "宋", "苏", "叶", "闻", "姜" }
@@ -75,24 +75,24 @@ Data.Homes = {
 }
 
 Data.Habits = {
-    { id = "none", name = "各自舒展", cost = 0 }, { id = "frugal", name = "节用惜物", cost = 5 },
-    { id = "education", name = "不废灯火", cost = 5 }, { id = "care", name = "彼此照应", cost = 5 },
+    { id = "none", name = "各自舒展", cost = 0, desc = "没有额外的年度修正。" }, { id = "frugal", name = "节用惜物", cost = 5, desc = "全家日常开支 -10%。" },
+    { id = "education", name = "不废灯火", cost = 5, desc = "读书每年额外学识 +1。" }, { id = "care", name = "彼此照应", cost = 5, desc = "休养每年额外恢复体魄 +2。" },
 }
 
 Data.Ties = {
-    { id = "none", name = "初来乍到", cost = 0 }, { id = "teacher", name = "一位师友", cost = 6 },
-    { id = "healer", name = "医馆旧识", cost = 6 }, { id = "partner", name = "商路故交", cost = 6 },
-    { id = "neighbor", name = "乡里相熟", cost = 6 },
+    { id = "none", name = "初来乍到", cost = 0, desc = "没有额外的人情便利。" }, { id = "teacher", name = "一位师友", cost = 6, desc = "读书每年额外学识 +1，教书收入 +2 两。" },
+    { id = "healer", name = "医馆旧识", cost = 6, desc = "学医每年额外医术 +1，行医收入 +2 两。" }, { id = "partner", name = "商路故交", cost = 6, desc = "经商收入 +3 两。" },
+    { id = "neighbor", name = "乡里相熟", cost = 6, desc = "初始声望 +12，接济邻里额外声望 +2。" },
 }
 
 Data.Relics = {
-    { id = "book", name = "一本旧族谱", cost = 6, basic = true, unlock = "newbook", event = "book", desc = "折起的一页，等待被重新读懂。" },
-    { id = "ruler", name = "一把老木尺", cost = 6, basic = true, unlock = "plan", event = "ruler", desc = "尺背有陌生的匠号。" },
-    { id = "letter", name = "一封未拆的家书", cost = 4, basic = true, unlock = "jade", event = "letter", desc = "有人曾说，等日子安稳了再送到。" },
-    { id = "plan", name = "修复的营造图", cost = 10, unlock = nil, event = "plan", desc = "可接下修缮工作，增进手艺路线。" },
-    { id = "newbook", name = "补完的族谱", cost = 9, unlock = nil, event = "newbook", desc = "空着的一行终于写回名字。" },
-    { id = "jade", name = "故人的半枚玉佩", cost = 8, unlock = nil, event = "jade", desc = "另一半不在这里。" },
-    { id = "notes", name = "批注医案", cost = 10, unlock = nil, event = "notes", desc = "一页页认真记下的诊治经验。" },
+    { id = "book", name = "一本旧族谱", cost = 6, saleValue = 12, basic = true, unlock = "newbook", event = "book", desc = "折起的一页，等待被重新读懂。修复后补出一本族谱。" },
+    { id = "ruler", name = "一把老木尺", cost = 6, saleValue = 14, basic = true, unlock = "plan", event = "ruler", desc = "尺背有陌生的匠号。修复后寻回一张营造图。" },
+    { id = "letter", name = "一封未拆的家书", cost = 4, saleValue = 6, basic = true, unlock = "jade", event = "letter", desc = "有人曾说，等日子安稳了再送到。修复后寻回半枚玉佩。" },
+    { id = "plan", name = "修复的营造图", cost = 10, saleValue = 30, unlock = nil, event = "plan", desc = "家中有手艺人时，每年额外得 5 两；还会带来修缮活。" },
+    { id = "newbook", name = "补完的族谱", cost = 9, saleValue = 18, unlock = nil, event = "newbook", desc = "一次有效交接额外获得 3 点声望，可邀请成年旁支归家。" },
+    { id = "jade", name = "故人的半枚玉佩", cost = 8, saleValue = 28, unlock = nil, event = "jade", desc = "可继续查访失散故人，完成一次家谱重逢。" },
+    { id = "notes", name = "批注医案", cost = 10, saleValue = 24, unlock = nil, event = "notes", desc = "学医、行医每年额外医术 +2；可选择刊印或传给后人。" },
 }
 
 Data.Endings = {
