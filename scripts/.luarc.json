@@ -50,7 +50,13 @@
             "undefined-field": "Any!"
         },
         "globals": [
-            "tolua"
+            "tolua",
+            "graphics",
+            "File",
+            "FILE_READ",
+            "FILE_WRITE",
+            "fileSystem",
+            "cjson"
         ],
         "disable": [
             "lowercase-global"
