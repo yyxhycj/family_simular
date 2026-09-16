@@ -208,25 +208,88 @@ end
 
 function State.AddLog(run, text)
     table.insert(run.logs, 1, { year = run.calendar, text = text })
-    while #run.logs > 120 do table.remove(run.logs) end
+end
+
+-- 两个交替存档位：只写非最新的一份，失败时保留上次可读进度。
+---@type string[]
+local SAVE_PATHS = { "jiaye_save.json", "jiaye_save.backup.json" }
+---@type string?
+local failedSavePath = nil
+
+local function ReadFile(path)
+    local file = File(path, FILE_READ)
+    if not file:IsOpen() then return nil end
+    local ok, raw = pcall(function() return file:ReadString() end)
+    file:Close()
+    return ok and raw or nil
+end
+
+local function ReadSlot(path)
+    -- 本进程未确认成功的候选不参与选档；首次保存失败后仍能原地重试。
+    -- 重启后没有此标记，仍按磁盘内容检查，绝不自行覆盖未知坏档。
+    if path == failedSavePath then return nil, "unconfirmed" end
+    if not fileSystem:FileExists(path) then return nil, "missing" end
+    local raw = ReadFile(path)
+    if not raw then return nil, "unreadable" end
+    local ok, value = pcall(cjson.decode, raw)
+    if not ok or type(value) ~= "table" then return nil, "invalid" end
+    local profile, draft, run = value.profile, value.draft, value.run
+    -- 这里只识别当前格式的必要容器；完整旧版迁移、引用校验留在 T10。
+    if type(profile) ~= "table" or profile.schemaVersion ~= 1
+        or type(profile.unlockedRelicIds) ~= "table" or type(profile.endingRecords) ~= "table"
+        or type(draft) ~= "table" or type(draft.members) ~= "table" or type(draft.selectedRelicIds) ~= "table"
+        or (run ~= nil and (type(run) ~= "table" or run.schemaVersion ~= 1
+            or type(run.members) ~= "table" or type(run.logs) ~= "table" or type(run.events) ~= "table"
+            or type(run.leaderTerms) ~= "table" or type(run.relicInstances) ~= "table")) then
+        return nil, "invalid"
+    end
+    local revision = value.saveRevision or 0 -- 兼容现有未编号存档。
+    if type(revision) ~= "number" or revision < 0 or revision ~= math.floor(revision) or revision == math.huge then return nil, "invalid" end
+    value.saveRevision = revision
+    return value, "ok"
+end
+
+local function LatestSave()
+    local latest, index, problem, unreadable = nil, nil, false, false
+    for slot, path in ipairs(SAVE_PATHS) do
+        local value, status = ReadSlot(path)
+        if value and (not latest or value.saveRevision > latest.saveRevision) then latest, index = value, slot end
+        if status == "invalid" or status == "unreadable" then problem = true end
+        if status == "unreadable" then unreadable = true end
+    end
+    return latest, index, problem, unreadable
+end
+
+local function WriteVerified(path, raw)
+    local file = File(path, FILE_WRITE)
+    if not file:IsOpen() then return false end
+    local ok, written = pcall(function() return file:WriteString(raw) end)
+    file:Close()
+    -- UrhoX WriteString 返回 boolean，不能把 0 或任意 truthy 值当成功。
+    return ok and written == true and ReadFile(path) == raw
 end
 
 function State.Save(profile, draft, run)
-    local payload = { profile = profile, draft = draft, run = run }
-    local file = File("jiaye_save.json", FILE_WRITE)
-    if not file:IsOpen() then return false, "无法写入本地存档。" end
-    file:WriteString(cjson.encode(payload)); file:Close()
-    return true, "存档已写入当前项目与当前用户的本地空间。"
+    local previous, index, problem, unreadable = LatestSave()
+    if unreadable or (problem and not previous) then return false, "旧存档无法安全读取，已停止覆盖；请保留原文件并导出当前进度。" end
+    local payload = { profile = profile, draft = draft, run = run, saveRevision = (previous and previous.saveRevision or 0) + 1 }
+    local encoded, raw = pcall(cjson.encode, payload)
+    if not encoded then return false, "存档编码失败，当前进度仍在内存中。" end
+    local targetPath = index == 1 and SAVE_PATHS[2] or SAVE_PATHS[1]
+    if not WriteVerified(targetPath, raw) then
+        failedSavePath = targetPath
+        return false, "存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。"
+    end
+    failedSavePath = nil
+    return true, "进度已保存并回读核对，上次可读存档仍保留。"
 end
 
 function State.Load()
-    if not fileSystem:FileExists("jiaye_save.json") then return nil, "尚无本地存档。" end
-    local file = File("jiaye_save.json", FILE_READ)
-    if not file:IsOpen() then return nil, "无法读取本地存档。" end
-    local raw = file:ReadString(); file:Close()
-    local ok, value = pcall(cjson.decode, raw)
-    if not ok or type(value) ~= "table" then return nil, "存档格式无效，未覆盖当前进度。" end
-    return value, "已读取最近存档。"
+    local value, _, problem = LatestSave()
+    if value then
+        return value, problem and "一份存档不可读，已恢复另一份可读进度；请核对年份。" or "已读取最近存档。", problem and "recovered" or "ok"
+    end
+    return nil, problem and "本地存档不可读，已停止开新局以保护旧进度；请保留原文件。" or "尚无本地存档。", problem and "invalid" or "missing"
 end
 
 function State.Import(raw)
@@ -240,10 +303,10 @@ function State.Import(raw)
 end
 
 function State.Export(profile, draft, run)
-    local raw = cjson.encode({ profile = profile, draft = draft, run = run })
-    local file = File("jiaye_export.json", FILE_WRITE)
-    if file:IsOpen() then file:WriteString(raw); file:Close() end
-    return raw
+    local ok, raw = pcall(cjson.encode, { profile = profile, draft = draft, run = run })
+    if not ok then return nil, "备份编码失败，未导出。" end
+    if not WriteVerified("jiaye_export.json", raw) then return nil, "备份写入或回读失败，未确认导出成功。" end
+    return raw, "备份已写入 jiaye_export.json 并回读核对。"
 end
 
 return State

@@ -133,11 +133,26 @@ function Simulation.TakeExam(run, memberId)
     return true, "此次未中，盘缠已计入年鉴。"
 end
 
+local function CloseLeaderEvents(run, memberId)
+    local resolved = false
+    for _, event in ipairs(run.events) do
+        if event.type == "leader" and event.status == "pending" then
+            event.status = "resolved"; event.memberId = memberId; event.resolvedYear = run.yearIndex
+            resolved = true
+        end
+    end
+    return resolved
+end
+
 function Simulation.AppointLeader(run, memberId, reason)
     if run.ending then return false, "本局已落笔。" end
     local target = State.FindMember(run.members, memberId)
     if not target or not target.alive or target.age < 18 then return false, "族长必须是在世成年族人。" end
-    if run.leaderId == memberId then return false, "此人已是族长。" end
+    if run.leaderId == memberId then
+        -- 修复旧档中“已任命但事件仍待决”的状态，不重复任期或交接奖励。
+        if CloseLeaderEvents(run, memberId) then return true, "现任族长已确认，继任待决已解除。" end
+        return false, "此人已是族长。"
+    end
     local old = State.FindMember(run.members, run.leaderId)
     local wasEffective = false
     for _, term in ipairs(run.leaderTerms) do
@@ -150,6 +165,7 @@ function Simulation.AppointLeader(run, memberId, reason)
     local effective = false
     table.insert(run.leaderTerms, { memberId = memberId, startYear = run.yearIndex, endYear = nil, effective = effective, reason = reason or "主动交接" })
     run.leaderId = memberId
+    CloseLeaderEvents(run, memberId)
     if HasRelic(run, "newbook") and old and wasEffective then
         run.reputation = run.reputation + 3
         State.AddLog(run, "补完的族谱为这次有效交接添了 3 点声望。")
@@ -588,9 +604,7 @@ end
 function Simulation.ResolveLeaderEvent(run, eventId, memberId)
     local event = nil; for _, item in ipairs(run.events) do if item.instanceId == eventId then event = item end end
     if not event or event.type ~= "leader" or event.status ~= "pending" then return false, "继任事件已失效。" end
-    local ok, message = Simulation.AppointLeader(run, memberId, "前任离世")
-    if ok then event.status = "resolved" end
-    return ok, message
+    return Simulation.AppointLeader(run, memberId, "前任离世")
 end
 
 function Simulation.AidCommunity(run)

@@ -78,6 +78,13 @@ function App:Init()
     self.peopleFilter = "all"
     self.peopleQuery = ""
     self.openingFeedback = ""
+    self.historyPage = 1
+    self.unsaved = false
+    self.saveMessage = ""
+    local saved, message, status = State.Load()
+    if saved then self.profile, self.draft, self.run = saved.profile, saved.draft, saved.run end
+    self.storageBlocked = status == "invalid"
+    if status == "invalid" or status == "recovered" then self.saveMessage = message end
     UI.Toast.GetGlobal({ position = "bottom", maxToasts = 1 })
 end
 
@@ -88,25 +95,29 @@ function App:Notify(message, variant)
 end
 
 function App:Save()
-    local ok, message = State.Save(self.profile, self.draft, self.run)
+    if self.storageBlocked then self:Notify(self.saveMessage, "error"); return false end
+    -- 试配新家庭期间，手动存档仍保存旧局的草案；取消不会把候选写进旧局。
+    local ok, message = State.Save(self.profile, self.previousDraft or self.draft, self.run)
+    self.unsaved = not ok; self.saveMessage = ok and "" or message
+    self:Render()
     self:Notify(message, ok and "success" or "error")
+    return ok
 end
 
 function App:Load()
-    local value, message = State.Load()
+    if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免丢失。", "warning"); return end
+    local value, message, status = State.Load()
     if not value then self:Notify(message, "warning"); return end
-    if type(value.profile) == "table" and type(value.draft) == "table" then
-        value.profile.unlockedRelicIds = value.profile.unlockedRelicIds or { book = true, ruler = true, letter = true }
-        value.profile.endingRecords = value.profile.endingRecords or {}
-        self.profile, self.draft, self.run = value.profile, value.draft, value.run
-        self.screen = self.run and "game" or "opening"
-        self:Render(); self:Notify(message, "success")
-    else self:Notify("存档缺少必要字段，未覆盖当前进度。", "error") end
+    self.profile, self.draft, self.run = value.profile, value.draft, value.run
+    self.previousDraft = nil; self.undo = {}; self.historyPage = 1; self.storageBlocked = false
+    self.saveMessage = status == "recovered" and message or ""
+    self.screen = self.run and "game" or "opening"
+    self:Render(); self:Notify(message, status == "recovered" and "warning" or "success")
 end
 
 function App:Export()
-    State.Export(self.profile, self.draft, self.run)
-    self:Notify("备份已写入 jiaye_export.json，可从当前项目的本地存档空间取回。", "success")
+    local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
+    self:Notify(message, raw and "success" or "error")
 end
 
 function App:Random(max)
@@ -276,13 +287,58 @@ function App:RemoveMember(memberId)
     self:Render(); self:Notify("已移除“" .. member.name .. "”，关联关系已重新校验。", "success")
 end
 
+function App:PrepareNewRun()
+    if self.storageBlocked or self.unsaved then self:Notify("请先恢复或保存当前进度，再立新家谱。", "warning"); return end
+    if self.run and not self.previousDraft then
+        self.previousDraft = self.draft
+        self.draft = State.NewDraft()
+    end
+    self.screen = "opening"; self.openingPage = "world"; self.undo = {}; self.openingFeedback = ""
+    self:Render()
+end
+
+function App:CancelNewRun()
+    if not self.previousDraft then return end
+    self.draft = self.previousDraft; self.previousDraft = nil; self.undo = {}
+    self.screen = "game"; self:Render()
+end
+
 function App:StartRun()
-    local run, issues = State.NewRun(self.draft, self.profile)
-    if not run then self:Notify(table.concat(issues, " "), "error"); return end
-    self.run = run; self.screen = "game"; self.gameTab = "family"; self:Save(); self:Render(); self:Notify("家谱开篇。每一年的安排都会留下痕迹。", "success")
+    if self.storageBlocked or self.unsaved then self:Notify("请先恢复或保存当前进度，再立新家谱。", "warning"); return end
+    if self.startConfirmationOpen or self.screen == "game" then return end
+    local issues = State.ValidateDraft(self.draft, self.profile, false)
+    if #issues > 0 then self:Notify(table.concat(issues, " "), "error"); return end
+    local previousRun, submitted = self.run, false
+    local function commit()
+        if submitted or self.run ~= previousRun then return end
+        submitted = true
+        local candidate, errors = State.NewRun(self.draft, self.profile)
+        if not candidate then self:Notify(table.concat(errors, " "), "error"); return end
+        -- 先验证写入，再切换当前局；失败时旧 run、收藏和正在展示的草案都在。
+        local ok, message = State.Save(self.profile, self.draft, candidate)
+        if not ok then
+            self.saveMessage = "新局未开始。" .. message
+            self:Render(); self:Notify(self.saveMessage, "error"); return
+        end
+        self.run = candidate; self.previousDraft = nil; self.saveMessage = ""
+        self.screen = "game"; self.gameTab = "family"; self.historyPage = 1; self.undo = {}
+        self:Render(); self:Notify("家谱开篇。已保留收藏，并保存当前家谱。", "success")
+    end
+    if not self.run then commit(); return end
+    self.startConfirmationOpen = true
+    local modal = UI.Modal { title = "开始新家谱？", size = "sm", onClose = function(selfModal)
+        self.startConfirmationOpen = false; selfModal:Destroy()
+    end }
+    modal:AddContent(Label("当前家谱将由眼前这份新草案替换。已解锁收藏与终章档案保留；如需长期留存旧局，请先导出。", { whiteSpace = "normal", fontSize = 16 }))
+    modal:SetFooter(UI.Row { gap = 8, children = {
+        Button("取消", function() modal:Close() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+        Button("确认开始", function() modal:Close(); commit() end, { flex = 1 }),
+    } })
+    modal:Open()
 end
 
 function App:RunAction(fn)
+    if self.unsaved then self:Notify("上一项安排尚未保存，请重试保存；无需重复安排。", "warning"); return end
     if self.actionBusy then
         self:Notify("上一项安排正在写入，请勿重复操作。", "warning")
         return
@@ -290,7 +346,9 @@ function App:RunAction(fn)
     self.actionBusy = true
     local ok, message = fn()
     self.actionBusy = false
-    if ok then self:Save(); self:Render(); self:Notify(message, "success") else self:Notify(message, "warning") end
+    if ok then
+        if self:Save() then self:Notify(message, "success") end
+    else self:Notify(message, "warning") end
 end
 
 function App:BuildHeader(title, subtitle)
@@ -299,7 +357,7 @@ function App:BuildHeader(title, subtitle)
         backgroundColor = C.paper, borderBottomWidth = 1, borderBottomColor = C.line,
         children = {
             UI.Panel { flexDirection = "column", pointerEvents = "none", children = { Label(title, { fontSize = 22, fontWeight = "bold", fontColor = C.green }), Label(subtitle, { fontSize = 10, fontColor = C.muted }) } },
-            Button("存档", function() self:Save() end, { width = 56, height = 32, fontSize = 11, backgroundColor = C.pale, textColor = C.green }),
+            Button(self.unsaved and "重试保存" or "存档", function() self:Save() end, { width = self.unsaved and 76 or 56, height = 32, fontSize = 11, backgroundColor = C.pale, textColor = C.green }),
         },
     }
 end
@@ -553,7 +611,7 @@ function App:BuildCover()
             Label("家业", { fontSize = 42, fontWeight = "bold", fontColor = { 255, 254, 250, 255 } }),
             Label("一部由选择写成的家谱", { fontSize = 18, fontColor = { 226, 235, 220, 255 } }),
             Label("立一户人家，过一年算一年。有人出生、有人离去，手艺、声望与旧物都会留在家史里。", { fontSize = 15, fontColor = { 226, 235, 220, 255 }, whiteSpace = "normal", lineHeight = 1.65, marginTop = 12 }),
-            Button("立一部家谱", function() self.screen = "opening"; self:Render() end, { height = 52, fontSize = 17, marginTop = 20 }),
+            Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 20 }),
             Button("读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }),
         } },
     } }
@@ -567,6 +625,7 @@ function App:BuildOpening()
         Button("撤销随机", function() self:UndoPage(page) end, { flex = 1, height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }),
     } }
     local pageChildren = { pageActions }
+    if self.previousDraft then table.insert(pageChildren, 1, Button("取消新局，回到原家谱", function() self:CancelNewRun() end, { backgroundColor = C.pale, textColor = C.green })) end
     if self.openingFeedback ~= "" then table.insert(pageChildren, Label(self.openingFeedback, { fontSize = 11, fontColor = C.green, backgroundColor = C.pale, padding = 8, borderRadius = 8, whiteSpace = "normal" })) end
     table.insert(pageChildren, builders[page]())
     local pageContent = UI.Panel { gap = 8, children = pageChildren }
@@ -745,7 +804,7 @@ function App:BuildFamilyTab()
     }, { backgroundColor = C.dark, borderColor = C.dark })
     local children = { hero }
     if self.run.ending then
-        table.insert(children, Card({ Label("本局已落笔", { fontSize = 17, fontWeight = "bold" }), Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }), Button("新立家谱", function() self.run = nil; self.screen = "opening"; self.draft = State.NewDraft(); self.openingPage = "world"; self:Render() end, { height = 36 }) }))
+        table.insert(children, Card({ Label("本局已落笔", { fontSize = 17, fontWeight = "bold" }), Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }), Button("新立家谱", function() self:PrepareNewRun() end, { height = 36 }) }))
     else
         table.insert(children, self:BuildFamilyRoutes())
     end
@@ -915,8 +974,34 @@ function App:BuildHistoryTab()
             action,
         }))
     end
-    local logCards = {}; for _, log in ipairs(self.run.logs) do table.insert(logCards, Label("大晟历 " .. tostring(log.year) .. " 年 · " .. log.text, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 })) end
-    return UI.Panel { gap = 12, children = { Card({ Label("家史", { fontSize = 21, fontWeight = "bold" }), Label("历代族长、年鉴与终章均保留真实发生的事实。", { fontSize = 13, fontColor = C.muted }) }), Card({ Label("可探索的终章", { fontSize = 18, fontWeight = "bold" }), UI.Panel { gap = 8, children = endingCards } }), Card({ Label("年鉴", { fontSize = 18, fontWeight = "bold" }), UI.Panel { gap = 8, children = logCards } }) } }
+    local pageSize = 20
+    local pageCount = math.max(1, math.ceil(#self.run.logs / pageSize))
+    self.historyPage = math.max(1, math.min(self.historyPage, pageCount))
+    local function turnTo(page) self.historyPage = page; self:Render() end
+    local logCards = {}
+    ---@type {year: number, text: string}[]
+    local logs = self.run.logs
+    for index = (self.historyPage - 1) * pageSize + 1, math.min(self.historyPage * pageSize, #self.run.logs) do
+        local log = logs[index]
+        table.insert(logCards, Label("大晟历 " .. tostring(log.year) .. " 年 · " .. log.text, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }))
+    end
+    if #logCards == 0 then table.insert(logCards, Label("家史尚未写下新事。", { fontSize = 13, fontColor = C.muted })) end
+    local pager = UI.Row { gap = 5, children = {
+        Button("最新", function() turnTo(1) end, { flex = 1, disabled = self.historyPage == 1 }),
+        Button("上一页", function() turnTo(self.historyPage - 1) end, { flex = 1, disabled = self.historyPage == 1 }),
+        Button("下一页", function() turnTo(self.historyPage + 1) end, { flex = 1, disabled = self.historyPage == pageCount }),
+        Button("最早", function() turnTo(pageCount) end, { flex = 1, disabled = self.historyPage == pageCount }),
+    } }
+    return UI.Panel { gap = 12, children = {
+        Card({ Label("家史", { fontSize = 21, fontWeight = "bold" }), Label("家史全量保留，按新到旧分页。", { fontSize = 13, fontColor = C.muted }),
+            UI.Row { gap = 8, children = {
+                Button("导出本局", function() self:Export() end, { flex = 1 }),
+                Button("新立家谱", function() self:PrepareNewRun() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+            } },
+        }),
+        Card({ Label("年鉴 · " .. tostring(#self.run.logs) .. " 条 · 第 " .. tostring(self.historyPage) .. "/" .. tostring(pageCount) .. " 页", { fontSize = 18, fontWeight = "bold" }), pager, UI.Panel { gap = 8, children = logCards } }),
+        Card({ Label("可探索的终章", { fontSize = 18, fontWeight = "bold" }), UI.Panel { gap = 8, children = endingCards } }),
+    } }
 end
 
 function App:BuildGame()
@@ -934,14 +1019,26 @@ function App:BuildGame()
 end
 
 function App:Render()
-    local page = self.screen == "cover" and self:BuildCover() or (self.run and self:BuildGame() or self:BuildOpening())
+    local page = self.screen == "cover" and self:BuildCover() or (self.screen == "opening" and self:BuildOpening() or self:BuildGame())
+    local children = {}
+    if self.saveMessage ~= "" then
+        table.insert(children, UI.Panel { padding = 8, gap = 6, backgroundColor = C.paper, children = {
+            Label(self.saveMessage, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal" }),
+            UI.Row { gap = 8, children = {
+                Button(self.storageBlocked and "重新读取" or "重试保存", function() if self.storageBlocked then self:Load() else self:Save() end end, { flex = 1 }),
+                Button("导出当前进度", function() self:Export() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+            } },
+        } })
+    end
+    table.insert(children, UI.Panel { flexGrow = 1, flexBasis = 0, minHeight = 0, children = { page } })
     local phoneFrame = UI.Panel {
         width = "100%",
         maxWidth = 430,
         height = "100%",
         backgroundColor = C.paper,
         overflow = "hidden",
-        children = { page },
+        flexDirection = "column",
+        children = children,
     }
     self.root = UI.SafeAreaView {
         width = "100%",
