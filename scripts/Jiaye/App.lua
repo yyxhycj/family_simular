@@ -837,7 +837,9 @@ end
 
 function App:OpenRunMember(memberId)
     local member = State.FindMember(self.run.members, memberId); if not member then return end
-    local modal = UI.Modal { title = member.name .. " · " .. tostring(member.age) .. " 岁", size = "fullscreen", closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end }
+    local modal = UI.Modal { title = member.name .. " · " .. tostring(member.age) .. " 岁", size = "fullscreen",
+        backgroundColor = C.card, borderColor = C.line, titleTextColor = C.ink, closeIconColor = C.muted,
+        closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end }
     local content = UI.ScrollView { height = "70%", flexBasis = 0, padding = 14, children = { UI.Panel { gap = 9, children = {
         Label(member.alive and "当前主业：" .. Data.Jobs[member.jobId].name or "已故 · 生平可读", { fontSize = 17, fontWeight = "bold" }), Label("学识 " .. tostring(member.stats.learn) .. " · 手艺 " .. tostring(member.stats.skill) .. " · 医术 " .. tostring(member.stats.medicine) .. " · 经营 " .. tostring(member.stats.trade) .. " · 武艺 " .. tostring(member.stats.martial), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
         Label("人生安排", { fontSize = 16, fontWeight = "bold", marginTop = 6 }),
