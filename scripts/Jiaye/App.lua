@@ -12,6 +12,21 @@ local C = {
     dark = { 45, 78, 59, 255 }, pale = { 232, 239, 221, 255 }, warning = { 164, 78, 56, 255 },
 }
 
+local ROUTE_GUIDANCE = {
+    peaceful = { tab = "people", button = "安排族人", hint = "让家中有人能持续承担事务，并在合适的时候完成交接。" },
+    scholar = { tab = "people", button = "安排读书", hint = "培养不同代的族人走向读书、教书或任职。" },
+    merchant = { tab = "people", button = "安排经商", hint = "让族人稳定经商，再用积蓄置办产业。" },
+    craft = { tab = "estate", button = "查看家业", hint = "培养手艺人，并让作坊真正有人经营。" },
+    medical = { tab = "people", button = "安排学医", hint = "让不同代族人积累医术，接过医者的生活。" },
+    grain = { tab = "estate", button = "经营田产", hint = "安排耕作、添置田地，把一家人的粮食留到冬天以后。" },
+    community = { tab = "estate", button = "经营家业", hint = "先稳住家底，再在乡里需要时承担责任。" },
+    migration = { tab = "estate", button = "查看迁居", hint = "选定新的落脚处，带着家人把日子重新安稳下来。" },
+    ["return"] = { tab = "people", button = "安排护卫", hint = "让一位族人走出家门，也在合适时回到家中。" },
+    promise = { tab = "relics", button = "查看信物", hint = "从家中旧物与线索里，继续完成前人留下的承诺。" },
+    ruler = { tab = "relics", button = "查看信物", hint = "让老木尺的线索和手艺人的经历真正汇成家业。" },
+    reunion = { tab = "relics", button = "查看信物", hint = "保留并修复族谱，让一次真实交接写进家史。" },
+}
+
 local function Label(text, props)
     props = props or {}; props.text = text; props.fontColor = props.fontColor or C.ink
     if props.fontSize then props.fontSize = math.max(10, math.floor(props.fontSize * 0.85)) end
@@ -642,6 +657,81 @@ function App:BuildPendingEvent(event)
     return Card({ Label(event.title, { fontSize = 18, fontWeight = "bold" }) })
 end
 
+function App:BuildFamilyRoutes()
+    local active = { peaceful = true, grain = self.run.land > 0, community = self.run.reputation > 0 }
+    for _, member in ipairs(self.run.members) do
+        local jobId = member.jobId
+        if jobId == "study" or jobId == "teach" or jobId == "official" then active.scholar = true end
+        if jobId == "trade" then active.merchant = true end
+        if jobId == "apprentice" or jobId == "craft" then active.craft = true end
+        if jobId == "medical" or jobId == "doctor" then active.medical = true end
+        if jobId == "farm" then active.grain = true end
+        if jobId == "guard" or member.hadHomeAfterGuard then active["return"] = true end
+    end
+    if self.run.workshop then active.craft = true end
+    if self.run.shop then active.merchant = true end
+    if (self.run.metrics["migrations"] or 0) > 0 then active.migration = true end
+    if (self.run.metrics["aid"] or 0) > 0 then active.community = true end
+    for _, relic in ipairs(self.run.relicInstances) do
+        if relic.status ~= "sold" then
+            if relic.definitionId == "letter" or relic.definitionId == "jade" then active.promise = true end
+            if relic.definitionId == "ruler" or relic.definitionId == "plan" then active.ruler = true end
+            if relic.definitionId == "book" or relic.definitionId == "newbook" then active.reunion = true end
+        end
+    end
+
+    local routes = {}
+    for order, ending in ipairs(Data.Endings) do
+        local progress, total, complete, score = Simulation.EndingProgress(self.run, ending["id"]), 0, 0, 0
+        for _, item in ipairs(progress) do
+            local current, required = math.max(0, item[2]), item[3]
+            total = total + 1
+            score = score + math.min(current / required, 1)
+            if current >= required then complete = complete + 1 end
+        end
+        local ready = complete == total and total > 0
+        table.insert(routes, { ending = ending, progress = progress, complete = complete, total = total, ready = ready, active = active[ending["id"]] == true, score = score, order = order })
+    end
+    table.sort(routes, function(a, b)
+        if a.ready ~= b.ready then return a.ready end
+        if a.active ~= b.active then return a.active end
+        if a.score ~= b.score then return a.score > b.score end
+        return a.order < b.order
+    end)
+
+    local cards = {
+        Label("正在形成的家业", { fontSize = 17, fontWeight = "bold" }),
+        Label("终章只认本局真实经历。这里显示最接近的三条路；达成后由你决定是否以它落笔。", { fontSize = 11, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+    }
+    for index = 1, math.min(3, #routes) do
+        local route = routes[index] --[[@as table<string, any>]]
+        local ending = route["ending"] --[[@as table<string, any>]]
+        local guidance = ROUTE_GUIDANCE[ending["id"]] or ROUTE_GUIDANCE.peaceful
+        local progressLines, nextLine = {}, nil
+        for _, item in ipairs(route.progress) do
+            table.insert(progressLines, item[1] .. " " .. tostring(item[2]) .. "/" .. tostring(item[3]))
+            if not nextLine and item[2] < item[3] then nextLine = item[1] .. " " .. tostring(item[2]) .. "/" .. tostring(item[3]) end
+        end
+        local state = route.ready and "可落笔" or (route.active and "正在形成" or "可探索")
+        local action = route.ready and Button("以此落笔", function()
+            self:RunAction(function() return Simulation.ClaimEnding(self.run, ending["id"], self.profile) end)
+        end, { height = 32, fontSize = 11 }) or Button(guidance.button, function()
+            self.gameTab = guidance.tab; self:Render()
+        end, { height = 32, fontSize = 11, backgroundColor = C.pale, textColor = C.green })
+        table.insert(cards, UI.Panel {
+            padding = 8, gap = 4, backgroundColor = route.ready and C.pale or C.paper, borderWidth = 1, borderColor = route.ready and C.green or C.line, borderRadius = 8,
+            children = {
+                UI.Row { justifyContent = "space-between", children = { Label(ending["title"], { fontSize = 14, fontWeight = "bold" }), Label(state, { fontSize = 10, fontColor = route.ready and C.green or C.muted }) } },
+                Label(ending["desc"], { fontSize = 11, fontColor = C.muted, whiteSpace = "normal" }),
+                Label("进展：" .. table.concat(progressLines, " · "), { fontSize = 10, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.35 }),
+                Label(route.ready and "条件已齐。确认后会将此局写成只读家史。" or "下一步：" .. tostring(nextLine) .. "。" .. guidance.hint, { fontSize = 10, whiteSpace = "normal", lineHeight = 1.35, fontColor = C.ink }),
+                action,
+            },
+        })
+    end
+    return Card(cards, { padding = 10, gap = 7 })
+end
+
 function App:BuildFamilyTab()
     local leader = State.FindMember(self.run.members, self.run.leaderId)
     local _, foodNeed = self:GetRunOverview()
@@ -656,10 +746,13 @@ function App:BuildFamilyTab()
     local children = { hero }
     if self.run.ending then
         table.insert(children, Card({ Label("本局已落笔", { fontSize = 17, fontWeight = "bold" }), Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }), Button("新立家谱", function() self.run = nil; self.screen = "opening"; self.draft = State.NewDraft(); self.openingPage = "world"; self:Render() end, { height = 36 }) }))
-    elseif #pending > 0 then
+    else
+        table.insert(children, self:BuildFamilyRoutes())
+    end
+    if not self.run.ending and #pending > 0 then
         table.insert(children, Card({ Label("先处理眼前这件事", { fontSize = 16, fontWeight = "bold" }), Label("事件处理后，才能结算下一年。", { fontSize = 11, fontColor = C.muted }) }))
         for _, event in ipairs(pending) do table.insert(children, self:BuildPendingEvent(event)) end
-    else
+    elseif not self.run.ending then
         local firstYear = self.run.yearIndex == 0
         local guidance = firstYear and "先看每位族人的主业；如果手艺人或经商者没有产业，再到“家业”页置办。确认后，点底部“推进这一年”。" or (self.run.grain < foodNeed and "粮食不足以覆盖这一年：先在“族人”页安排耕作，或到“家业”页购粮、置办田地。" or "本年已有安排。你可以微调族人主业、置办家业，或直接推进年度结算。")
         table.insert(children, Card({
