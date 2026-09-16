@@ -4,7 +4,7 @@
   "author": {
     "id": "1704647939"
   },
-  "entry": "main.lua",
+  "entry": "QA/T01.lua",
   "version": "1.0.0",
   "taptap_publish": {
     "title": "",
