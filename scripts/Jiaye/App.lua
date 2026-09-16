@@ -830,8 +830,8 @@ function App:BuildGame()
     local builders = { family = function() return self:BuildFamilyTab() end, people = function() return self:BuildPeopleTab() end, estate = function() return self:BuildEstateTab() end, relics = function() return self:BuildRelicsTab() end, history = function() return self:BuildHistoryTab() end }
     local openingSnapshot = TableValue(self.run.openingSnapshot)
     local children = {
-        self:BuildHeader("家业", tostring(openingSnapshot["family"] or "无名") .. "氏家谱 · " .. Data.Place(self.run.placeId).short),
         self:BuildRunStatusBar(),
+        self:BuildHeader("家业", tostring(openingSnapshot["family"] or "无名") .. "氏家谱 · " .. Data.Place(self.run.placeId).short),
         UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 12, children = { builders[self.gameTab]() } },
     }
     local annualFooter = self:BuildAnnualFooter()
