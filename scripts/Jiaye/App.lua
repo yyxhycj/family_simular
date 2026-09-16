@@ -326,7 +326,9 @@ function App:StartRun()
     end
     if not self.run then commit(); return end
     self.startConfirmationOpen = true
-    local modal = UI.Modal { title = "开始新家谱？", size = "sm", onClose = function(selfModal)
+    local modal = UI.Modal { title = "开始新家谱？", size = "sm",
+        backgroundColor = C.card, borderColor = C.line, titleTextColor = C.ink, closeIconColor = C.muted,
+        onClose = function(selfModal)
         self.startConfirmationOpen = false; selfModal:Destroy()
     end }
     modal:AddContent(Label("当前家谱将由眼前这份新草案替换。已解锁收藏与终章档案保留；如需长期留存旧局，请先导出。", { whiteSpace = "normal", fontSize = 16 }))
