@@ -289,6 +289,44 @@ function App:BuildHeader(title, subtitle)
     }
 end
 
+function App:GetRunOverview()
+    local living, foodNeed = 0, 0
+    for _, member in ipairs(self.run.members) do
+        if member.alive then
+            living = living + 1
+            foodNeed = foodNeed + (member.age >= 18 and 2 or 1)
+        end
+    end
+    return living, foodNeed
+end
+
+function App:BuildRunStatusBar()
+    local living, foodNeed = self:GetRunOverview()
+    local foodUnsafe = self.run.grain < foodNeed
+    local function metric(name, value, color)
+        return UI.Panel {
+            flex = 1, height = 42, paddingHorizontal = 6, justifyContent = "center",
+            backgroundColor = C.card, borderWidth = 1, borderColor = color or C.line, borderRadius = 7,
+            children = {
+                Label(name, { fontSize = 10, fontColor = C.muted }),
+                Label(value, { fontSize = 14, fontWeight = "bold", fontColor = color or C.ink }),
+            },
+        }
+    end
+    return UI.Panel {
+        paddingHorizontal = 8, paddingVertical = 6, gap = 4, backgroundColor = C.pale, borderBottomWidth = 1, borderBottomColor = C.line,
+        children = {
+            Label("第 " .. tostring(self.run.yearIndex + 1) .. " 年 · " .. Data.WORLD_NAME .. "历 " .. tostring(self.run.calendar) .. " 年 · " .. tostring(living) .. " 人在世", { fontSize = 10, fontColor = C.muted }),
+            UI.Row { gap = 4, children = {
+                metric("公库", tostring(self.run.money) .. " 两"),
+                metric("存粮", tostring(self.run.grain) .. "/" .. tostring(foodNeed) .. " 石", foodUnsafe and C.warning or nil),
+                metric("田地", tostring(self.run.land) .. " 亩"),
+                metric("声望", tostring(self.run.reputation)),
+            } },
+        },
+    }
+end
+
 function App:BuildOpeningFooter()
     local pages = { "world", "people", "estate", "relics", "final" }
     local index = 1; for i, page in ipairs(pages) do if page == self.openingPage then index = i end end
@@ -606,13 +644,7 @@ end
 
 function App:BuildFamilyTab()
     local leader = State.FindMember(self.run.members, self.run.leaderId)
-    local living, foodNeed = 0, 0
-    for _, member in ipairs(self.run.members) do
-        if member.alive then
-            living = living + 1
-            foodNeed = foodNeed + (member.age >= 18 and 2 or 1)
-        end
-    end
+    local _, foodNeed = self:GetRunOverview()
     local pending = Simulation.PendingEvents(self.run)
     local completedEnding = TableValue(self.run.ending)
     local title = completedEnding["title"] or (self.run.yearIndex == 0 and "第一年，先把这一家安顿好" or "这一年，家里的事由你决定")
@@ -621,13 +653,7 @@ function App:BuildFamilyTab()
         Label(tostring(title), { fontSize = 20, fontWeight = "bold", whiteSpace = "normal", lineHeight = 1.3, fontColor = { 255, 254, 250, 255 } }),
         Label("族长 " .. (leader and leader.name or "暂缺") .. " · " .. Data.Place(self.run.placeId).short, { fontSize = 12, fontColor = { 226, 235, 220, 255 } }),
     }, { backgroundColor = C.dark, borderColor = C.dark })
-    local metrics = UI.Row { justifyContent = "space-between", children = {
-        Label("族人\n" .. tostring(living), { fontSize = 12, whiteSpace = "normal" }),
-        Label("公库\n" .. tostring(self.run.money), { fontSize = 12, whiteSpace = "normal" }),
-        Label("存粮\n" .. tostring(self.run.grain) .. "/" .. tostring(foodNeed), { fontSize = 12, whiteSpace = "normal" }),
-        Label("声望\n" .. tostring(self.run.reputation), { fontSize = 12, whiteSpace = "normal" }),
-    } }
-    local children = { hero, Card({ metrics }) }
+    local children = { hero }
     if self.run.ending then
         table.insert(children, Card({ Label("本局已落笔", { fontSize = 17, fontWeight = "bold" }), Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }), Button("新立家谱", function() self.run = nil; self.screen = "opening"; self.draft = State.NewDraft(); self.openingPage = "world"; self:Render() end, { height = 36 }) }))
     elseif #pending > 0 then
@@ -805,6 +831,7 @@ function App:BuildGame()
     local openingSnapshot = TableValue(self.run.openingSnapshot)
     local children = {
         self:BuildHeader("家业", tostring(openingSnapshot["family"] or "无名") .. "氏家谱 · " .. Data.Place(self.run.placeId).short),
+        self:BuildRunStatusBar(),
         UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 12, children = { builders[self.gameTab]() } },
     }
     local annualFooter = self:BuildAnnualFooter()
