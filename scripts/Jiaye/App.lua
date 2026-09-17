@@ -1460,7 +1460,6 @@ function App:Render()
     table.insert(children, UI.Panel { flexGrow = 1, flexBasis = 0, minHeight = 0, children = { page } })
     local phoneFrame = UI.Panel {
         width = "100%",
-        maxWidth = 430,
         height = "100%",
         backgroundColor = C.paper,
         overflow = "hidden",
