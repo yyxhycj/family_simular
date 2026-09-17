@@ -1,0 +1,260 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "samples": 48,
+        "distinct": 48,
+        "id": "seeded_generation",
+        "maxPopulation": 6
+      },
+      {
+        "family": "司马",
+        "id": "name_isolation",
+        "points": 66
+      },
+      {
+        "pageIsolation": true,
+        "id": "edit_validation",
+        "rejected": 3,
+        "pointLinesSafe": true,
+        "limits": "100/101"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netMoney": -1,
+        "income": 29,
+        "id": "preview",
+        "netGrain": 5
+      },
+      {
+        "ledger": {
+          "grainSold": 0,
+          "beforeMoney": 80,
+          "landGrain": 4,
+          "foodSatisfied": true,
+          "members": [
+            {
+              "memberId": 1,
+              "name": "林成",
+              "job": "手艺谋生",
+              "money": 21,
+              "grain": 0
+            },
+            {
+              "memberId": 2,
+              "name": "许青",
+              "job": "耕作谋生",
+              "money": 8,
+              "grain": 8
+            },
+            {
+              "memberId": 3,
+              "name": "林芸",
+              "job": "随师学医",
+              "money": -9,
+              "grain": 0
+            },
+            {
+              "memberId": 4,
+              "name": "林安",
+              "job": "读书求学",
+              "money": -7,
+              "grain": 0
+            }
+          ],
+          "boughtGrain": 0,
+          "netMoney": -1,
+          "netGrain": 5,
+          "beforeGrain": 24,
+          "foodCost": 0,
+          "saleIncome": 0,
+          "industryIncome": 0,
+          "money": 79,
+          "training": 16,
+          "income": 29,
+          "foodShortfall": 0,
+          "foodNeed": 7,
+          "livingExpense": 14,
+          "moneySatisfied": true,
+          "grain": 29
+        },
+        "reputation": 26,
+        "id": "advance"
+      },
+      {
+        "stable": 0,
+        "foodYears": 0,
+        "id": "shortage",
+        "shortfall": 3
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "newMemberPreview": true,
+      "newMemberSpouseSaved": true,
+      "addCancelPure": true,
+      "pageUndoScoped": true,
+      "generatedFailureInjected": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "coverActionsReachable": true,
+      "detailReturnPreserved": true,
+      "inputKeepsFocus": true,
+      "editCancelPure": true,
+      "invalidStartInline": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "snapshot": {
+        "selectedRelicIds": [
+          "book",
+          "letter"
+        ],
+        "generatorVersion": 1,
+        "members": [
+          {
+            "jobId": "play",
+            "talent": 1,
+            "focus": "learn",
+            "sex": "女",
+            "id": 1,
+            "nameSource": "family",
+            "trait": "踏实",
+            "name": "闻绮",
+            "parents": {},
+            "age": 33,
+            "givenName": "绮",
+            "experienceId": "scholar"
+          },
+          {
+            "jobId": "study",
+            "talent": 1,
+            "focus": "medicine",
+            "sex": "女",
+            "id": 2,
+            "nameSource": "family",
+            "trait": "沉静",
+            "name": "闻芸禾",
+            "parents": {},
+            "age": 35,
+            "givenName": "芸禾",
+            "experienceId": "scholar"
+          }
+        ],
+        "habitId": "none",
+        "workshop": false,
+        "shop": false,
+        "grain": 32,
+        "land": 3,
+        "family": "闻",
+        "periodId": "unrest",
+        "homeId": "rented",
+        "placeId": "county",
+        "originId": "merchant",
+        "calendar": 144,
+        "rngSeed": 166391241,
+        "worldId": "mortal",
+        "nextId": 3,
+        "tieId": "teacher",
+        "money": 80,
+        "leaderId": 1,
+        "nameSeed": 166391241
+      },
+      "points": 97,
+      "priorSaveRetainedUntilConfirmation": true,
+      "readOnlyViews": 5,
+      "duplicateConfirmationIgnored": true,
+      "ledger": {
+        "netGrain": 8,
+        "members": [
+          {
+            "job": "随家人生活",
+            "memberId": 1,
+            "grain": 0,
+            "name": "闻绮",
+            "money": 0
+          },
+          {
+            "job": "读书求学",
+            "memberId": 2,
+            "grain": 0,
+            "name": "闻芸禾",
+            "money": -6
+          }
+        ],
+        "landGrain": 12,
+        "foodSatisfied": true,
+        "beforeMoney": 80,
+        "grain": 40,
+        "foodNeed": 4,
+        "grainSold": 0,
+        "netMoney": -20,
+        "moneySatisfied": true,
+        "income": 0,
+        "beforeGrain": 32,
+        "foodCost": 0,
+        "livingExpense": 14,
+        "boughtGrain": 0,
+        "training": 6,
+        "industryIncome": 0,
+        "money": 60,
+        "foodShortfall": 0,
+        "saleIncome": 0
+      }
+    },
+    "restart": {
+      "ledger": {
+        "boughtGrain": 0,
+        "netGrain": 8,
+        "saleIncome": 0,
+        "industryIncome": 0,
+        "foodCost": 0,
+        "foodNeed": 4,
+        "grainSold": 0,
+        "livingExpense": 14,
+        "beforeGrain": 32,
+        "netMoney": -20,
+        "foodShortfall": 0,
+        "members": [
+          {
+            "money": 0,
+            "name": "闻绮",
+            "memberId": 1,
+            "job": "随家人生活",
+            "grain": 0
+          },
+          {
+            "money": -6,
+            "name": "闻芸禾",
+            "memberId": 2,
+            "job": "读书求学",
+            "grain": 0
+          }
+        ],
+        "beforeMoney": 80,
+        "grain": 40,
+        "money": 60,
+        "foodSatisfied": true,
+        "income": 0,
+        "training": 6,
+        "landGrain": 12,
+        "moneySatisfied": true
+      },
+      "family": "闻",
+      "year": 1,
+      "points": 97
+    }
+  }
+]

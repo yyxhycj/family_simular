@@ -53,11 +53,10 @@ function View.Summary(app)
     local ledger, run = preview(app)
     local adults = 0; for _, member in ipairs(d.members) do if member.age >= 18 then adults = adults + 1 end end
     local children = {
-        text("一家人的故事，从这里开始", 14, C.muted),
         row({ UI.Panel { flex = 1, minWidth = 0, children = { text(d.family .. "氏家族", 28) } },
             button("改名", function() app.nameEditing = d.family; show(app, "name") end, true, { width = 58 }),
             button("骰子", function() app:RandomFamilyName() end, true, { width = 58 }) }),
-        text(Data.Period(d.periodId).name .. " · " .. Data.Origin(d.originId).name .. " · " .. Data.Place(d.placeId).short .. " · 大晟历 " .. d.calendar .. " 年", 14, C.muted),
+        text(Data.Period(d.periodId).name .. " · " .. Data.Place(d.placeId).short .. " · 大晟历 " .. d.calendar .. " 年", 14, C.muted),
     }
     local metrics = {}
     for _, metric in ipairs({ {"现银", d.money .. " 两"}, {"存粮", d.grain .. " 石"}, {"田地", d.land .. " 亩"}, {"声望",run and tostring(run.reputation) or "待校验"} }) do
@@ -65,11 +64,10 @@ function View.Summary(app)
     end
     table.insert(children, panel({ row(metrics), text(Data.Home(d.homeId).name .. " · " .. (d.workshop and "有作坊" or "无作坊") .. " · " .. (d.shop and "有商铺" or "无商铺"), 14) },true))
     local leader = State.FindMember(d.members, d.leaderId)
-    table.insert(children,panel({ text("家中 " .. #d.members .. " 人 · " .. adults .. " 成人 / " .. (#d.members-adults) .. " 孩子", 17),
-        text((leader and "首任族长 · " .. leader.name .. " · " .. Data.Jobs[leader.jobId].name or "尚未指定首任族长"), 14, C.muted),
-        button("查看全部族人  ›", function() app:OpenOpeningDetail("people") end, true, { height = 36 }) },true))
-    table.insert(children,panel({ text("随身信物", 16), text(relicSummary(app), 14, C.muted),
-        button("查看信物与收藏  ›", function() app:OpenOpeningDetail("relics") end, true, { height = 36 }) }, true))
+    table.insert(children,panel({ text("家中 " .. #d.members .. " 人 · " .. adults .. " 成人 / " .. (#d.members-adults) .. " 孩子", 16, C.muted),
+        button((leader and leader.name or "未指定族长") .. " · 查看族人  ›", function() app:OpenOpeningDetail("people") end, true, { height = 44 }) },true))
+    table.insert(children,panel({ text("信物 " .. tostring(#d.selectedRelicIds) .. " 件 · " .. relicSummary(app), 14, C.muted),
+        button("查看信物与收藏  ›", function() app:OpenOpeningDetail("relics") end, true, { height = 44 }) }, true))
     table.insert(children,button(ledger and ("首年净变化  " .. signed(ledger.netMoney) .. " 两  /  " .. signed(ledger.netGrain) .. " 石  ›") or "首年账本 · 请先修正草案",
         function() app:OpenOpeningDetail("ledger") end,true,{height=48}))
     table.insert(children,text("不含突发事件 · 剩余点数不必花完",14,C.muted))
