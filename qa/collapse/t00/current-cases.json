@@ -1,0 +1,3411 @@
+{
+  "blockedSuccession": {
+    "draft": {
+      "calendar": 72,
+      "family": "林",
+      "grain": 24,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "leaderId": 1,
+      "members": [
+        {
+          "age": 42,
+          "experienceId": "craft",
+          "focus": "skill",
+          "id": 1,
+          "jobId": "craft",
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "spouseId": 2,
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 40,
+          "experienceId": "basic",
+          "focus": "general",
+          "id": 2,
+          "jobId": "farm",
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "spouseId": 1,
+          "talent": 2,
+          "trait": "细致"
+        },
+        {
+          "age": 18,
+          "experienceId": "none",
+          "focus": "medicine",
+          "id": 3,
+          "jobId": "medical",
+          "name": "林芸",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "女",
+          "talent": 3,
+          "trait": "仁厚"
+        },
+        {
+          "age": 10,
+          "experienceId": "none",
+          "focus": "learn",
+          "id": 4,
+          "jobId": "study",
+          "name": "林安",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "男",
+          "talent": 3,
+          "trait": "好奇"
+        }
+      ],
+      "money": 80,
+      "nextId": 5,
+      "originId": "artisan",
+      "periodId": "peace",
+      "placeId": "village",
+      "rngSeed": 72831,
+      "selectedRelicIds": [
+        "ruler"
+      ],
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal"
+    },
+    "profile": {
+      "endingRecords": {},
+      "schemaVersion": 1,
+      "unlockedRelicIds": {
+        "book": true,
+        "letter": true,
+        "ruler": true
+      }
+    },
+    "run": {
+      "annualLedgers": [
+        {
+          "beforeGrain": 32,
+          "beforeMoney": 101,
+          "boughtGrain": 0,
+          "factId": "fact-9",
+          "foodCost": 0,
+          "foodNeed": 2,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "grain": 42,
+          "grainSold": 0,
+          "id": "ledger-2",
+          "income": 8,
+          "industryIncome": 0,
+          "landGrain": 4,
+          "livingExpense": 4,
+          "members": [
+            {
+              "grain": 8,
+              "job": "耕作谋生",
+              "memberId": 2,
+              "money": 8,
+              "name": "许青"
+            }
+          ],
+          "money": 105,
+          "moneySatisfied": true,
+          "netGrain": 10,
+          "netMoney": 4,
+          "resourcesExhausted": false,
+          "saleIncome": 0,
+          "training": 0,
+          "year": 73,
+          "yearIndex": 2,
+          "yearStart": {
+            "grain": 32,
+            "land": 1,
+            "members": [
+              {
+                "age": 31,
+                "id": 2,
+                "jobId": "farm"
+              }
+            ],
+            "money": 101
+          }
+        },
+        {
+          "beforeGrain": 24,
+          "beforeMoney": 80,
+          "boughtGrain": 0,
+          "factId": "fact-6",
+          "foodCost": 0,
+          "foodNeed": 4,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "grain": 32,
+          "grainSold": 0,
+          "id": "ledger-1",
+          "income": 29,
+          "industryIncome": 0,
+          "landGrain": 4,
+          "livingExpense": 8,
+          "members": [
+            {
+              "grain": 0,
+              "job": "手艺谋生",
+              "memberId": 1,
+              "money": 21,
+              "name": "林成"
+            },
+            {
+              "grain": 8,
+              "job": "耕作谋生",
+              "memberId": 2,
+              "money": 8,
+              "name": "许青"
+            }
+          ],
+          "money": 101,
+          "moneySatisfied": true,
+          "netGrain": 8,
+          "netMoney": 21,
+          "resourcesExhausted": false,
+          "saleIncome": 0,
+          "training": 0,
+          "year": 72,
+          "yearIndex": 1,
+          "yearStart": {
+            "grain": 24,
+            "land": 1,
+            "members": [
+              {
+                "age": 89,
+                "id": 1,
+                "jobId": "craft"
+              },
+              {
+                "age": 30,
+                "id": 2,
+                "jobId": "farm"
+              }
+            ],
+            "money": 80
+          }
+        }
+      ],
+      "calendar": 74,
+      "eraId": "peace",
+      "eraSinceYear": 0,
+      "events": [
+        {
+          "blocking": true,
+          "instanceId": "event-73-1",
+          "memberId": 2,
+          "resolvedYear": 1,
+          "status": "resolved",
+          "title": "族长之位空缺",
+          "type": "leader"
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact-9",
+          "kind": "annual_ledger",
+          "ledgerId": "ledger-2",
+          "memberIds": {},
+          "recordLog": false,
+          "text": "大晟历 73 年账本已结算：银 4 两，粮 10 石。",
+          "year": 73
+        },
+        {
+          "id": "fact-8",
+          "kind": "leadership",
+          "leaderTermStart": 2,
+          "memberIds": [
+            1,
+            2
+          ],
+          "reason": "主动交接",
+          "text": "林成将族长之位交给了许青。",
+          "year": 73
+        },
+        {
+          "id": "fact-7",
+          "kind": "death",
+          "memberIds": [
+            1
+          ],
+          "text": "林成于大晟历 73 年离世，生平被保留在家谱中；其保管物已回收入家中。",
+          "year": 73
+        },
+        {
+          "id": "fact-6",
+          "kind": "annual_ledger",
+          "ledgerId": "ledger-1",
+          "memberIds": {},
+          "recordLog": false,
+          "text": "大晟历 72 年账本已结算：银 21 两，粮 8 石。",
+          "year": 72
+        },
+        {
+          "id": "fact-5",
+          "kind": "leadership",
+          "leaderTermStart": 1,
+          "memberIds": [
+            1
+          ],
+          "reason": "开局任命",
+          "recordLog": false,
+          "text": "林成受家人推举，成为首任族长。",
+          "year": 72
+        },
+        {
+          "id": "fact-2",
+          "kind": "opening",
+          "memberIds": [
+            2
+          ],
+          "recordLog": false,
+          "text": "许青以“耕作谋生”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-1",
+          "kind": "opening",
+          "memberIds": [
+            1
+          ],
+          "recordLog": false,
+          "text": "林成以“手艺谋生”开始这一段人生。",
+          "year": 72
+        }
+      ],
+      "flags": {
+        "growthNotices": {}
+      },
+      "grain": 42,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "lastLedger": {
+        "beforeGrain": 32,
+        "beforeMoney": 101,
+        "boughtGrain": 0,
+        "foodCost": 0,
+        "foodNeed": 2,
+        "foodSatisfied": true,
+        "foodShortfall": 0,
+        "grain": 42,
+        "grainSold": 0,
+        "income": 8,
+        "industryIncome": 0,
+        "landGrain": 4,
+        "livingExpense": 4,
+        "members": [
+          {
+            "grain": 8,
+            "job": "耕作谋生",
+            "memberId": 2,
+            "money": 8,
+            "name": "许青"
+          }
+        ],
+        "money": 105,
+        "moneySatisfied": true,
+        "netGrain": 10,
+        "netMoney": 4,
+        "resourcesExhausted": false,
+        "saleIncome": 0,
+        "training": 0
+      },
+      "leaderId": 2,
+      "leaderTerms": [
+        {
+          "effective": true,
+          "endYear": 1,
+          "factId": "fact-5",
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        },
+        {
+          "effective": false,
+          "factId": "fact-8",
+          "memberId": 2,
+          "reason": "主动交接",
+          "startYear": 1
+        }
+      ],
+      "logs": [
+        {
+          "id": "history-5",
+          "text": "大晟历 74 年结算完成。",
+          "year": 74
+        },
+        {
+          "factId": "fact-8",
+          "id": "history-4",
+          "memberIds": [
+            1,
+            2
+          ],
+          "text": "林成将族长之位交给了许青。",
+          "year": 73
+        },
+        {
+          "id": "history-3",
+          "text": "大晟历 73 年结算完成。",
+          "year": 73
+        },
+        {
+          "id": "history-2",
+          "text": "族长之位空缺：需要你的决定。",
+          "year": 73
+        },
+        {
+          "factId": "fact-7",
+          "id": "history-1",
+          "memberIds": [
+            1
+          ],
+          "text": "林成于大晟历 73 年离世，生平被保留在家谱中；其保管物已回收入家中。",
+          "year": 73
+        }
+      ],
+      "members": [
+        {
+          "age": 90,
+          "alive": false,
+          "biography": [
+            "大晟历 72 年，以“手艺谋生”开始这一段人生。"
+          ],
+          "birthPlan": false,
+          "experienceId": "craft",
+          "factIds": [
+            "fact-8",
+            "fact-7",
+            "fact-5",
+            "fact-1"
+          ],
+          "focus": "skill",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 1,
+          "jobId": "craft",
+          "jobYears": {
+            "craft": 1
+          },
+          "lastBirthYear": -5,
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "stats": {
+            "learn": 15,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 53,
+            "trade": 15
+          },
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 32,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“耕作谋生”开始这一段人生。"
+          ],
+          "birthPlan": false,
+          "experienceId": "basic",
+          "factIds": [
+            "fact-8",
+            "fact-2"
+          ],
+          "focus": "general",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 2,
+          "jobId": "farm",
+          "jobYears": {
+            "farm": 2
+          },
+          "lastBirthYear": -5,
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "stats": {
+            "learn": 25,
+            "martial": 10,
+            "medicine": 10,
+            "skill": 25,
+            "trade": 10
+          },
+          "talent": 2,
+          "trait": "细致"
+        }
+      ],
+      "metrics": {
+        "aid": 0,
+        "foodYears": 2,
+        "lastMove": 0,
+        "migrations": 0,
+        "stable": 2
+      },
+      "money": 105,
+      "nextFactId": 10,
+      "nextHistoryId": 6,
+      "nextLedgerId": 3,
+      "openingSnapshot": {
+        "calendar": 72,
+        "family": "林",
+        "grain": 24,
+        "habitId": "none",
+        "homeId": "simple",
+        "land": 1,
+        "leaderId": 1,
+        "members": [
+          {
+            "age": 42,
+            "experienceId": "craft",
+            "focus": "skill",
+            "id": 1,
+            "jobId": "craft",
+            "name": "林成",
+            "parents": {},
+            "sex": "男",
+            "spouseId": 2,
+            "talent": 2,
+            "trait": "踏实"
+          },
+          {
+            "age": 40,
+            "experienceId": "basic",
+            "focus": "general",
+            "id": 2,
+            "jobId": "farm",
+            "name": "许青",
+            "parents": {},
+            "sex": "女",
+            "spouseId": 1,
+            "talent": 2,
+            "trait": "细致"
+          },
+          {
+            "age": 18,
+            "experienceId": "none",
+            "focus": "medicine",
+            "id": 3,
+            "jobId": "medical",
+            "name": "林芸",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "女",
+            "talent": 3,
+            "trait": "仁厚"
+          },
+          {
+            "age": 10,
+            "experienceId": "none",
+            "focus": "learn",
+            "id": 4,
+            "jobId": "study",
+            "name": "林安",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "男",
+            "talent": 3,
+            "trait": "好奇"
+          }
+        ],
+        "money": 80,
+        "nextId": 5,
+        "originId": "artisan",
+        "periodId": "peace",
+        "placeId": "village",
+        "rngSeed": 72831,
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "shop": false,
+        "tieId": "none",
+        "workshop": false,
+        "worldId": "mortal"
+      },
+      "originId": "artisan",
+      "placeId": "village",
+      "processedCommands": {},
+      "relicInstances": [
+        {
+          "definitionId": "ruler",
+          "instanceId": "relic-1",
+          "rewardState": "none",
+          "source": "开局带入",
+          "stage": "idle",
+          "status": "held"
+        }
+      ],
+      "reputation": 0,
+      "revision": 2,
+      "rngState": 1291394886,
+      "rulesVersion": 1,
+      "runId": "run-1789637761",
+      "schemaVersion": 1,
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal",
+      "yearIndex": 2
+    }
+  },
+  "history151": {
+    "draft": {
+      "calendar": 72,
+      "family": "林",
+      "grain": 24,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "leaderId": 1,
+      "members": [
+        {
+          "age": 42,
+          "experienceId": "craft",
+          "focus": "skill",
+          "id": 1,
+          "jobId": "craft",
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "spouseId": 2,
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 40,
+          "experienceId": "basic",
+          "focus": "general",
+          "id": 2,
+          "jobId": "farm",
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "spouseId": 1,
+          "talent": 2,
+          "trait": "细致"
+        },
+        {
+          "age": 18,
+          "experienceId": "none",
+          "focus": "medicine",
+          "id": 3,
+          "jobId": "medical",
+          "name": "林芸",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "女",
+          "talent": 3,
+          "trait": "仁厚"
+        },
+        {
+          "age": 10,
+          "experienceId": "none",
+          "focus": "learn",
+          "id": 4,
+          "jobId": "study",
+          "name": "林安",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "男",
+          "talent": 3,
+          "trait": "好奇"
+        }
+      ],
+      "money": 80,
+      "nextId": 5,
+      "originId": "artisan",
+      "periodId": "peace",
+      "placeId": "village",
+      "rngSeed": 72831,
+      "selectedRelicIds": [
+        "ruler"
+      ],
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal"
+    },
+    "profile": {
+      "endingRecords": {},
+      "schemaVersion": 1,
+      "unlockedRelicIds": {
+        "book": true,
+        "letter": true,
+        "ruler": true
+      }
+    },
+    "run": {
+      "annualLedgers": {},
+      "calendar": 72,
+      "eraId": "peace",
+      "eraSinceYear": 0,
+      "events": {},
+      "facts": [
+        {
+          "id": "fact-5",
+          "kind": "leadership",
+          "leaderTermStart": 1,
+          "memberIds": [
+            1
+          ],
+          "reason": "开局任命",
+          "recordLog": false,
+          "text": "林成受家人推举，成为首任族长。",
+          "year": 72
+        },
+        {
+          "id": "fact-4",
+          "kind": "opening",
+          "memberIds": [
+            4
+          ],
+          "recordLog": false,
+          "text": "林安以“读书求学”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-3",
+          "kind": "opening",
+          "memberIds": [
+            3
+          ],
+          "recordLog": false,
+          "text": "林芸以“随师学医”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-2",
+          "kind": "opening",
+          "memberIds": [
+            2
+          ],
+          "recordLog": false,
+          "text": "许青以“耕作谋生”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-1",
+          "kind": "opening",
+          "memberIds": [
+            1
+          ],
+          "recordLog": false,
+          "text": "林成以“手艺谋生”开始这一段人生。",
+          "year": 72
+        }
+      ],
+      "flags": {},
+      "grain": 24,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "leaderId": 1,
+      "leaderTerms": [
+        {
+          "effective": false,
+          "factId": "fact-5",
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        }
+      ],
+      "logs": [
+        {
+          "id": "history-151",
+          "text": "entry-151",
+          "year": 72
+        },
+        {
+          "id": "history-150",
+          "text": "entry-150",
+          "year": 72
+        },
+        {
+          "id": "history-149",
+          "text": "entry-149",
+          "year": 72
+        },
+        {
+          "id": "history-148",
+          "text": "entry-148",
+          "year": 72
+        },
+        {
+          "id": "history-147",
+          "text": "entry-147",
+          "year": 72
+        },
+        {
+          "id": "history-146",
+          "text": "entry-146",
+          "year": 72
+        },
+        {
+          "id": "history-145",
+          "text": "entry-145",
+          "year": 72
+        },
+        {
+          "id": "history-144",
+          "text": "entry-144",
+          "year": 72
+        },
+        {
+          "id": "history-143",
+          "text": "entry-143",
+          "year": 72
+        },
+        {
+          "id": "history-142",
+          "text": "entry-142",
+          "year": 72
+        },
+        {
+          "id": "history-141",
+          "text": "entry-141",
+          "year": 72
+        },
+        {
+          "id": "history-140",
+          "text": "entry-140",
+          "year": 72
+        },
+        {
+          "id": "history-139",
+          "text": "entry-139",
+          "year": 72
+        },
+        {
+          "id": "history-138",
+          "text": "entry-138",
+          "year": 72
+        },
+        {
+          "id": "history-137",
+          "text": "entry-137",
+          "year": 72
+        },
+        {
+          "id": "history-136",
+          "text": "entry-136",
+          "year": 72
+        },
+        {
+          "id": "history-135",
+          "text": "entry-135",
+          "year": 72
+        },
+        {
+          "id": "history-134",
+          "text": "entry-134",
+          "year": 72
+        },
+        {
+          "id": "history-133",
+          "text": "entry-133",
+          "year": 72
+        },
+        {
+          "id": "history-132",
+          "text": "entry-132",
+          "year": 72
+        },
+        {
+          "id": "history-131",
+          "text": "entry-131",
+          "year": 72
+        },
+        {
+          "id": "history-130",
+          "text": "entry-130",
+          "year": 72
+        },
+        {
+          "id": "history-129",
+          "text": "entry-129",
+          "year": 72
+        },
+        {
+          "id": "history-128",
+          "text": "entry-128",
+          "year": 72
+        },
+        {
+          "id": "history-127",
+          "text": "entry-127",
+          "year": 72
+        },
+        {
+          "id": "history-126",
+          "text": "entry-126",
+          "year": 72
+        },
+        {
+          "id": "history-125",
+          "text": "entry-125",
+          "year": 72
+        },
+        {
+          "id": "history-124",
+          "text": "entry-124",
+          "year": 72
+        },
+        {
+          "id": "history-123",
+          "text": "entry-123",
+          "year": 72
+        },
+        {
+          "id": "history-122",
+          "text": "entry-122",
+          "year": 72
+        },
+        {
+          "id": "history-121",
+          "text": "entry-121",
+          "year": 72
+        },
+        {
+          "id": "history-120",
+          "text": "entry-120",
+          "year": 72
+        },
+        {
+          "id": "history-119",
+          "text": "entry-119",
+          "year": 72
+        },
+        {
+          "id": "history-118",
+          "text": "entry-118",
+          "year": 72
+        },
+        {
+          "id": "history-117",
+          "text": "entry-117",
+          "year": 72
+        },
+        {
+          "id": "history-116",
+          "text": "entry-116",
+          "year": 72
+        },
+        {
+          "id": "history-115",
+          "text": "entry-115",
+          "year": 72
+        },
+        {
+          "id": "history-114",
+          "text": "entry-114",
+          "year": 72
+        },
+        {
+          "id": "history-113",
+          "text": "entry-113",
+          "year": 72
+        },
+        {
+          "id": "history-112",
+          "text": "entry-112",
+          "year": 72
+        },
+        {
+          "id": "history-111",
+          "text": "entry-111",
+          "year": 72
+        },
+        {
+          "id": "history-110",
+          "text": "entry-110",
+          "year": 72
+        },
+        {
+          "id": "history-109",
+          "text": "entry-109",
+          "year": 72
+        },
+        {
+          "id": "history-108",
+          "text": "entry-108",
+          "year": 72
+        },
+        {
+          "id": "history-107",
+          "text": "entry-107",
+          "year": 72
+        },
+        {
+          "id": "history-106",
+          "text": "entry-106",
+          "year": 72
+        },
+        {
+          "id": "history-105",
+          "text": "entry-105",
+          "year": 72
+        },
+        {
+          "id": "history-104",
+          "text": "entry-104",
+          "year": 72
+        },
+        {
+          "id": "history-103",
+          "text": "entry-103",
+          "year": 72
+        },
+        {
+          "id": "history-102",
+          "text": "entry-102",
+          "year": 72
+        },
+        {
+          "id": "history-101",
+          "text": "entry-101",
+          "year": 72
+        },
+        {
+          "id": "history-100",
+          "text": "entry-100",
+          "year": 72
+        },
+        {
+          "id": "history-99",
+          "text": "entry-99",
+          "year": 72
+        },
+        {
+          "id": "history-98",
+          "text": "entry-98",
+          "year": 72
+        },
+        {
+          "id": "history-97",
+          "text": "entry-97",
+          "year": 72
+        },
+        {
+          "id": "history-96",
+          "text": "entry-96",
+          "year": 72
+        },
+        {
+          "id": "history-95",
+          "text": "entry-95",
+          "year": 72
+        },
+        {
+          "id": "history-94",
+          "text": "entry-94",
+          "year": 72
+        },
+        {
+          "id": "history-93",
+          "text": "entry-93",
+          "year": 72
+        },
+        {
+          "id": "history-92",
+          "text": "entry-92",
+          "year": 72
+        },
+        {
+          "id": "history-91",
+          "text": "entry-91",
+          "year": 72
+        },
+        {
+          "id": "history-90",
+          "text": "entry-90",
+          "year": 72
+        },
+        {
+          "id": "history-89",
+          "text": "entry-89",
+          "year": 72
+        },
+        {
+          "id": "history-88",
+          "text": "entry-88",
+          "year": 72
+        },
+        {
+          "id": "history-87",
+          "text": "entry-87",
+          "year": 72
+        },
+        {
+          "id": "history-86",
+          "text": "entry-86",
+          "year": 72
+        },
+        {
+          "id": "history-85",
+          "text": "entry-85",
+          "year": 72
+        },
+        {
+          "id": "history-84",
+          "text": "entry-84",
+          "year": 72
+        },
+        {
+          "id": "history-83",
+          "text": "entry-83",
+          "year": 72
+        },
+        {
+          "id": "history-82",
+          "text": "entry-82",
+          "year": 72
+        },
+        {
+          "id": "history-81",
+          "text": "entry-81",
+          "year": 72
+        },
+        {
+          "id": "history-80",
+          "text": "entry-80",
+          "year": 72
+        },
+        {
+          "id": "history-79",
+          "text": "entry-79",
+          "year": 72
+        },
+        {
+          "id": "history-78",
+          "text": "entry-78",
+          "year": 72
+        },
+        {
+          "id": "history-77",
+          "text": "entry-77",
+          "year": 72
+        },
+        {
+          "id": "history-76",
+          "text": "entry-76",
+          "year": 72
+        },
+        {
+          "id": "history-75",
+          "text": "entry-75",
+          "year": 72
+        },
+        {
+          "id": "history-74",
+          "text": "entry-74",
+          "year": 72
+        },
+        {
+          "id": "history-73",
+          "text": "entry-73",
+          "year": 72
+        },
+        {
+          "id": "history-72",
+          "text": "entry-72",
+          "year": 72
+        },
+        {
+          "id": "history-71",
+          "text": "entry-71",
+          "year": 72
+        },
+        {
+          "id": "history-70",
+          "text": "entry-70",
+          "year": 72
+        },
+        {
+          "id": "history-69",
+          "text": "entry-69",
+          "year": 72
+        },
+        {
+          "id": "history-68",
+          "text": "entry-68",
+          "year": 72
+        },
+        {
+          "id": "history-67",
+          "text": "entry-67",
+          "year": 72
+        },
+        {
+          "id": "history-66",
+          "text": "entry-66",
+          "year": 72
+        },
+        {
+          "id": "history-65",
+          "text": "entry-65",
+          "year": 72
+        },
+        {
+          "id": "history-64",
+          "text": "entry-64",
+          "year": 72
+        },
+        {
+          "id": "history-63",
+          "text": "entry-63",
+          "year": 72
+        },
+        {
+          "id": "history-62",
+          "text": "entry-62",
+          "year": 72
+        },
+        {
+          "id": "history-61",
+          "text": "entry-61",
+          "year": 72
+        },
+        {
+          "id": "history-60",
+          "text": "entry-60",
+          "year": 72
+        },
+        {
+          "id": "history-59",
+          "text": "entry-59",
+          "year": 72
+        },
+        {
+          "id": "history-58",
+          "text": "entry-58",
+          "year": 72
+        },
+        {
+          "id": "history-57",
+          "text": "entry-57",
+          "year": 72
+        },
+        {
+          "id": "history-56",
+          "text": "entry-56",
+          "year": 72
+        },
+        {
+          "id": "history-55",
+          "text": "entry-55",
+          "year": 72
+        },
+        {
+          "id": "history-54",
+          "text": "entry-54",
+          "year": 72
+        },
+        {
+          "id": "history-53",
+          "text": "entry-53",
+          "year": 72
+        },
+        {
+          "id": "history-52",
+          "text": "entry-52",
+          "year": 72
+        },
+        {
+          "id": "history-51",
+          "text": "entry-51",
+          "year": 72
+        },
+        {
+          "id": "history-50",
+          "text": "entry-50",
+          "year": 72
+        },
+        {
+          "id": "history-49",
+          "text": "entry-49",
+          "year": 72
+        },
+        {
+          "id": "history-48",
+          "text": "entry-48",
+          "year": 72
+        },
+        {
+          "id": "history-47",
+          "text": "entry-47",
+          "year": 72
+        },
+        {
+          "id": "history-46",
+          "text": "entry-46",
+          "year": 72
+        },
+        {
+          "id": "history-45",
+          "text": "entry-45",
+          "year": 72
+        },
+        {
+          "id": "history-44",
+          "text": "entry-44",
+          "year": 72
+        },
+        {
+          "id": "history-43",
+          "text": "entry-43",
+          "year": 72
+        },
+        {
+          "id": "history-42",
+          "text": "entry-42",
+          "year": 72
+        },
+        {
+          "id": "history-41",
+          "text": "entry-41",
+          "year": 72
+        },
+        {
+          "id": "history-40",
+          "text": "entry-40",
+          "year": 72
+        },
+        {
+          "id": "history-39",
+          "text": "entry-39",
+          "year": 72
+        },
+        {
+          "id": "history-38",
+          "text": "entry-38",
+          "year": 72
+        },
+        {
+          "id": "history-37",
+          "text": "entry-37",
+          "year": 72
+        },
+        {
+          "id": "history-36",
+          "text": "entry-36",
+          "year": 72
+        },
+        {
+          "id": "history-35",
+          "text": "entry-35",
+          "year": 72
+        },
+        {
+          "id": "history-34",
+          "text": "entry-34",
+          "year": 72
+        },
+        {
+          "id": "history-33",
+          "text": "entry-33",
+          "year": 72
+        },
+        {
+          "id": "history-32",
+          "text": "entry-32",
+          "year": 72
+        },
+        {
+          "id": "history-31",
+          "text": "entry-31",
+          "year": 72
+        },
+        {
+          "id": "history-30",
+          "text": "entry-30",
+          "year": 72
+        },
+        {
+          "id": "history-29",
+          "text": "entry-29",
+          "year": 72
+        },
+        {
+          "id": "history-28",
+          "text": "entry-28",
+          "year": 72
+        },
+        {
+          "id": "history-27",
+          "text": "entry-27",
+          "year": 72
+        },
+        {
+          "id": "history-26",
+          "text": "entry-26",
+          "year": 72
+        },
+        {
+          "id": "history-25",
+          "text": "entry-25",
+          "year": 72
+        },
+        {
+          "id": "history-24",
+          "text": "entry-24",
+          "year": 72
+        },
+        {
+          "id": "history-23",
+          "text": "entry-23",
+          "year": 72
+        },
+        {
+          "id": "history-22",
+          "text": "entry-22",
+          "year": 72
+        },
+        {
+          "id": "history-21",
+          "text": "entry-21",
+          "year": 72
+        },
+        {
+          "id": "history-20",
+          "text": "entry-20",
+          "year": 72
+        },
+        {
+          "id": "history-19",
+          "text": "entry-19",
+          "year": 72
+        },
+        {
+          "id": "history-18",
+          "text": "entry-18",
+          "year": 72
+        },
+        {
+          "id": "history-17",
+          "text": "entry-17",
+          "year": 72
+        },
+        {
+          "id": "history-16",
+          "text": "entry-16",
+          "year": 72
+        },
+        {
+          "id": "history-15",
+          "text": "entry-15",
+          "year": 72
+        },
+        {
+          "id": "history-14",
+          "text": "entry-14",
+          "year": 72
+        },
+        {
+          "id": "history-13",
+          "text": "entry-13",
+          "year": 72
+        },
+        {
+          "id": "history-12",
+          "text": "entry-12",
+          "year": 72
+        },
+        {
+          "id": "history-11",
+          "text": "entry-11",
+          "year": 72
+        },
+        {
+          "id": "history-10",
+          "text": "entry-10",
+          "year": 72
+        },
+        {
+          "id": "history-9",
+          "text": "entry-9",
+          "year": 72
+        },
+        {
+          "id": "history-8",
+          "text": "entry-8",
+          "year": 72
+        },
+        {
+          "id": "history-7",
+          "text": "entry-7",
+          "year": 72
+        },
+        {
+          "id": "history-6",
+          "text": "entry-6",
+          "year": 72
+        },
+        {
+          "id": "history-5",
+          "text": "entry-5",
+          "year": 72
+        },
+        {
+          "id": "history-4",
+          "text": "entry-4",
+          "year": 72
+        },
+        {
+          "id": "history-3",
+          "text": "entry-3",
+          "year": 72
+        },
+        {
+          "id": "history-2",
+          "text": "entry-2",
+          "year": 72
+        },
+        {
+          "id": "history-1",
+          "text": "entry-1",
+          "year": 72
+        }
+      ],
+      "members": [
+        {
+          "age": 42,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“手艺谋生”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "craft",
+          "factIds": [
+            "fact-5",
+            "fact-1"
+          ],
+          "focus": "skill",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 1,
+          "jobId": "craft",
+          "jobYears": {},
+          "lastBirthYear": -5,
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "spouseId": 2,
+          "stats": {
+            "learn": 15,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 50,
+            "trade": 15
+          },
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 40,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“耕作谋生”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "basic",
+          "factIds": [
+            "fact-2"
+          ],
+          "focus": "general",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 2,
+          "jobId": "farm",
+          "jobYears": {},
+          "lastBirthYear": -5,
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "spouseId": 1,
+          "stats": {
+            "learn": 25,
+            "martial": 10,
+            "medicine": 10,
+            "skill": 25,
+            "trade": 10
+          },
+          "talent": 2,
+          "trait": "细致"
+        },
+        {
+          "age": 18,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“随师学医”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "none",
+          "factIds": [
+            "fact-3"
+          ],
+          "focus": "medicine",
+          "generation": 2,
+          "hadHomeAfterGuard": false,
+          "health": 84,
+          "id": 3,
+          "jobId": "medical",
+          "jobYears": {},
+          "lastBirthYear": -5,
+          "name": "林芸",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "女",
+          "stats": {
+            "learn": 10,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 10,
+            "trade": 10
+          },
+          "talent": 3,
+          "trait": "仁厚"
+        },
+        {
+          "age": 10,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“读书求学”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "none",
+          "factIds": [
+            "fact-4"
+          ],
+          "focus": "learn",
+          "generation": 2,
+          "hadHomeAfterGuard": false,
+          "health": 84,
+          "id": 4,
+          "jobId": "study",
+          "jobYears": {},
+          "lastBirthYear": -5,
+          "name": "林安",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "男",
+          "stats": {
+            "learn": 10,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 10,
+            "trade": 10
+          },
+          "talent": 3,
+          "trait": "好奇"
+        }
+      ],
+      "metrics": {
+        "aid": 0,
+        "foodYears": 0,
+        "lastMove": 0,
+        "migrations": 0,
+        "stable": 0
+      },
+      "money": 80,
+      "nextFactId": 6,
+      "nextHistoryId": 152,
+      "openingSnapshot": {
+        "calendar": 72,
+        "family": "林",
+        "grain": 24,
+        "habitId": "none",
+        "homeId": "simple",
+        "land": 1,
+        "leaderId": 1,
+        "members": [
+          {
+            "age": 42,
+            "experienceId": "craft",
+            "focus": "skill",
+            "id": 1,
+            "jobId": "craft",
+            "name": "林成",
+            "parents": {},
+            "sex": "男",
+            "spouseId": 2,
+            "talent": 2,
+            "trait": "踏实"
+          },
+          {
+            "age": 40,
+            "experienceId": "basic",
+            "focus": "general",
+            "id": 2,
+            "jobId": "farm",
+            "name": "许青",
+            "parents": {},
+            "sex": "女",
+            "spouseId": 1,
+            "talent": 2,
+            "trait": "细致"
+          },
+          {
+            "age": 18,
+            "experienceId": "none",
+            "focus": "medicine",
+            "id": 3,
+            "jobId": "medical",
+            "name": "林芸",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "女",
+            "talent": 3,
+            "trait": "仁厚"
+          },
+          {
+            "age": 10,
+            "experienceId": "none",
+            "focus": "learn",
+            "id": 4,
+            "jobId": "study",
+            "name": "林安",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "男",
+            "talent": 3,
+            "trait": "好奇"
+          }
+        ],
+        "money": 80,
+        "nextId": 5,
+        "originId": "artisan",
+        "periodId": "peace",
+        "placeId": "village",
+        "rngSeed": 72831,
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "shop": false,
+        "tieId": "none",
+        "workshop": false,
+        "worldId": "mortal"
+      },
+      "originId": "artisan",
+      "placeId": "village",
+      "processedCommands": {},
+      "relicInstances": [
+        {
+          "custodianId": 1,
+          "definitionId": "ruler",
+          "instanceId": "relic-1",
+          "rewardState": "none",
+          "source": "开局带入",
+          "stage": "idle",
+          "status": "held"
+        }
+      ],
+      "reputation": 0,
+      "revision": 0,
+      "rngState": 72831,
+      "rulesVersion": 1,
+      "runId": "run-1789637761",
+      "schemaVersion": 1,
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal",
+      "yearIndex": 0
+    }
+  },
+  "starvation": {
+    "draft": {
+      "calendar": 72,
+      "family": "林",
+      "grain": 24,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "leaderId": 1,
+      "members": [
+        {
+          "age": 42,
+          "experienceId": "craft",
+          "focus": "skill",
+          "id": 1,
+          "jobId": "craft",
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "spouseId": 2,
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 40,
+          "experienceId": "basic",
+          "focus": "general",
+          "id": 2,
+          "jobId": "farm",
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "spouseId": 1,
+          "talent": 2,
+          "trait": "细致"
+        },
+        {
+          "age": 18,
+          "experienceId": "none",
+          "focus": "medicine",
+          "id": 3,
+          "jobId": "medical",
+          "name": "林芸",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "女",
+          "talent": 3,
+          "trait": "仁厚"
+        },
+        {
+          "age": 10,
+          "experienceId": "none",
+          "focus": "learn",
+          "id": 4,
+          "jobId": "study",
+          "name": "林安",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "男",
+          "talent": 3,
+          "trait": "好奇"
+        }
+      ],
+      "money": 80,
+      "nextId": 5,
+      "originId": "artisan",
+      "periodId": "peace",
+      "placeId": "village",
+      "rngSeed": 72831,
+      "selectedRelicIds": [
+        "ruler"
+      ],
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal"
+    },
+    "profile": {
+      "endingRecords": [
+        {
+          "automatic": true,
+          "closingEventIds": {},
+          "evidence": [
+            {
+              "comparison": "equal",
+              "current": 0,
+              "label": "公库归零",
+              "measure": "当前",
+              "met": true,
+              "required": 0,
+              "source": {
+                "source": "公库"
+              }
+            },
+            {
+              "comparison": "equal",
+              "current": 0,
+              "label": "存粮归零",
+              "measure": "当前",
+              "met": true,
+              "required": 0,
+              "source": {
+                "source": "公库"
+              }
+            }
+          ],
+          "factId": "fact-7",
+          "id": "collapse",
+          "leaderId": 1,
+          "qualifiedEndingIds": {},
+          "summary": "公库与存粮一同耗尽，家人只得各自另谋生路。",
+          "title": "家道散尽",
+          "type": "natural",
+          "year": 73,
+          "yearIndex": 1
+        }
+      ],
+      "schemaVersion": 1,
+      "unlockedRelicIds": {
+        "book": true,
+        "letter": true,
+        "ruler": true
+      }
+    },
+    "run": {
+      "annualLedgers": [
+        {
+          "beforeGrain": 0,
+          "beforeMoney": 0,
+          "boughtGrain": 0,
+          "factId": "fact-6",
+          "foodCost": 0,
+          "foodNeed": 2,
+          "foodSatisfied": false,
+          "foodShortfall": 2,
+          "grain": 0,
+          "grainSold": 0,
+          "id": "ledger-1",
+          "income": 0,
+          "industryIncome": 0,
+          "landGrain": 0,
+          "livingExpense": 4,
+          "members": [
+            {
+              "grain": 0,
+              "job": "随家人生活",
+              "memberId": 1,
+              "money": 0,
+              "name": "林成"
+            }
+          ],
+          "money": 0,
+          "moneySatisfied": false,
+          "netGrain": 0,
+          "netMoney": 0,
+          "resourcesExhausted": true,
+          "saleIncome": 0,
+          "training": 0,
+          "year": 72,
+          "yearIndex": 1,
+          "yearStart": {
+            "grain": 0,
+            "land": 0,
+            "members": [
+              {
+                "age": 30,
+                "id": 1,
+                "jobId": "play"
+              }
+            ],
+            "money": 0
+          }
+        }
+      ],
+      "calendar": 73,
+      "ending": {
+        "automatic": true,
+        "closingEventIds": {},
+        "evidence": [
+          {
+            "comparison": "equal",
+            "current": 0,
+            "label": "公库归零",
+            "measure": "当前",
+            "met": true,
+            "required": 0,
+            "source": {
+              "source": "公库"
+            }
+          },
+          {
+            "comparison": "equal",
+            "current": 0,
+            "label": "存粮归零",
+            "measure": "当前",
+            "met": true,
+            "required": 0,
+            "source": {
+              "source": "公库"
+            }
+          }
+        ],
+        "factId": "fact-7",
+        "id": "collapse",
+        "leaderId": 1,
+        "qualifiedEndingIds": {},
+        "summary": "公库与存粮一同耗尽，家人只得各自另谋生路。",
+        "title": "家道散尽",
+        "type": "natural",
+        "year": 73,
+        "yearIndex": 1
+      },
+      "eraId": "peace",
+      "eraSinceYear": 0,
+      "events": {},
+      "facts": [
+        {
+          "automatic": true,
+          "closingEventIds": {},
+          "endingId": "collapse",
+          "evidence": [
+            {
+              "comparison": "equal",
+              "current": 0,
+              "label": "公库归零",
+              "measure": "当前",
+              "met": true,
+              "required": 0,
+              "source": {
+                "source": "公库"
+              }
+            },
+            {
+              "comparison": "equal",
+              "current": 0,
+              "label": "存粮归零",
+              "measure": "当前",
+              "met": true,
+              "required": 0,
+              "source": {
+                "source": "公库"
+              }
+            }
+          ],
+          "id": "fact-7",
+          "kind": "ending",
+          "memberIds": [
+            1
+          ],
+          "qualifiedEndingIds": {},
+          "text": "公库与存粮同时耗尽，家人离散，家谱在此落笔。",
+          "year": 73
+        },
+        {
+          "id": "fact-6",
+          "kind": "annual_ledger",
+          "ledgerId": "ledger-1",
+          "memberIds": {},
+          "recordLog": false,
+          "text": "大晟历 72 年账本已结算：银 0 两，粮 0 石。",
+          "year": 72
+        },
+        {
+          "id": "fact-5",
+          "kind": "leadership",
+          "leaderTermStart": 1,
+          "memberIds": [
+            1
+          ],
+          "reason": "开局任命",
+          "recordLog": false,
+          "text": "林成受家人推举，成为首任族长。",
+          "year": 72
+        },
+        {
+          "id": "fact-1",
+          "kind": "opening",
+          "memberIds": [
+            1
+          ],
+          "recordLog": false,
+          "text": "林成以“手艺谋生”开始这一段人生。",
+          "year": 72
+        }
+      ],
+      "flags": {
+        "growthNotices": {}
+      },
+      "grain": 0,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 0,
+      "lastLedger": {
+        "beforeGrain": 0,
+        "beforeMoney": 0,
+        "boughtGrain": 0,
+        "foodCost": 0,
+        "foodNeed": 2,
+        "foodSatisfied": false,
+        "foodShortfall": 2,
+        "grain": 0,
+        "grainSold": 0,
+        "income": 0,
+        "industryIncome": 0,
+        "landGrain": 0,
+        "livingExpense": 4,
+        "members": [
+          {
+            "grain": 0,
+            "job": "随家人生活",
+            "memberId": 1,
+            "money": 0,
+            "name": "林成"
+          }
+        ],
+        "money": 0,
+        "moneySatisfied": false,
+        "netGrain": 0,
+        "netMoney": 0,
+        "resourcesExhausted": true,
+        "saleIncome": 0,
+        "training": 0
+      },
+      "leaderId": 1,
+      "leaderTerms": [
+        {
+          "effective": false,
+          "factId": "fact-5",
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        }
+      ],
+      "logs": [
+        {
+          "factId": "fact-7",
+          "id": "history-2",
+          "memberIds": [
+            1
+          ],
+          "text": "公库与存粮同时耗尽，家人离散，家谱在此落笔。",
+          "year": 73
+        },
+        {
+          "id": "history-1",
+          "text": "口粮不足，全家体魄各减 12 点，度过了艰难的一年。",
+          "year": 72
+        }
+      ],
+      "members": [
+        {
+          "age": 31,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“手艺谋生”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "craft",
+          "factIds": [
+            "fact-7",
+            "fact-5",
+            "fact-1"
+          ],
+          "focus": "skill",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 48,
+          "id": 1,
+          "jobId": "play",
+          "jobYears": {
+            "play": 1
+          },
+          "lastBirthYear": -5,
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "stats": {
+            "learn": 15,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 50,
+            "trade": 15
+          },
+          "talent": 2,
+          "trait": "踏实"
+        }
+      ],
+      "metrics": {
+        "aid": 0,
+        "foodYears": 0,
+        "lastMove": 0,
+        "migrations": 0,
+        "stable": 0
+      },
+      "money": 0,
+      "nextFactId": 8,
+      "nextHistoryId": 3,
+      "nextLedgerId": 2,
+      "openingSnapshot": {
+        "calendar": 72,
+        "family": "林",
+        "grain": 24,
+        "habitId": "none",
+        "homeId": "simple",
+        "land": 1,
+        "leaderId": 1,
+        "members": [
+          {
+            "age": 42,
+            "experienceId": "craft",
+            "focus": "skill",
+            "id": 1,
+            "jobId": "craft",
+            "name": "林成",
+            "parents": {},
+            "sex": "男",
+            "spouseId": 2,
+            "talent": 2,
+            "trait": "踏实"
+          },
+          {
+            "age": 40,
+            "experienceId": "basic",
+            "focus": "general",
+            "id": 2,
+            "jobId": "farm",
+            "name": "许青",
+            "parents": {},
+            "sex": "女",
+            "spouseId": 1,
+            "talent": 2,
+            "trait": "细致"
+          },
+          {
+            "age": 18,
+            "experienceId": "none",
+            "focus": "medicine",
+            "id": 3,
+            "jobId": "medical",
+            "name": "林芸",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "女",
+            "talent": 3,
+            "trait": "仁厚"
+          },
+          {
+            "age": 10,
+            "experienceId": "none",
+            "focus": "learn",
+            "id": 4,
+            "jobId": "study",
+            "name": "林安",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "男",
+            "talent": 3,
+            "trait": "好奇"
+          }
+        ],
+        "money": 80,
+        "nextId": 5,
+        "originId": "artisan",
+        "periodId": "peace",
+        "placeId": "village",
+        "rngSeed": 72831,
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "shop": false,
+        "tieId": "none",
+        "workshop": false,
+        "worldId": "mortal"
+      },
+      "originId": "artisan",
+      "placeId": "village",
+      "processedCommands": {},
+      "relicInstances": [
+        {
+          "custodianId": 1,
+          "definitionId": "ruler",
+          "instanceId": "relic-1",
+          "rewardState": "none",
+          "source": "开局带入",
+          "stage": "idle",
+          "status": "held"
+        }
+      ],
+      "reputation": 0,
+      "revision": 1,
+      "rngState": 1368141554,
+      "rulesVersion": 1,
+      "runId": "run-1789637761",
+      "schemaVersion": 1,
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal",
+      "yearIndex": 1
+    }
+  },
+  "succession": {
+    "draft": {
+      "calendar": 72,
+      "family": "林",
+      "grain": 24,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "leaderId": 1,
+      "members": [
+        {
+          "age": 42,
+          "experienceId": "craft",
+          "focus": "skill",
+          "id": 1,
+          "jobId": "craft",
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "spouseId": 2,
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 40,
+          "experienceId": "basic",
+          "focus": "general",
+          "id": 2,
+          "jobId": "farm",
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "spouseId": 1,
+          "talent": 2,
+          "trait": "细致"
+        },
+        {
+          "age": 18,
+          "experienceId": "none",
+          "focus": "medicine",
+          "id": 3,
+          "jobId": "medical",
+          "name": "林芸",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "女",
+          "talent": 3,
+          "trait": "仁厚"
+        },
+        {
+          "age": 10,
+          "experienceId": "none",
+          "focus": "learn",
+          "id": 4,
+          "jobId": "study",
+          "name": "林安",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "男",
+          "talent": 3,
+          "trait": "好奇"
+        }
+      ],
+      "money": 80,
+      "nextId": 5,
+      "originId": "artisan",
+      "periodId": "peace",
+      "placeId": "village",
+      "rngSeed": 72831,
+      "selectedRelicIds": [
+        "ruler"
+      ],
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal"
+    },
+    "profile": {
+      "endingRecords": {},
+      "schemaVersion": 1,
+      "unlockedRelicIds": {
+        "book": true,
+        "letter": true,
+        "ruler": true
+      }
+    },
+    "run": {
+      "annualLedgers": [
+        {
+          "beforeGrain": 24,
+          "beforeMoney": 80,
+          "boughtGrain": 0,
+          "factId": "fact-6",
+          "foodCost": 0,
+          "foodNeed": 4,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "grain": 32,
+          "grainSold": 0,
+          "id": "ledger-1",
+          "income": 29,
+          "industryIncome": 0,
+          "landGrain": 4,
+          "livingExpense": 8,
+          "members": [
+            {
+              "grain": 0,
+              "job": "手艺谋生",
+              "memberId": 1,
+              "money": 21,
+              "name": "林成"
+            },
+            {
+              "grain": 8,
+              "job": "耕作谋生",
+              "memberId": 2,
+              "money": 8,
+              "name": "许青"
+            }
+          ],
+          "money": 101,
+          "moneySatisfied": true,
+          "netGrain": 8,
+          "netMoney": 21,
+          "resourcesExhausted": false,
+          "saleIncome": 0,
+          "training": 0,
+          "year": 72,
+          "yearIndex": 1,
+          "yearStart": {
+            "grain": 24,
+            "land": 1,
+            "members": [
+              {
+                "age": 89,
+                "id": 1,
+                "jobId": "craft"
+              },
+              {
+                "age": 30,
+                "id": 2,
+                "jobId": "farm"
+              }
+            ],
+            "money": 80
+          }
+        }
+      ],
+      "calendar": 73,
+      "eraId": "peace",
+      "eraSinceYear": 0,
+      "events": [
+        {
+          "blocking": true,
+          "instanceId": "event-73-1",
+          "status": "pending",
+          "title": "族长之位空缺",
+          "type": "leader"
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact-7",
+          "kind": "death",
+          "memberIds": [
+            1
+          ],
+          "text": "林成于大晟历 73 年离世，生平被保留在家谱中；其保管物已回收入家中。",
+          "year": 73
+        },
+        {
+          "id": "fact-6",
+          "kind": "annual_ledger",
+          "ledgerId": "ledger-1",
+          "memberIds": {},
+          "recordLog": false,
+          "text": "大晟历 72 年账本已结算：银 21 两，粮 8 石。",
+          "year": 72
+        },
+        {
+          "id": "fact-5",
+          "kind": "leadership",
+          "leaderTermStart": 1,
+          "memberIds": [
+            1
+          ],
+          "reason": "开局任命",
+          "recordLog": false,
+          "text": "林成受家人推举，成为首任族长。",
+          "year": 72
+        },
+        {
+          "id": "fact-2",
+          "kind": "opening",
+          "memberIds": [
+            2
+          ],
+          "recordLog": false,
+          "text": "许青以“耕作谋生”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-1",
+          "kind": "opening",
+          "memberIds": [
+            1
+          ],
+          "recordLog": false,
+          "text": "林成以“手艺谋生”开始这一段人生。",
+          "year": 72
+        }
+      ],
+      "flags": {
+        "growthNotices": {}
+      },
+      "grain": 32,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "lastLedger": {
+        "beforeGrain": 24,
+        "beforeMoney": 80,
+        "boughtGrain": 0,
+        "foodCost": 0,
+        "foodNeed": 4,
+        "foodSatisfied": true,
+        "foodShortfall": 0,
+        "grain": 32,
+        "grainSold": 0,
+        "income": 29,
+        "industryIncome": 0,
+        "landGrain": 4,
+        "livingExpense": 8,
+        "members": [
+          {
+            "grain": 0,
+            "job": "手艺谋生",
+            "memberId": 1,
+            "money": 21,
+            "name": "林成"
+          },
+          {
+            "grain": 8,
+            "job": "耕作谋生",
+            "memberId": 2,
+            "money": 8,
+            "name": "许青"
+          }
+        ],
+        "money": 101,
+        "moneySatisfied": true,
+        "netGrain": 8,
+        "netMoney": 21,
+        "resourcesExhausted": false,
+        "saleIncome": 0,
+        "training": 0
+      },
+      "leaderId": 1,
+      "leaderTerms": [
+        {
+          "effective": false,
+          "factId": "fact-5",
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        }
+      ],
+      "logs": [
+        {
+          "id": "history-3",
+          "text": "大晟历 73 年结算完成。",
+          "year": 73
+        },
+        {
+          "id": "history-2",
+          "text": "族长之位空缺：需要你的决定。",
+          "year": 73
+        },
+        {
+          "factId": "fact-7",
+          "id": "history-1",
+          "memberIds": [
+            1
+          ],
+          "text": "林成于大晟历 73 年离世，生平被保留在家谱中；其保管物已回收入家中。",
+          "year": 73
+        }
+      ],
+      "members": [
+        {
+          "age": 90,
+          "alive": false,
+          "biography": [
+            "大晟历 72 年，以“手艺谋生”开始这一段人生。"
+          ],
+          "birthPlan": false,
+          "experienceId": "craft",
+          "factIds": [
+            "fact-7",
+            "fact-5",
+            "fact-1"
+          ],
+          "focus": "skill",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 1,
+          "jobId": "craft",
+          "jobYears": {
+            "craft": 1
+          },
+          "lastBirthYear": -5,
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "stats": {
+            "learn": 15,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 53,
+            "trade": 15
+          },
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 31,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“耕作谋生”开始这一段人生。"
+          ],
+          "birthPlan": false,
+          "experienceId": "basic",
+          "factIds": [
+            "fact-2"
+          ],
+          "focus": "general",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 2,
+          "jobId": "farm",
+          "jobYears": {
+            "farm": 1
+          },
+          "lastBirthYear": -5,
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "stats": {
+            "learn": 25,
+            "martial": 10,
+            "medicine": 10,
+            "skill": 25,
+            "trade": 10
+          },
+          "talent": 2,
+          "trait": "细致"
+        }
+      ],
+      "metrics": {
+        "aid": 0,
+        "foodYears": 1,
+        "lastMove": 0,
+        "migrations": 0,
+        "stable": 1
+      },
+      "money": 101,
+      "nextFactId": 8,
+      "nextHistoryId": 4,
+      "nextLedgerId": 2,
+      "openingSnapshot": {
+        "calendar": 72,
+        "family": "林",
+        "grain": 24,
+        "habitId": "none",
+        "homeId": "simple",
+        "land": 1,
+        "leaderId": 1,
+        "members": [
+          {
+            "age": 42,
+            "experienceId": "craft",
+            "focus": "skill",
+            "id": 1,
+            "jobId": "craft",
+            "name": "林成",
+            "parents": {},
+            "sex": "男",
+            "spouseId": 2,
+            "talent": 2,
+            "trait": "踏实"
+          },
+          {
+            "age": 40,
+            "experienceId": "basic",
+            "focus": "general",
+            "id": 2,
+            "jobId": "farm",
+            "name": "许青",
+            "parents": {},
+            "sex": "女",
+            "spouseId": 1,
+            "talent": 2,
+            "trait": "细致"
+          },
+          {
+            "age": 18,
+            "experienceId": "none",
+            "focus": "medicine",
+            "id": 3,
+            "jobId": "medical",
+            "name": "林芸",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "女",
+            "talent": 3,
+            "trait": "仁厚"
+          },
+          {
+            "age": 10,
+            "experienceId": "none",
+            "focus": "learn",
+            "id": 4,
+            "jobId": "study",
+            "name": "林安",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "男",
+            "talent": 3,
+            "trait": "好奇"
+          }
+        ],
+        "money": 80,
+        "nextId": 5,
+        "originId": "artisan",
+        "periodId": "peace",
+        "placeId": "village",
+        "rngSeed": 72831,
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "shop": false,
+        "tieId": "none",
+        "workshop": false,
+        "worldId": "mortal"
+      },
+      "originId": "artisan",
+      "placeId": "village",
+      "processedCommands": {},
+      "relicInstances": [
+        {
+          "definitionId": "ruler",
+          "instanceId": "relic-1",
+          "rewardState": "none",
+          "source": "开局带入",
+          "stage": "idle",
+          "status": "held"
+        }
+      ],
+      "reputation": 0,
+      "revision": 1,
+      "rngState": 182605794,
+      "rulesVersion": 1,
+      "runId": "run-1789637761",
+      "schemaVersion": 1,
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal",
+      "yearIndex": 1
+    }
+  },
+  "unlocked": {
+    "draft": {
+      "calendar": 72,
+      "family": "林",
+      "grain": 24,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "leaderId": 1,
+      "members": [
+        {
+          "age": 42,
+          "experienceId": "craft",
+          "focus": "skill",
+          "id": 1,
+          "jobId": "craft",
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "spouseId": 2,
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 40,
+          "experienceId": "basic",
+          "focus": "general",
+          "id": 2,
+          "jobId": "farm",
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "spouseId": 1,
+          "talent": 2,
+          "trait": "细致"
+        },
+        {
+          "age": 18,
+          "experienceId": "none",
+          "focus": "medicine",
+          "id": 3,
+          "jobId": "medical",
+          "name": "林芸",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "女",
+          "talent": 3,
+          "trait": "仁厚"
+        },
+        {
+          "age": 10,
+          "experienceId": "none",
+          "focus": "learn",
+          "id": 4,
+          "jobId": "study",
+          "name": "林安",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "男",
+          "talent": 3,
+          "trait": "好奇"
+        }
+      ],
+      "money": 80,
+      "nextId": 5,
+      "originId": "artisan",
+      "periodId": "peace",
+      "placeId": "village",
+      "rngSeed": 72831,
+      "selectedRelicIds": [
+        "ruler"
+      ],
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal"
+    },
+    "profile": {
+      "endingRecords": {},
+      "schemaVersion": 1,
+      "unlockedRelicIds": {
+        "book": true,
+        "letter": true,
+        "plan": true,
+        "ruler": true
+      }
+    },
+    "run": {
+      "annualLedgers": [
+        {
+          "beforeGrain": 24,
+          "beforeMoney": 72,
+          "boughtGrain": 0,
+          "factId": "fact-7",
+          "foodCost": 0,
+          "foodNeed": 7,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "grain": 29,
+          "grainSold": 0,
+          "id": "ledger-1",
+          "income": 29,
+          "industryIncome": 0,
+          "landGrain": 4,
+          "livingExpense": 14,
+          "members": [
+            {
+              "grain": 0,
+              "job": "手艺谋生",
+              "memberId": 1,
+              "money": 21,
+              "name": "林成"
+            },
+            {
+              "grain": 8,
+              "job": "耕作谋生",
+              "memberId": 2,
+              "money": 8,
+              "name": "许青"
+            },
+            {
+              "grain": 0,
+              "job": "随师学医",
+              "memberId": 3,
+              "money": -9,
+              "name": "林芸"
+            },
+            {
+              "grain": 0,
+              "job": "读书求学",
+              "memberId": 4,
+              "money": -7,
+              "name": "林安"
+            }
+          ],
+          "money": 71,
+          "moneySatisfied": true,
+          "netGrain": 5,
+          "netMoney": -1,
+          "resourcesExhausted": false,
+          "saleIncome": 0,
+          "training": 16,
+          "year": 72,
+          "yearIndex": 1,
+          "yearStart": {
+            "grain": 24,
+            "land": 1,
+            "members": [
+              {
+                "age": 42,
+                "id": 1,
+                "jobId": "craft"
+              },
+              {
+                "age": 40,
+                "id": 2,
+                "jobId": "farm"
+              },
+              {
+                "age": 18,
+                "id": 3,
+                "jobId": "medical"
+              },
+              {
+                "age": 10,
+                "id": 4,
+                "jobId": "study"
+              }
+            ],
+            "money": 72
+          }
+        }
+      ],
+      "calendar": 73,
+      "eraId": "peace",
+      "eraSinceYear": 0,
+      "events": [
+        {
+          "blocking": true,
+          "executorId": 1,
+          "instanceId": "event-73-1",
+          "relicInstanceId": "relic-1",
+          "status": "resolved",
+          "title": "一把老木尺有了新的线索",
+          "type": "relic_resolution"
+        }
+      ],
+      "facts": [
+        {
+          "action": "restore",
+          "id": "fact-8",
+          "kind": "relic",
+          "memberIds": [
+            1
+          ],
+          "relicInstanceId": "relic-1",
+          "text": "林成完成“一把老木尺”的“修复图样”。",
+          "unlock": "plan",
+          "year": 73
+        },
+        {
+          "id": "fact-7",
+          "kind": "annual_ledger",
+          "ledgerId": "ledger-1",
+          "memberIds": {},
+          "recordLog": false,
+          "text": "大晟历 72 年账本已结算：银 -1 两，粮 5 石。",
+          "year": 72
+        },
+        {
+          "action": "investigate",
+          "cost": 8,
+          "dueYear": 1,
+          "id": "fact-6",
+          "kind": "relic",
+          "memberIds": [
+            1
+          ],
+          "relicInstanceId": "relic-1",
+          "route": "fast",
+          "text": "林成为“一把老木尺”选择“查匠号（8 两／约 1 年）”。",
+          "year": 72
+        },
+        {
+          "id": "fact-5",
+          "kind": "leadership",
+          "leaderTermStart": 1,
+          "memberIds": [
+            1
+          ],
+          "reason": "开局任命",
+          "recordLog": false,
+          "text": "林成受家人推举，成为首任族长。",
+          "year": 72
+        },
+        {
+          "id": "fact-4",
+          "kind": "opening",
+          "memberIds": [
+            4
+          ],
+          "recordLog": false,
+          "text": "林安以“读书求学”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-3",
+          "kind": "opening",
+          "memberIds": [
+            3
+          ],
+          "recordLog": false,
+          "text": "林芸以“随师学医”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-2",
+          "kind": "opening",
+          "memberIds": [
+            2
+          ],
+          "recordLog": false,
+          "text": "许青以“耕作谋生”开始这一段人生。",
+          "year": 72
+        },
+        {
+          "id": "fact-1",
+          "kind": "opening",
+          "memberIds": [
+            1
+          ],
+          "recordLog": false,
+          "text": "林成以“手艺谋生”开始这一段人生。",
+          "year": 72
+        }
+      ],
+      "flags": {
+        "growthNotices": {},
+        "rulerRestored": true
+      },
+      "grain": 29,
+      "habitId": "none",
+      "homeId": "simple",
+      "land": 1,
+      "lastLedger": {
+        "beforeGrain": 24,
+        "beforeMoney": 72,
+        "boughtGrain": 0,
+        "foodCost": 0,
+        "foodNeed": 7,
+        "foodSatisfied": true,
+        "foodShortfall": 0,
+        "grain": 29,
+        "grainSold": 0,
+        "income": 29,
+        "industryIncome": 0,
+        "landGrain": 4,
+        "livingExpense": 14,
+        "members": [
+          {
+            "grain": 0,
+            "job": "手艺谋生",
+            "memberId": 1,
+            "money": 21,
+            "name": "林成"
+          },
+          {
+            "grain": 8,
+            "job": "耕作谋生",
+            "memberId": 2,
+            "money": 8,
+            "name": "许青"
+          },
+          {
+            "grain": 0,
+            "job": "随师学医",
+            "memberId": 3,
+            "money": -9,
+            "name": "林芸"
+          },
+          {
+            "grain": 0,
+            "job": "读书求学",
+            "memberId": 4,
+            "money": -7,
+            "name": "林安"
+          }
+        ],
+        "money": 71,
+        "moneySatisfied": true,
+        "netGrain": 5,
+        "netMoney": -1,
+        "resourcesExhausted": false,
+        "saleIncome": 0,
+        "training": 16
+      },
+      "leaderId": 1,
+      "leaderTerms": [
+        {
+          "effective": false,
+          "factId": "fact-5",
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        }
+      ],
+      "logs": [
+        {
+          "id": "history-6",
+          "text": "林成完成“一把老木尺”的“修复图样”。“修复的营造图”已进入本局藏阁，也解锁了下一局资格。",
+          "year": 73
+        },
+        {
+          "factId": "fact-8",
+          "id": "history-5",
+          "memberIds": [
+            1
+          ],
+          "text": "林成完成“一把老木尺”的“修复图样”。",
+          "year": 73
+        },
+        {
+          "id": "history-4",
+          "text": "大晟历 73 年结算完成。",
+          "year": 73
+        },
+        {
+          "id": "history-3",
+          "text": "一把老木尺有了新的线索：需要你的决定。",
+          "year": 73
+        },
+        {
+          "id": "history-2",
+          "text": "林成为“一把老木尺”安排“查匠号（8 两／约 1 年）”，花费 8 两。",
+          "year": 72
+        },
+        {
+          "factId": "fact-6",
+          "id": "history-1",
+          "memberIds": [
+            1
+          ],
+          "text": "林成为“一把老木尺”选择“查匠号（8 两／约 1 年）”。",
+          "year": 72
+        }
+      ],
+      "members": [
+        {
+          "age": 43,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“手艺谋生”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "craft",
+          "factIds": [
+            "fact-8",
+            "fact-6",
+            "fact-5",
+            "fact-1"
+          ],
+          "focus": "skill",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 1,
+          "jobId": "craft",
+          "jobYears": {
+            "craft": 1
+          },
+          "lastBirthYear": -5,
+          "name": "林成",
+          "parents": {},
+          "sex": "男",
+          "spouseId": 2,
+          "stats": {
+            "learn": 15,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 53,
+            "trade": 15
+          },
+          "talent": 2,
+          "trait": "踏实"
+        },
+        {
+          "age": 41,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“耕作谋生”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "basic",
+          "factIds": [
+            "fact-2"
+          ],
+          "focus": "general",
+          "generation": 1,
+          "hadHomeAfterGuard": false,
+          "health": 76,
+          "id": 2,
+          "jobId": "farm",
+          "jobYears": {
+            "farm": 1
+          },
+          "lastBirthYear": -5,
+          "name": "许青",
+          "parents": {},
+          "sex": "女",
+          "spouseId": 1,
+          "stats": {
+            "learn": 25,
+            "martial": 10,
+            "medicine": 10,
+            "skill": 25,
+            "trade": 10
+          },
+          "talent": 2,
+          "trait": "细致"
+        },
+        {
+          "age": 19,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“随师学医”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "none",
+          "factIds": [
+            "fact-3"
+          ],
+          "focus": "medicine",
+          "generation": 2,
+          "hadHomeAfterGuard": false,
+          "health": 84,
+          "id": 3,
+          "jobId": "medical",
+          "jobYears": {
+            "medical": 1
+          },
+          "lastBirthYear": -5,
+          "name": "林芸",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "女",
+          "stats": {
+            "learn": 10,
+            "martial": 10,
+            "medicine": 8,
+            "skill": 10,
+            "trade": 10
+          },
+          "talent": 3,
+          "trait": "仁厚"
+        },
+        {
+          "age": 11,
+          "alive": true,
+          "biography": [
+            "大晟历 72 年，以“读书求学”开始这一段人生。"
+          ],
+          "birthPlan": true,
+          "experienceId": "none",
+          "factIds": [
+            "fact-4"
+          ],
+          "focus": "learn",
+          "generation": 2,
+          "hadHomeAfterGuard": false,
+          "health": 84,
+          "id": 4,
+          "jobId": "study",
+          "jobYears": {
+            "study": 1
+          },
+          "lastBirthYear": -5,
+          "name": "林安",
+          "parents": [
+            1,
+            2
+          ],
+          "sex": "男",
+          "stats": {
+            "learn": 16,
+            "martial": 10,
+            "medicine": 0,
+            "skill": 10,
+            "trade": 10
+          },
+          "talent": 3,
+          "trait": "好奇"
+        }
+      ],
+      "metrics": {
+        "aid": 0,
+        "foodYears": 1,
+        "lastMove": 0,
+        "migrations": 0,
+        "stable": 1
+      },
+      "money": 71,
+      "nextFactId": 9,
+      "nextHistoryId": 7,
+      "nextLedgerId": 2,
+      "openingSnapshot": {
+        "calendar": 72,
+        "family": "林",
+        "grain": 24,
+        "habitId": "none",
+        "homeId": "simple",
+        "land": 1,
+        "leaderId": 1,
+        "members": [
+          {
+            "age": 42,
+            "experienceId": "craft",
+            "focus": "skill",
+            "id": 1,
+            "jobId": "craft",
+            "name": "林成",
+            "parents": {},
+            "sex": "男",
+            "spouseId": 2,
+            "talent": 2,
+            "trait": "踏实"
+          },
+          {
+            "age": 40,
+            "experienceId": "basic",
+            "focus": "general",
+            "id": 2,
+            "jobId": "farm",
+            "name": "许青",
+            "parents": {},
+            "sex": "女",
+            "spouseId": 1,
+            "talent": 2,
+            "trait": "细致"
+          },
+          {
+            "age": 18,
+            "experienceId": "none",
+            "focus": "medicine",
+            "id": 3,
+            "jobId": "medical",
+            "name": "林芸",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "女",
+            "talent": 3,
+            "trait": "仁厚"
+          },
+          {
+            "age": 10,
+            "experienceId": "none",
+            "focus": "learn",
+            "id": 4,
+            "jobId": "study",
+            "name": "林安",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "男",
+            "talent": 3,
+            "trait": "好奇"
+          }
+        ],
+        "money": 80,
+        "nextId": 5,
+        "originId": "artisan",
+        "periodId": "peace",
+        "placeId": "village",
+        "rngSeed": 72831,
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "shop": false,
+        "tieId": "none",
+        "workshop": false,
+        "worldId": "mortal"
+      },
+      "originId": "artisan",
+      "placeId": "village",
+      "processedCommands": {},
+      "relicInstances": [
+        {
+          "custodianId": 1,
+          "definitionId": "ruler",
+          "dueYear": 1,
+          "executorId": 1,
+          "instanceId": "relic-1",
+          "rewardState": "granted",
+          "route": "fast",
+          "source": "开局带入",
+          "stage": "completed",
+          "status": "held"
+        },
+        {
+          "custodianId": 1,
+          "definitionId": "plan",
+          "executorId": 1,
+          "instanceId": "relic-2-plan",
+          "rewardState": "none",
+          "source": "修复“一把老木尺”",
+          "stage": "idle",
+          "status": "held"
+        }
+      ],
+      "reputation": 0,
+      "revision": 1,
+      "rngState": 2020611755,
+      "rulesVersion": 1,
+      "runId": "run-1789637761",
+      "schemaVersion": 1,
+      "shop": false,
+      "tieId": "none",
+      "workshop": false,
+      "worldId": "mortal",
+      "yearIndex": 1
+    },
+    "saveRevision": 6,
+    "saveSchemaVersion": 2
+  }
+}

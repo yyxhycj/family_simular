@@ -577,6 +577,7 @@ end
 function App:BuildRunStatusBar()
     local living, foodNeed = self:GetRunOverview()
     local foodUnsafe = self.run.grain < foodNeed
+    local collapseRisk = Simulation.IsFamilyCollapsed(self.run)
     local function metric(name, value, color)
         return UI.Panel {
             height = 48, paddingHorizontal = 8, justifyContent = "center",
@@ -592,8 +593,8 @@ function App:BuildRunStatusBar()
         children = {
             Label("第 " .. tostring(self.run.yearIndex + 1) .. " 年 · " .. Data.WORLD_NAME .. "历 " .. tostring(self.run.calendar) .. " 年 · " .. tostring(living) .. " 人在世", { fontSize = 12, fontColor = C.muted }),
             UI.SimpleGrid { minColumnWidth = 150, gap = 4, children = {
-                metric("公库", tostring(self.run.money) .. " 两"),
-                metric("存粮", tostring(self.run.grain) .. "/" .. tostring(foodNeed) .. " 石", foodUnsafe and C.warning or nil),
+                metric("公库", tostring(self.run.money) .. " 两", collapseRisk and C.warning or nil),
+                metric("存粮", tostring(self.run.grain) .. "/" .. tostring(foodNeed) .. " 石", (foodUnsafe or collapseRisk) and C.warning or nil),
                 metric("田地", tostring(self.run.land) .. " 亩"),
                 metric("声望", tostring(self.run.reputation)),
             } },
@@ -853,7 +854,7 @@ function App:BuildFamilyTab()
         for _, item in ipairs(completedEnding.evidence or {}) do table.insert(evidenceLines, Label(EndingEvidenceText(self.run, item), { fontSize = 11, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 })) end
         table.insert(children, Card({
             Label("本局已落笔 · " .. tostring(completedEnding.title or "家谱落笔"), { fontSize = 17, fontWeight = "bold" }),
-            Label(completedEnding.automatic and "自然终局：全体在世族人已归零。" or "主终章已由家主确认，家史现为只读。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
+            Label(completedEnding.automatic and (Data.Ending(completedEnding.id).automaticHint or "自然终局已自动写入家史。") or "主终章已由家主确认，家史现为只读。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
             Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }),
             UI.Panel { gap = 4, children = evidenceLines },
             Button("新立家谱", function() self:PrepareNewRun() end, { height = 36 }),
@@ -863,7 +864,7 @@ function App:BuildFamilyTab()
         for _, event in ipairs(pending) do table.insert(children, self:BuildPendingEvent(event)) end
     else
         local firstYear = self.run.yearIndex == 0
-        local guidance = firstYear and "先看每位族人的主业；如果手艺人或经商者没有产业，再到“家业”页置办。确认后，点底部“推进这一年”。" or (self.run.grain < foodNeed and "粮食不足以覆盖这一年：先在“族人”页安排耕作，或到“家业”页购粮、置办田地。" or "本年已有安排。你可以微调族人主业、置办家业，或直接推进年度结算。")
+        local guidance = Simulation.IsFamilyCollapsed(self.run) and "公库与存粮同时为零。若推进本年结算后仍同时归零，家谱会以“家道散尽”落笔；先安排能带回钱粮的主业。" or (firstYear and "先看每位族人的主业；如果手艺人或经商者没有产业，再到“家业”页置办。确认后，点底部“推进这一年”。" or (self.run.grain < foodNeed and "粮食不足以覆盖这一年：先在“族人”页安排耕作，或到“家业”页购粮、置办田地。" or "本年已有安排。你可以微调族人主业、置办家业，或直接推进年度结算。"))
         table.insert(children, Card({
             Label(firstYear and "第一年这样开始" or "这一年的优先事项", { fontSize = 16, fontWeight = "bold" }),
             Label(guidance, { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
@@ -1193,7 +1194,7 @@ function App:BuildHistoryTab()
         local action = nil
         if endingData.automatic then
             local autoDone = currentEnding and currentEnding.id == endingData.id
-            action = Label(autoDone and "已自然写入本局终章" or "全体在世族人归零后自动写入", { fontSize = 12, fontColor = autoDone and C.green or C.muted, whiteSpace = "normal" })
+            action = Label(autoDone and "已自然写入本局终章" or (endingData.automaticHint or "自然终章会在满足条件后自动写入"), { fontSize = 12, fontColor = autoDone and C.green or C.muted, whiteSpace = "normal" })
         elseif currentEnding and currentEnding.id == endingData.id then
             action = Label("已作为本局主终章写入家史", { fontSize = 12, fontColor = C.green })
         elseif self.run.ending then
@@ -1248,7 +1249,7 @@ function App:BuildHistoryTab()
         local start = TableValue(ledger.yearStart)
         table.insert(ledgerCards, Card({
             Label("大晟历 " .. tostring(ledger.year) .. " 年账本", { fontSize = 16, fontWeight = "bold" }),
-            Label("年初：银 " .. tostring(start.money or ledger.beforeMoney) .. " 两 · 粮 " .. tostring(start.grain or ledger.beforeGrain) .. " 石\n收入 " .. tostring(ledger.income or 0) .. " 两 · 培养 " .. tostring(ledger.training or 0) .. " 两 · 产业 " .. tostring(ledger.industryIncome or 0) .. " 两 · 生活 " .. tostring(ledger.livingExpense or 0) .. " 两\n粮食：需 " .. tostring(ledger.foodNeed or 0) .. " 石 · 缺 " .. tostring(ledger.foodShortfall or 0) .. " 石 · 净变 " .. tostring(ledger.netGrain or 0) .. " 石", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+            Label("年初：银 " .. tostring(start.money or ledger.beforeMoney) .. " 两 · 粮 " .. tostring(start.grain or ledger.beforeGrain) .. " 石\n收入 " .. tostring(ledger.income or 0) .. " 两 · 培养 " .. tostring(ledger.training or 0) .. " 两 · 产业 " .. tostring(ledger.industryIncome or 0) .. " 两 · 生活 " .. tostring(ledger.livingExpense or 0) .. " 两\n粮食：需 " .. tostring(ledger.foodNeed or 0) .. " 石 · 缺 " .. tostring(ledger.foodShortfall or 0) .. " 石 · 净变 " .. tostring(ledger.netGrain or 0) .. " 石" .. (ledger.resourcesExhausted and "\n年末：公库与存粮同时归零。" or ""), { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
         }))
     end
     if #ledgerCards == 0 then table.insert(ledgerCards, Label("推进第一年后，这里会保留每一年的年初快照与结算分项。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" })) end

@@ -1,0 +1,306 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "seeded_generation",
+        "distinct": 48,
+        "maxPopulation": 6,
+        "samples": 48
+      },
+      {
+        "id": "name_isolation",
+        "points": 66,
+        "family": "司马"
+      },
+      {
+        "limits": "100/101",
+        "id": "edit_validation",
+        "pageIsolation": true,
+        "rejected": 3,
+        "pointLinesSafe": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netGrain": 5,
+        "income": 29,
+        "id": "preview",
+        "netMoney": -1
+      },
+      {
+        "reputation": 26,
+        "id": "advance",
+        "ledger": {
+          "foodCost": 0,
+          "boughtGrain": 0,
+          "income": 29,
+          "money": 79,
+          "members": [
+            {
+              "job": "手艺谋生",
+              "money": 21,
+              "grain": 0,
+              "memberId": 1,
+              "name": "林成"
+            },
+            {
+              "job": "耕作谋生",
+              "money": 8,
+              "grain": 8,
+              "memberId": 2,
+              "name": "许青"
+            },
+            {
+              "job": "随师学医",
+              "money": -9,
+              "grain": 0,
+              "memberId": 3,
+              "name": "林芸"
+            },
+            {
+              "job": "读书求学",
+              "money": -7,
+              "grain": 0,
+              "memberId": 4,
+              "name": "林安"
+            }
+          ],
+          "landGrain": 4,
+          "resourcesExhausted": false,
+          "foodShortfall": 0,
+          "netMoney": -1,
+          "netGrain": 5,
+          "grain": 29,
+          "training": 16,
+          "beforeGrain": 24,
+          "grainSold": 0,
+          "foodNeed": 7,
+          "saleIncome": 0,
+          "moneySatisfied": true,
+          "foodSatisfied": true,
+          "industryIncome": 0,
+          "beforeMoney": 80,
+          "livingExpense": 14
+        }
+      },
+      {
+        "stable": 0,
+        "foodYears": 0,
+        "id": "shortage",
+        "shortfall": 3
+      },
+      {
+        "reputation": 37,
+        "id": "stacking",
+        "tradeIncome": 36
+      },
+      {
+        "invalidDraftPreserved": true,
+        "id": "price_and_reject",
+        "landCost": 30
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "savedDraftSurvivesLaterCancel": true,
+      "pageUndoScoped": true,
+      "inputKeepsFocus": true,
+      "coverActionsReachable": true,
+      "generatedFailureInjected": true,
+      "newMemberPreview": true,
+      "newMemberSpouseSaved": true,
+      "invalidStartInline": true,
+      "editCancelPure": true,
+      "addCancelPure": true,
+      "detailReturnPreserved": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "readOnlyViews": 5,
+      "ledger": {
+        "beforeMoney": 0,
+        "members": [
+          {
+            "name": "苏青瑶",
+            "memberId": 1,
+            "grain": 0,
+            "money": -8,
+            "job": "随师学医"
+          },
+          {
+            "name": "闻川",
+            "memberId": 2,
+            "grain": 0,
+            "money": -8,
+            "job": "随师学医"
+          },
+          {
+            "name": "苏芸瑶",
+            "memberId": 3,
+            "grain": 0,
+            "money": -6,
+            "job": "读书求学"
+          }
+        ],
+        "money": 2,
+        "moneySatisfied": true,
+        "saleIncome": 39,
+        "beforeGrain": 28,
+        "foodShortfall": 0,
+        "landGrain": 4,
+        "foodSatisfied": true,
+        "resourcesExhausted": false,
+        "livingExpense": 15,
+        "netGrain": -14,
+        "training": 22,
+        "netMoney": 2,
+        "grain": 14,
+        "foodCost": 0,
+        "income": 0,
+        "grainSold": 13,
+        "industryIncome": 0,
+        "foodNeed": 5,
+        "boughtGrain": 0
+      },
+      "duplicateConfirmationIgnored": true,
+      "snapshot": {
+        "originId": "merchant",
+        "tieId": "neighbor",
+        "nextId": 4,
+        "money": 0,
+        "selectedRelicIds": [
+          "book",
+          "letter"
+        ],
+        "homeId": "rented",
+        "shop": false,
+        "habitId": "care",
+        "worldId": "mortal",
+        "calendar": 96,
+        "land": 1,
+        "members": [
+          {
+            "trait": "沉静",
+            "parents": {},
+            "id": 1,
+            "jobId": "medical",
+            "spouseId": 2,
+            "name": "苏青瑶",
+            "focus": "skill",
+            "experienceId": "none",
+            "nameSource": "family",
+            "age": 46,
+            "givenName": "青瑶",
+            "talent": 1,
+            "sex": "女"
+          },
+          {
+            "trait": "踏实",
+            "parents": {},
+            "id": 2,
+            "jobId": "medical",
+            "spouseId": 1,
+            "name": "闻川",
+            "focus": "martial",
+            "experienceId": "craft",
+            "nameSource": "external",
+            "age": 53,
+            "givenName": "川",
+            "talent": 4,
+            "sex": "男"
+          },
+          {
+            "trait": "爽朗",
+            "parents": [
+              1,
+              2
+            ],
+            "id": 3,
+            "jobId": "study",
+            "name": "苏芸瑶",
+            "focus": "general",
+            "experienceId": "basic",
+            "nameSource": "family",
+            "age": 10,
+            "givenName": "芸瑶",
+            "talent": 4,
+            "sex": "女"
+          }
+        ],
+        "placeId": "village",
+        "nameSeed": 271370165,
+        "generatorVersion": 1,
+        "family": "苏",
+        "periodId": "strain",
+        "leaderId": 1,
+        "rngSeed": 271370165,
+        "workshop": false,
+        "grain": 28
+      },
+      "priorSaveRetainedUntilConfirmation": true,
+      "points": 93
+    },
+    "restart": {
+      "ledger": {
+        "foodShortfall": 0,
+        "training": 22,
+        "landGrain": 4,
+        "members": [
+          {
+            "name": "苏青瑶",
+            "memberId": 1,
+            "money": -8,
+            "grain": 0,
+            "job": "随师学医"
+          },
+          {
+            "name": "闻川",
+            "memberId": 2,
+            "money": -8,
+            "grain": 0,
+            "job": "随师学医"
+          },
+          {
+            "name": "苏芸瑶",
+            "memberId": 3,
+            "money": -6,
+            "grain": 0,
+            "job": "读书求学"
+          }
+        ],
+        "livingExpense": 15,
+        "income": 0,
+        "industryIncome": 0,
+        "grain": 14,
+        "foodCost": 0,
+        "resourcesExhausted": false,
+        "money": 2,
+        "saleIncome": 39,
+        "foodSatisfied": true,
+        "netGrain": -14,
+        "moneySatisfied": true,
+        "beforeMoney": 0,
+        "beforeGrain": 28,
+        "grainSold": 13,
+        "boughtGrain": 0,
+        "foodNeed": 5,
+        "netMoney": 2
+      },
+      "points": 93,
+      "year": 1,
+      "family": "苏"
+    }
+  }
+]

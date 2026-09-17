@@ -1,0 +1,70 @@
+[
+  {
+    "id": "current_roundtrip",
+    "status": "PASS",
+    "evidence": {
+      "history": 153,
+      "saveRevision": 2,
+      "dueYear": 1,
+      "rng": 72831
+    },
+    "restart": {
+      "history": 153,
+      "rng": 72831,
+      "dueYear": 1,
+      "revision": 2
+    }
+  },
+  {
+    "id": "v5_migration",
+    "status": "PASS",
+    "evidence": {
+      "pending": "relic_resolution",
+      "family": "林",
+      "unlockedPlan": true,
+      "logs": 2,
+      "rng": 146814
+    },
+    "restart": {
+      "revision": 1,
+      "pending": "relic_resolution",
+      "run": "v5-long-run"
+    }
+  },
+  {
+    "id": "ended",
+    "status": "PASS",
+    "evidence": {
+      "records": 1,
+      "ending": "last"
+    },
+    "restart": {
+      "ending": "last",
+      "revision": 2
+    }
+  },
+  {
+    "id": "damaged",
+    "status": "PASS",
+    "evidence": {
+      "unchanged": true,
+      "family": "林"
+    },
+    "restart": {
+      "family": "林",
+      "revision": 1
+    }
+  },
+  {
+    "id": "write_failure",
+    "status": "PASS",
+    "evidence": {
+      "family": "林",
+      "exportRejected": true
+    },
+    "restart": {
+      "family": "林",
+      "revision": 1
+    }
+  }
+]

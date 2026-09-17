@@ -160,6 +160,26 @@ local function CheckNaturalEnding(lines)
     table.insert(lines, "自动终局：全员离世、档案与存档编码一致、全部运行期写操作保持只读")
 end
 
+local function CheckResourceCollapse(lines)
+    local profile = State.NewProfile()
+    local run, draft = NewRun(profile, function(draft) return #Adults(draft.members) >= 1 and #draft.selectedRelicIds == 0 end)
+    for _, member in ipairs(run.members) do
+        member.age, member.health, member.jobId, member.birthPlan = 30, 100, "play", false
+    end
+    run.money, run.grain, run.land = 0, 0, 0
+    assert(Simulation.AdvanceYear(run, profile))
+    assert(run.ending and run.ending.id == "collapse" and run.ending.automatic, "钱粮俱尽后未自动写入家道终局。")
+    assert(run.lastLedger.resourcesExhausted and #run.ending.evidence == 2 and run.ending.evidence[1].current == 0 and run.ending.evidence[2].current == 0,
+        "家道终局没有保留钱粮归零证据。")
+    assert(#profile.endingRecords == 1 and #Simulation.PendingEvents(run) == 0 and #Adults(run.members) >= 1, "家道终局档案、事件关闭或人物保留错误。")
+    local restored, importMessage = State.Import(cjson.encode({ profile = profile, draft = draft, run = run }))
+    assert(restored and importMessage and restored.run.ending.id == "collapse" and restored.profile.endingRecords[1].factId == run.ending.factId,
+        "家道终局存档编码或读取后的状态不一致。")
+    local before = State.Copy(run)
+    assert(not Simulation.SetJob(run, run.members[1].id, "farm") and Same(before, run), "家道终局后仍可改写运行家谱。")
+    table.insert(lines, "家道终局：钱粮同归零、账本与终章证据一致、人物经历保留且运行期只读")
+end
+
 local function CheckBoundaryRules(lines)
     local profile = State.NewProfile()
     local run = NewRun(profile, function(draft) return #Adults(draft.members) >= 2 end)
@@ -196,10 +216,11 @@ end
 
 function Start()
     UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
-    assert(#Data.Endings == 13 and Data.Ending("last").automatic, "十三条终章登记不完整。")
+    assert(#Data.Endings == 14 and Data.Ending("last").automatic and Data.Ending("collapse").automatic, "终章登记不完整。")
     local lines = { "T08 真实引擎验收通过" }
     CheckDevelopmentEnding(lines)
     CheckNaturalEnding(lines)
+    CheckResourceCollapse(lines)
     CheckBoundaryRules(lines)
     UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", alignItems = "center", children = {
         UI.Panel { width = 420, maxWidth = "100%", gap = 12, padding = 16, children = (function()

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "distinct": 48,
+        "samples": 48,
+        "id": "seeded_generation",
+        "maxPopulation": 6
+      },
+      {
+        "points": 66,
+        "id": "name_isolation",
+        "family": "司马"
+      },
+      {
+        "pointLinesSafe": true,
+        "pageIsolation": true,
+        "rejected": 3,
+        "id": "edit_validation",
+        "limits": "100/101"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:43: 年度推进应记录经济内核的同源账本\\nstack traceback:\\n\\t[string \"<python>\"]:43: in function <[string \"<python>\"]:20>\\n\\t[C]: in function \\'assert\\'')"
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "invalidStartInline": true,
+      "editCancelPure": true,
+      "pageUndoScoped": true,
+      "detailReturnPreserved": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "generatedFailureInjected": true,
+      "newMemberPreview": true,
+      "newMemberSpouseSaved": true,
+      "inputKeepsFocus": true,
+      "coverActionsReachable": true,
+      "addCancelPure": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:37: annual ledger diverged from displayed forecast\\nstack traceback:\\n\\t[string \"<python>\"]:37: in function <[string \"<python>\"]:12>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

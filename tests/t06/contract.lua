@@ -54,8 +54,12 @@ local function run()
     survivor.age, survivor.health, survivor.jobId, survivor.spouseId, survivor.birthPlan = 30, 60, "play", nil, false
     hungry.money, hungry.grain, hungry.land, hungry.metrics.stable, hungry.metrics.foodYears = 0, 0, 0, 4, 7
     assert(Simulation.AdvanceYear(hungry, hungryProfile))
-    assert(hungry.metrics.stable == 0 and hungry.metrics.foodYears == 0 and hungry.lastLedger.foodSatisfied == false and survivor.health == 48,
-        "饥荒年度被算作稳定或没有留下真实后果")
+    assert(hungry.metrics.stable == 0 and hungry.metrics.foodYears == 0 and hungry.lastLedger.foodSatisfied == false and survivor.health == 48
+        and hungry.lastLedger.resourcesExhausted and hungry.ending and hungry.ending.id == "collapse" and hungry.ending.automatic
+        and hungry.ending.evidence[1].current == 0 and hungry.ending.evidence[2].current == 0 and #hungryProfile.endingRecords == 1 and survivor.alive,
+        "钱粮同时耗尽后没有写入可回看的家道终局")
+    local closedHungry = State.Copy(hungry)
+    assert(not Simulation.SetJob(hungry, survivor.id, "farm") and same(hungry, closedHungry), "家道终局后仍可改写运行家谱")
 
     local lineage, lineageProfile = fresh()
     lineage.money = 200
@@ -127,7 +131,7 @@ local function run()
     assert(find(UI.root, "历任族长") and find(UI.root, "查看此人生平"), "家史缺少历任族长入口")
     assert(dead and not dead.alive and factFor(handover, dead.id, "death"), "已故成员不可回看其离世事实")
     return {
-        annualLedgerFrozen = true, hungerResets = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },
+        annualLedgerFrozen = true, hungerResets = true, collapseReadOnly = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },
         custodyRecovered = true, factsPersisted = true, historyEntrances = true,
     }
 end

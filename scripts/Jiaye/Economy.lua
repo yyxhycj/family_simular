@@ -136,6 +136,7 @@ function Economy.Settle(run)
     ledger.beforeMoney = beforeMoney; ledger.beforeGrain = beforeGrain
     ledger.money = run.money; ledger.grain = run.grain
     ledger.netMoney = run.money - beforeMoney; ledger.netGrain = run.grain - beforeGrain
+    ledger.resourcesExhausted = run.money == 0 and run.grain == 0
     return ledger
 end
 

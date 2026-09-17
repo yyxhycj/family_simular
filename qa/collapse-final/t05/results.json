@@ -1,0 +1,30 @@
+[
+  {
+    "id": "t05_contract",
+    "status": "PASS",
+    "evidence": {
+      "id": "optional_editor",
+      "pageUndoScoped": true,
+      "memberFields": [
+        "name",
+        "sex",
+        "focus",
+        "job"
+      ],
+      "deletionSaveCleansReferences": true,
+      "invalidAgePreserved": true,
+      "deletionCancelPure": true,
+      "overBudgetBlocked": true,
+      "directPages": [
+        "world",
+        "estate"
+      ]
+    },
+    "restart": {
+      "points": 85,
+      "family": "陆",
+      "id": "restart",
+      "members": 3
+    }
+  }
+]

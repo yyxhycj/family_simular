@@ -100,7 +100,21 @@ local function verify()
     assert(reviewApp.run and reviewApp.run.ending and reviewApp.profile.endingRecords[1].id == "peaceful")
     reviewApp.gameTab = "family"; reviewApp:Render()
     reviewApp.gameTab = "history"; reviewApp.historySection = "endings"; reviewApp:Render()
-    return { family = draft.family, members = #draft.members, years = run.yearIndex, ending = run.ending.id, facts = #run.facts, ledgers = #run.annualLedgers, revision = State.Load().saveRevision }
+
+    local collapseProfile = State.NewProfile()
+    local collapseDraft = generatedDraft(collapseProfile)
+    local collapseRun = assert(State.NewRun(collapseDraft, collapseProfile))
+    for _, member in ipairs(collapseRun.members) do member.age, member.health, member.jobId, member.birthPlan = 30, 100, "play", false end
+    collapseRun.money, collapseRun.grain, collapseRun.land = 0, 0, 0
+    assert(Simulation.AdvanceYear(collapseRun, collapseProfile))
+    assert(collapseRun.ending and collapseRun.ending.id == "collapse" and collapseRun.lastLedger.resourcesExhausted and #collapseProfile.endingRecords == 1)
+    local collapseBefore = State.Copy(collapseRun)
+    assert(not Simulation.SetJob(collapseRun, collapseRun.members[1].id, "farm") and same(collapseBefore, collapseRun))
+    assert(State.Save(collapseProfile, collapseDraft, collapseRun))
+    local collapsed = assert(State.Load())
+    assert(collapsed.run.ending.id == "collapse" and collapsed.profile.endingRecords[1].factId == collapseRun.ending.factId)
+    return { family = draft.family, members = #draft.members, years = run.yearIndex, ending = run.ending.id, facts = #run.facts, ledgers = #run.annualLedgers,
+        collapseEnding = collapsed.run.ending.id, collapseRevision = collapsed.saveRevision }
 end
 
 function Start()
@@ -111,10 +125,10 @@ function Start()
         UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", padding = 18, children = { UI.Label { text = "T11 验收失败\n" .. tostring(result), whiteSpace = "normal" } } })
         return
     end
-    print("T11_QA_PASS 生成家庭、年度交接、终章、只读、保存与家史重载通过 " .. cjson.encode(result))
+    print("T11_QA_PASS 生成家庭、年度交接、终章、家道散尽、只读、保存与家史重载通过 " .. cjson.encode(result))
     UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", padding = 18, children = {
         UI.Label { text = "T11 真实引擎整合验收通过", fontSize = 24 },
-        UI.Label { text = "· 生成合法家庭后入局保存，年度结算、交接与家史持续累积\n· 达成终章资格后仍可经营；确认落笔后写操作保持只读\n· 重载后终章、条件记录与家史来自同一份保存", whiteSpace = "normal", lineHeight = 1.65 },
+        UI.Label { text = "· 生成合法家庭后入局保存，年度结算、交接与家史持续累积\n· 年末钱粮同归零时自动写入家道终局，人物经历继续可读\n· 重载后终章、条件记录与家史来自同一份保存", whiteSpace = "normal", lineHeight = 1.65 },
     } })
 end
 

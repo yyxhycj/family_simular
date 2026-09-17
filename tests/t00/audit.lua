@@ -119,8 +119,9 @@ member.age = 30; member.health = 60; member.jobId = "play"; member.spouseId = ni
 run.land = 0; run.money = 0; run.grain = 0; run.metrics.stable = 4; run.metrics.foodYears = 7
 assert(Simulation.AdvanceYear(run, profile)); run = saveLoad(run, profile, draft)
 fixtures.starvation = { profile = profile, draft = draft, run = State.Copy(run) }
-check("P03", "饥荒不算安稳", run.metrics.stable == 0, "stable=0", { stable = run.metrics.stable, health = run.members[1].health, money = run.money, logs = run.logs })
-check("P04", "饥荒归零连续粮年", run.metrics.foodYears == 0, "foodYears=0", { foodYears = run.metrics.foodYears })
+check("P03", "钱粮俱尽写入家道终局", run.ending and run.ending.id == "collapse" and run.ending.automatic and run.lastLedger.resourcesExhausted,
+    "automatic collapse ending with exhausted ledger", { ending = run.ending, ledger = run.lastLedger, money = run.money, grain = run.grain })
+check("P04", "钱粮俱尽归零连续粮年", run.metrics.foodYears == 0 and run.metrics.stable == 0, "foodYears=0; stable=0", { foodYears = run.metrics.foodYears, stable = run.metrics.stable })
 
 run, profile, draft = fresh()
 assert(Simulation.Marry(run, 3)); local spouse = State.FindMember(run.members, run.members[3].spouseId)

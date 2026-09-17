@@ -123,6 +123,10 @@ function Simulation.PendingEvents(run)
     return pending
 end
 
+function Simulation.IsFamilyCollapsed(run)
+    return run.money == 0 and run.grain == 0
+end
+
 local function QueueDueRelicEvents(run)
     for _, instance in ipairs(run.relicInstances) do
         if instance.status == "investigating" then
@@ -766,6 +770,10 @@ function Simulation.AdvanceYear(run, profile)
         local ending = Data.Ending("last")
         if not ending then return false, "自然终章定义缺失。" end
         Simulation.FinalizeEnding(run, ending, profile)
+    elseif Simulation.IsFamilyCollapsed(run) then
+        local ending = Data.Ending("collapse")
+        if not ending then return false, "家道终局定义缺失。" end
+        Simulation.FinalizeEnding(run, ending, profile)
     else
         State.AddLog(run, "大晟历 " .. tostring(run.calendar) .. " 年结算完成。")
     end
@@ -824,6 +832,7 @@ end
 
 function Simulation.IsProgressMet(item)
     if item[6] == "at_most" then return item[2] <= item[3] end
+    if item[6] == "equal" then return item[2] == item[3] end
     return item[2] >= item[3]
 end
 
@@ -847,6 +856,10 @@ function Simulation.EndingProgress(run, endingId)
         ruler = { Progress("修复旧尺", run.flags.rulerRestored and 1 or 0, 1, "历史", { source = "信物经历", factIds = FactIds(run, "relic") }), Progress("手艺人年", JobYears(run, "craft"), 8, "累计", { source = "家谱人物", memberIds = JobMemberIds(run, "craft", 1) }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
         reunion = { Progress("重修族谱", run.flags.bookRestored and 1 or 0, 1, "历史", { source = "信物经历", factIds = FactIds(run, "relic") }), Progress("实际经营", run.yearIndex, 6, "累计", { source = "年度账本", factIds = ledgers }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
         last = { Progress("在世族人归零", #living, 0, "当前", { source = "家谱人物", memberIds = MemberIds(living) }, "at_most") },
+        collapse = {
+            Progress("公库归零", run.money, 0, "当前", { source = "公库" }, "equal"),
+            Progress("存粮归零", run.grain, 0, "当前", { source = "公库" }, "equal"),
+        },
     }
     return progress[endingId] or {}
 end
@@ -907,7 +920,8 @@ function Simulation.FinalizeEnding(run, ending, profile)
         evidence = Simulation.EndingEvidence(run, ending.id), qualifiedEndingIds = QualifiedEndingIds(run),
         closingEventIds = closingEventIds,
     }
-    local fact = State.AddFact(run, "ending", (record.automatic and "全员离世，家谱自然落笔。" or "选择“" .. ending.title .. "”作为这一局的主终章。"), memberIds, {
+    local factText = record.automatic and (ending.automaticFact or "自然终局已写入家史。") or "选择“" .. ending.title .. "”作为这一局的主终章。"
+    local fact = State.AddFact(run, "ending", factText, memberIds, {
         endingId = record.id, automatic = record.automatic, evidence = record.evidence,
         qualifiedEndingIds = record.qualifiedEndingIds, closingEventIds = closingEventIds,
     })
@@ -922,7 +936,7 @@ function Simulation.ClaimEnding(run, endingId, profile)
     if closed then return false, message end
     local ending = Data.Ending(endingId)
     if not ending then return false, "终章不存在。" end
-    if ending.automatic then return false, "自然终章由全员离世后自动写入。" end
+    if ending.automatic then return false, (ending.automaticHint or "自然终章会在满足条件后自动写入。") end
     if not Simulation.IsEndingReady(run, endingId) then return false, "条件尚未满足。" end
     return Simulation.FinalizeEnding(run, ending, profile)
 end

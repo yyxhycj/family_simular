@@ -1,0 +1,301 @@
+[
+  {
+    "id": "history",
+    "status": "PASS",
+    "evidence": {
+      "readOnly": true,
+      "count": 151,
+      "oldest": {
+        "id": "history-1",
+        "text": "entry-1",
+        "year": 72
+      },
+      "pages": 8,
+      "pageSize": 20
+    },
+    "restart": {
+      "oldestVisible": true,
+      "rng": 72831,
+      "count": 151
+    }
+  },
+  {
+    "id": "succession",
+    "status": "PASS",
+    "evidence": {
+      "member": {
+        "terms": [
+          {
+            "factId": "fact-5",
+            "endYear": 1,
+            "reason": "开局任命",
+            "memberId": 1,
+            "effective": true,
+            "startYear": 0
+          },
+          {
+            "memberId": 2,
+            "factId": "fact-8",
+            "reason": "主动交接",
+            "effective": false,
+            "startYear": 1
+          }
+        ],
+        "event": {
+          "instanceId": "event-73-1",
+          "memberId": 2,
+          "status": "resolved",
+          "title": "族长之位空缺",
+          "blocking": true,
+          "resolvedYear": 1,
+          "type": "leader"
+        },
+        "reputation": 3,
+        "leader": 2
+      },
+      "event": {
+        "terms": [
+          {
+            "factId": "fact-5",
+            "endYear": 1,
+            "reason": "开局任命",
+            "memberId": 1,
+            "effective": true,
+            "startYear": 0
+          },
+          {
+            "memberId": 2,
+            "factId": "fact-8",
+            "reason": "前任离世",
+            "effective": false,
+            "startYear": 1
+          }
+        ],
+        "event": {
+          "instanceId": "event-73-1",
+          "memberId": 2,
+          "status": "resolved",
+          "title": "族长之位空缺",
+          "blocking": true,
+          "resolvedYear": 1,
+          "type": "leader"
+        },
+        "reputation": 3,
+        "leader": 2
+      }
+    },
+    "restart": {
+      "leader": 2,
+      "resumedYear": 2
+    }
+  },
+  {
+    "id": "collection",
+    "status": "PASS",
+    "evidence": {
+      "cancelledUnchanged": true,
+      "total": 99,
+      "unlocked": {
+        "ruler": true,
+        "letter": true,
+        "book": true,
+        "plan": true
+      },
+      "snapshot": {
+        "family": "林",
+        "rngSeed": 72831,
+        "homeId": "simple",
+        "tieId": "none",
+        "calendar": 72,
+        "originId": "artisan",
+        "workshop": false,
+        "money": 0,
+        "land": 1,
+        "placeId": "village",
+        "worldId": "mortal",
+        "leaderId": 1,
+        "habitId": "none",
+        "grain": 24,
+        "periodId": "peace",
+        "shop": false,
+        "members": [
+          {
+            "experienceId": "craft",
+            "trait": "踏实",
+            "focus": "skill",
+            "name": "林成",
+            "spouseId": 2,
+            "id": 1,
+            "parents": {},
+            "age": 42,
+            "jobId": "craft",
+            "sex": "男",
+            "talent": 2
+          },
+          {
+            "experienceId": "basic",
+            "trait": "细致",
+            "focus": "general",
+            "name": "许青",
+            "spouseId": 1,
+            "id": 2,
+            "parents": {},
+            "age": 40,
+            "jobId": "farm",
+            "sex": "女",
+            "talent": 2
+          },
+          {
+            "experienceId": "none",
+            "trait": "仁厚",
+            "focus": "medicine",
+            "name": "林芸",
+            "id": 3,
+            "jobId": "medical",
+            "age": 18,
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "女",
+            "talent": 3
+          },
+          {
+            "experienceId": "none",
+            "trait": "好奇",
+            "focus": "learn",
+            "name": "林安",
+            "id": 4,
+            "jobId": "study",
+            "age": 10,
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "男",
+            "talent": 3
+          }
+        ],
+        "nextId": 5,
+        "selectedRelicIds": [
+          "ruler",
+          "plan"
+        ]
+      }
+    },
+    "restart": {
+      "unlocked": {
+        "ruler": true,
+        "plan": true,
+        "letter": true,
+        "book": true
+      },
+      "total": 99
+    }
+  },
+  {
+    "id": "failed_new_run",
+    "status": "PASS",
+    "evidence": {
+      "exception": {
+        "candidatePreserved": true,
+        "oldRunPreserved": true,
+        "notification": {
+          "variant": "error",
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。"
+        }
+      },
+      "zero": {
+        "candidatePreserved": true,
+        "oldRunPreserved": true,
+        "notification": {
+          "variant": "error",
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。"
+        }
+      },
+      "corrupt": {
+        "candidatePreserved": true,
+        "oldRunPreserved": true,
+        "notification": {
+          "variant": "error",
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。"
+        }
+      },
+      "open": {
+        "candidatePreserved": true,
+        "oldRunPreserved": true,
+        "notification": {
+          "variant": "error",
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。"
+        }
+      },
+      "partial": {
+        "candidatePreserved": true,
+        "oldRunPreserved": true,
+        "notification": {
+          "variant": "error",
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。"
+        }
+      }
+    },
+    "restart": {
+      "recoveryMessage": "一份存档不可读，已恢复另一份可读进度；请核对年份。",
+      "oldFamily": "林"
+    }
+  },
+  {
+    "id": "failed_action",
+    "status": "PASS",
+    "evidence": {
+      "money": 65,
+      "logCount": 1,
+      "exportMatches": true,
+      "aidCount": 1
+    },
+    "restart": {
+      "aidCount": 1,
+      "money": 65,
+      "logs": [
+        {
+          "id": "history-1",
+          "text": "家中接济了邻里，声望提升。",
+          "factId": "fact-6",
+          "memberIds": {},
+          "year": 72
+        }
+      ]
+    }
+  },
+  {
+    "id": "recovery",
+    "status": "PASS",
+    "evidence": {
+      "recoveredProfile": {
+        "endingRecords": {},
+        "schemaVersion": 1,
+        "unlockedRelicIds": {
+          "letter": true,
+          "book": true,
+          "plan": true,
+          "ruler": true
+        }
+      },
+      "bothBadBlocked": true,
+      "validSlotRecovered": true,
+      "legacyLoaded": true
+    },
+    "restart": {
+      "year": 0,
+      "profile": {
+        "schemaVersion": 1,
+        "unlockedRelicIds": {
+          "letter": true,
+          "book": true,
+          "ruler": true,
+          "plan": true
+        },
+        "endingRecords": {}
+      }
+    }
+  }
+]
