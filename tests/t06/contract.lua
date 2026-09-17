@@ -111,6 +111,10 @@ local function run()
     for _, event in ipairs(Simulation.PendingEvents(career)) do if event.type == "growth" and event.memberId == worker.id then growth = event end end
     assert(growth and Simulation.ResolveEvent(career, growth.instanceId, "acknowledge", careerProfile) and factFor(career, worker.id, "growth"),
         "真实成长节点没有生成通知/决定或没有写入经历")
+    local staleGrowth = { instanceId = "growth-missing-member", type = "growth", status = "pending", memberId = "missing-member", growthId = "adult" }
+    career.events[#career.events + 1] = staleGrowth
+    assert(not Simulation.ResolveEvent(career, staleGrowth.instanceId, "acknowledge", careerProfile) and staleGrowth.status == "cancelled",
+        "找不到族人的成长提醒没有安全作废")
     worker.stats.learn = 100
     assert(Simulation.TakeExam(career, worker.id) and factFor(career, worker.id, "exam"), "应试结果没有写入人物事实")
 

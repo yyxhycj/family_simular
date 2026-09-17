@@ -305,8 +305,11 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
     if not event or event.status ~= "pending" then return false, "这件事已处理或不存在。" end
     if event.type == "growth" then
         local member = State.FindMember(run.members, event.memberId)
+        if not member then
+            event.status = "cancelled"
+            return false, "这位族人的记录已不存在，成长提醒已作废。"
+        end
         event.status = "resolved"
-        if not member then return false, "这位族人的记录已不存在。" end
         if event.growthId == "promotion" then
             local job = Data.Jobs[event.jobId]
             State.AddFact(run, "growth", member.name .. (choice == "defer" and "暂缓出师，继续积累本领。" or "已具备“" .. (job and job.name or "新岗位") .. "”资格，等待本人安排。"), { member.id }, { growthId = event.growthId, jobId = event.jobId, choice = choice })
