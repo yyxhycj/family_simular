@@ -1,0 +1,32 @@
+[
+  {
+    "id": "history",
+    "status": "FAIL",
+    "error": ""
+  },
+  {
+    "id": "succession",
+    "status": "FAIL",
+    "error": ""
+  },
+  {
+    "id": "collection",
+    "status": "FAIL",
+    "error": ""
+  },
+  {
+    "id": "failed_new_run",
+    "status": "FAIL",
+    "error": "[string \"<python>\"]:135: assertion failed!\nstack traceback:\n\t[string \"<python>\"]:135: in function <[string \"<python>\"]:132>\n\t[C]: in function 'assert'"
+  },
+  {
+    "id": "failed_action",
+    "status": "FAIL",
+    "error": ""
+  },
+  {
+    "id": "recovery",
+    "status": "FAIL",
+    "error": ""
+  }
+]

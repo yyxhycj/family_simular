@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t03_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:64: 生成草案的运行状态无法保存：存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。\\nstack traceback:\\n\\t[string \"<python>\"]:64: in function <[string \"<python>\"]:32>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

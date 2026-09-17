@@ -1,0 +1,29 @@
+{
+  "captured_at": "2026-09-16T10:54:34.884323+00:00",
+  "baseline_sha": "9532e4435bab5aea1e38f289e950208342becefb",
+  "merge_sha": "48a899fac6cf51f881263f56972e4a35696a01dd",
+  "repair_sha": "ca5b5f2385c54a641393c565db3ebc9d4a35b30e",
+  "maker_remote_sha": "ca5b5f2385c54a641393c565db3ebc9d4a35b30e",
+  "same_tree_before_merge": true,
+  "source_hashes_match_module_acceptance": true,
+  "handoff_files_unchanged": true,
+  "repair_committed_paths": [
+    "scripts/Jiaye/App.lua",
+    "scripts/Jiaye/Simulation.lua",
+    "scripts/Jiaye/State.lua"
+  ],
+  "maker_build": "PASS",
+  "preview_refresh_http": 200,
+  "actual_game_interaction": "PENDING_WEB_LOGIN",
+  "engine_persistence": "NOT_VERIFIED",
+  "video": null,
+  "real_device": false,
+  "T01_acceptance": "PENDING",
+  "github_remote_pushed_this_turn": false,
+  "watcher": {
+    "lastSuccessAt": "2026-09-16T10:54:32.571Z",
+    "lastWrittenLogs": 0,
+    "consecutiveFailures": 0,
+    "lastError": null
+  }
+}

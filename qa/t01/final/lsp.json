@@ -1,0 +1,72 @@
+[
+  {
+    "status": "fulfilled",
+    "value": {
+      "path": "scripts/main.lua",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "path": "scripts/Jiaye/App.lua",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "path": "scripts/Jiaye/State.lua",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "path": "scripts/Jiaye/Simulation.lua",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "path": "scripts/Jiaye/Data.lua",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    }
+  }
+]

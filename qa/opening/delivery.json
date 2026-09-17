@@ -1,0 +1,198 @@
+{
+  "capturedAt": "2026-09-17T03:52:30.623950+00:00",
+  "baseSha": "ca26af6cb6fb9dc9c18ca747f8f1de78edc9bb86",
+  "implementationBuild": "b41a095e67ecdd4b6f4bdbab57d5ff20b6615584",
+  "engineVerifiedCodeSha": "566057912b8cdb1816fc090137d362e47cd843e9",
+  "engineEntry": "QA/Opening.lua",
+  "formalEntryRestore": {
+    "status": "PASS",
+    "entry": "main.lua",
+    "buildCommit": "0134a28",
+    "metadataHead": "1de8c23a3fe903f072454aa28624368ae690a3fb",
+    "runtimeStartupObserved": true,
+    "originalSaveReadback": {
+      "family": "顾",
+      "leader": "顾安",
+      "displayYear": 6,
+      "calendar": 53,
+      "livingMembers": 4,
+      "money": 7,
+      "grain": 22,
+      "land": 0,
+      "historyCount": 9,
+      "oldestHistory": "大晟历48年迁至青石村，花费18两"
+    },
+    "candidateCancelReturnedSameHistory": true,
+    "video": "qa/opening/chrome/09-formal-entry-old-save.mp4"
+  },
+  "moduleResults": {
+    "opening": {
+      "passed": 4,
+      "failed": 0,
+      "path": "qa/opening/final-controls-modules"
+    },
+    "t01": {
+      "passed": 6,
+      "failed": 0,
+      "path": "qa/opening/final-t01-regression"
+    }
+  },
+  "runtimeVerification": "qa/opening/chrome/verification.json",
+  "videos": [
+    {
+      "path": "qa/opening/chrome/01-formal-draft-cancel.mp4",
+      "sha256": "1c921398fff89a59dc19c64a0f4368d8facba1739dcd05e448fd17d892981782",
+      "durationSeconds": 41.621333,
+      "streams": [
+        {
+          "width": 2162,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/02-360-overflow-and-start.mp4",
+      "sha256": "c409e13c3f2277f4af46e7e78ec0fa40d7d8ea529a66e95852263a33c14bb0d1",
+      "durationSeconds": 67.498667,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/03-widths-360-390-430.mp4",
+      "sha256": "8f546fba27cb32bb2f07fad4d5184367cad9b9cf75d03c99ea53310f0e60a101",
+      "durationSeconds": 71.808,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/04-name-and-single-edit.mp4",
+      "sha256": "cc9e3af903b88e02c3bdcf020735418966dfaf997ff28d18ad57339cf9f2bc69",
+      "durationSeconds": 77.376,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/05-budget-cancel-and-settlement.mp4",
+      "sha256": "ddc247dd9894b564187e43464fdf54b03337eb904a6d47e7be50e05592b0b58a",
+      "durationSeconds": 57.109333,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/06-restart-load.mp4",
+      "sha256": "fc70bca9cd44e6f5b88dfb003df981fb8538016a8eee280dfccced1157e3e88a",
+      "durationSeconds": 1.877333,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/07-controls-and-360-final.mp4",
+      "sha256": "758a04b1ee7e9c42a2073a70ee248604f3facfe508e53d5f7b26a9f33812806e",
+      "durationSeconds": 65.493333,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/08-page-random-undo.mp4",
+      "sha256": "f995a0aae1769615e99da99580e622a1192ea662f9498570c8aacbe36835c9da",
+      "durationSeconds": 12.074667,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    },
+    {
+      "path": "qa/opening/chrome/09-formal-entry-old-save.mp4",
+      "sha256": "227e22964fb506f06528ed1fae0a3be866fb762ce76028dd37dc7c6dc410bb2e",
+      "durationSeconds": 28.864,
+      "streams": [
+        {
+          "width": 2264,
+          "height": 1440
+        },
+        {}
+      ]
+    }
+  ],
+  "unverified": [
+    "physical handset touch",
+    "handset IME and soft keyboard",
+    "handset safe area"
+  ],
+  "observedLimitations": [
+    "Desktop canvas did not respond to automated Cmd+A/Ctrl+A; name replacement was verified with Backspace then typing."
+  ],
+  "historicalFailures": [
+    "360 first-year net offscreen in 7a11470: corrected 741ae36, final 5660579 video07",
+    "Age/assets UI.Stepper was a workflow indicator and rendered blank: corrected 5660579, video07"
+  ],
+  "formalSaveBeforeQa": {
+    "family": "顾",
+    "yearIndex": 5,
+    "displayYear": 6,
+    "money": 7,
+    "grain": 22,
+    "historyCount": 9
+  },
+  "sources": {
+    "scripts/Jiaye/App.lua": "7ee99eedbbe3dee6e5b00757f2ea7f072944ccd5509e165a2e585351c9b11575",
+    "scripts/Jiaye/Data.lua": "be96bcb9467ab4e2227debdc199502fae76017e3b5132f6900431df8a8f28f7f",
+    "scripts/Jiaye/Economy.lua": "7b51ea5625616cd8eb5e8637415e3b52dd8e6a624040b472c2127685312852b4",
+    "scripts/Jiaye/Opening.lua": "d8e2cb59d3f574ffab130c819d91cbfb0db48ffa7c67fb959455564023bdb899",
+    "scripts/Jiaye/OpeningView.lua": "9fd6ef46b0679a72502b47d353b4da7a06836cc6aee62311bc7a7f3d7f6336dd",
+    "scripts/Jiaye/Simulation.lua": "4d26883408b2849ba011e81745414dd3ee9938b9e24794b050ed2d83411d2274",
+    "scripts/Jiaye/State.lua": "07cb20634fdd08051779fded39e91b40c090d0feee8c15e145f0b3d21cdbfa54",
+    "tests/opening/economy.lua": "01e477ff50103042934115c3d7f8d2f7dd51d5d6df817433f6c93dabab686f5d",
+    "tests/opening/integration.lua": "6d4daee35b276e4114a0b189e5d3ccab9d3bbd6e7aeaecf9ba93a94221d0966f",
+    "tests/opening/model.lua": "84e7d8ecd46faa18ba0ec3769bd710a009f09c4ce612fc3fac36594d9a4c2e3b",
+    "tests/opening/run.py": "f1db7dfa41546f2ae4f0da487c837193f599ee20e8fdb580f3e295905c1488df",
+    "tests/opening/ui.lua": "5354c9eb8be7758a9a786408a41cfb68c5314ee879a72d24700ac6f24f8ff12b",
+    "tests/t01/boundary.lua": "7d525a60ab6d0340f8b883179b9adcafae632e36f525ad3d0cee91d6d230689b",
+    "tests/t01/run.py": "915566974449dd7708b193a245cb08c461dfdf12fb5007de2c5a5842f47117d2"
+  },
+  "runtimeWatcher": {
+    "appId": "4e7e4ee8-41b8-4dbb-9b5d-24831ca14273",
+    "projectId": "4e7e4ee8-41b8-4dbb-9b5d-24831ca14273",
+    "nextStartTime": 1789616998,
+    "updatedAt": "2026-09-17T03:52:27.536Z",
+    "lastPollAt": "2026-09-17T03:52:27.536Z",
+    "lastSuccessAt": "2026-09-17T03:52:27.536Z",
+    "lastWrittenLogs": 0,
+    "consecutiveFailures": 0,
+    "lastError": null
+  }
+}

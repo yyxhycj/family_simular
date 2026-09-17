@@ -1,0 +1,427 @@
+{
+  "scope": "latest product delta plus reviewed regressions",
+  "count": 42,
+  "not_a_test_result": true,
+  "cases": [
+    {
+      "id": "Q01",
+      "group": "随机开局",
+      "title": "整户不是固定家族轮播",
+      "steps": "以多个固定seed生成候选，比较身份、成员结构、本领、家底与信物。",
+      "expected": "不同seed可产生多维实质差异；不只四个人换姓；允许偶然重合。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q02",
+      "group": "随机开局",
+      "title": "相同输入可复现",
+      "steps": "相同世界、解锁池、价格/生成器版本、seed运行两次。",
+      "expected": "草案等价；版本/seed写入夹具，渲染不影响结果。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q03",
+      "group": "随机开局",
+      "title": "时世与年份一致",
+      "steps": "覆盖每个开局时期及对应年份。",
+      "expected": "年份属于时期，时世由其推导，不重复收费，不抵扣经营年限。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q04",
+      "group": "随机开局",
+      "title": "生成受总分约束",
+      "steps": "批量生成并由正式校验函数校验。",
+      "expected": "每一份可开始草案总分≤100；无分类配额，不必花满。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q05",
+      "group": "随机开局",
+      "title": "关系与主业合法",
+      "steps": "覆盖孤身、夫妻、父母子女、多代组合。",
+      "expected": "至少有效成年族长；无亲缘循环，婚配与年龄相容，岗位满足本领。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q06",
+      "group": "随机开局",
+      "title": "信物来自实际解锁池",
+      "steps": "使用仅初始3件和已有更多解锁的Profile。",
+      "expected": "未解锁不被带入；可多选但同一预算；图中未注册物件不出现。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q07",
+      "group": "随机开局",
+      "title": "无解不破坏原家庭",
+      "steps": "给予无法构成合法成员配置的局部额度/条件后点随机。",
+      "expected": "保留原草案/Run/Profile，给出明确原因；不改别页补洞。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q08",
+      "group": "名字",
+      "title": "姓名骰子只改名",
+      "steps": "记录完整草案，点家族名旁骰子。",
+      "expected": "只有命名关联改变；资产、资质、关系、ID、总分不变。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q09",
+      "group": "名字",
+      "title": "外姓与手动名称保留",
+      "steps": "设置外姓配偶、复姓及自定义全名后换家族姓。",
+      "expected": "按明确绑定更新本姓成员，外姓/自定义保留；无全局字符串替换。",
+      "implementation_step": "T03",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q10",
+      "group": "名字",
+      "title": "修改取消无副作用",
+      "steps": "编辑家族名或成员名后取消。",
+      "expected": "原名称与其他状态完全恢复，不收费，不重生人物。",
+      "implementation_step": "T04",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q11",
+      "group": "稳定性",
+      "title": "查看与切页不重掷",
+      "steps": "生成后打开账本、人物、预算、设置，再返回。",
+      "expected": "草案内容hash与RNG状态不变（明确UI状态除外）。",
+      "implementation_step": "T04",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q12",
+      "group": "稳定性",
+      "title": "开始与预览同一家庭",
+      "steps": "保存当前草案快照后开始。",
+      "expected": "Run开局快照等于已展示草案；NewRun不重新抽人物/能力/资产。",
+      "implementation_step": "T04",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q13",
+      "group": "简化入口",
+      "title": "不填写也能开始",
+      "steps": "全新安装进入新开家谱，不编辑任何字段。",
+      "expected": "生成有效草案，确认即可入局，不强制经过五页配置或教程。",
+      "implementation_step": "T04",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q14",
+      "group": "简化入口",
+      "title": "一项修改不要求重填",
+      "steps": "从摘要直达某位成员或信物编辑。",
+      "expected": "其他配置沿用；合法保存后可回摘要开始，不要求逐页盖章。",
+      "implementation_step": "T05",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q15",
+      "group": "简化入口",
+      "title": "手改后换一家可恢复",
+      "steps": "改过重要字段后执行整户换一家。",
+      "expected": "明确告知将替换草案或提供有效撤销；旧Run/Profile不受影响。",
+      "implementation_step": "T04",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q16",
+      "group": "数值",
+      "title": "关键数值明确可读",
+      "steps": "检查钱粮田、住房、人数、成员摘要、信物与总分。",
+      "expected": "显示具体值/单位；不用家境一般或优秀代替实际数字。",
+      "implementation_step": "T04",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q17",
+      "group": "数值",
+      "title": "预估与实际同源",
+      "steps": "固定年初状态，无额外突发事件，比较预估与对应结算分项。",
+      "expected": "收入/培养/生活/粮食规则一致；随机事件差异独立记录。",
+      "implementation_step": "T02",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q18",
+      "group": "数值",
+      "title": "预估为只读",
+      "steps": "连续打开首年账本多次，比较状态/RNG。",
+      "expected": "不扣钱、不生成人物/事件、不消耗模拟随机数。",
+      "implementation_step": "T02",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q19",
+      "group": "数值",
+      "title": "付费选项效果叠加",
+      "steps": "同时选旧日名门和乡里相熟，按当前批准规则结算。",
+      "expected": "若说明为+25与+12则初始贡献为37；互斥必须显式，不偶然短路。",
+      "implementation_step": "T02",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q20",
+      "group": "数值",
+      "title": "图片样例不当常量",
+      "steps": "修改不同家庭的资产/能力/信物。",
+      "expected": "摘要、详情、事件都随实际绑定改变，不始终显示97/80/24/固定姓氏。",
+      "implementation_step": "T04",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q21",
+      "group": "配点",
+      "title": "100与超100边界",
+      "steps": "分别构造100点与最小计价单位超100的合法关系草案。",
+      "expected": "100可开始；超分所有入口禁用/处理器拒绝；不提前覆盖旧局。",
+      "implementation_step": "T02",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q22",
+      "group": "配点",
+      "title": "非法关系不能开始",
+      "steps": "构造循环亲缘、无成年族长或不满足主业的草案。",
+      "expected": "字段提示＋开始禁用；领域校验再拒绝；总分合法也不能通过。",
+      "implementation_step": "T05",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q23",
+      "group": "配点",
+      "title": "本页容量联动",
+      "steps": "修改一页消耗，再查看其余页。",
+      "expected": "容量=100-其他页费用；余量是一份，不能重复花。",
+      "implementation_step": "T02",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q24",
+      "group": "编辑",
+      "title": "本页随机只动本页",
+      "steps": "保存其他页字段和Profile/Run，分别执行各页随机。",
+      "expected": "只更改声明字段与开局随机状态；不影响运行家族或锁定池。",
+      "implementation_step": "T05",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q25",
+      "group": "编辑",
+      "title": "撤销不覆盖别页",
+      "steps": "世道随机→家底现银80改180→回世道撤销。",
+      "expected": "只恢复世道相关值，现银仍180。",
+      "implementation_step": "T05",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q26",
+      "group": "编辑",
+      "title": "手改后旧撤销失效",
+      "steps": "本页随机后手动编辑该页，再触发旧撤销。",
+      "expected": "旧撤销不再覆盖最新手改；明确反馈。",
+      "implementation_step": "T05",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q27",
+      "group": "编辑",
+      "title": "人物副本与选中态",
+      "steps": "改年龄/资质/经验/岗位/亲属，分别保存和取消。",
+      "expected": "选中态、费用、候选与预览实时一致；保存校验，取消回退。",
+      "implementation_step": "T05",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q28",
+      "group": "历史",
+      "title": "151条后仍有第1条",
+      "steps": "写入151条事实后保存、重启、分页回看。",
+      "expected": "第一条可查，人物和事件ID仍有效，不以120条上限删数据。",
+      "implementation_step": "T01",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q29",
+      "group": "历史",
+      "title": "人物一生有连续记录",
+      "steps": "安排学习/出师/转业/应试/婚配/接任/离世。",
+      "expected": "人物传记与家族年鉴对应同一事实，已故人物仍可回顾。",
+      "implementation_step": "T06",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q30",
+      "group": "继任",
+      "title": "唯一成年候选两入口一致",
+      "steps": "产生族长空缺事件，再从人物详情任命唯一候选。",
+      "expected": "任命、任期、事件一起收束，返回家事不再卡住下一年。",
+      "implementation_step": "T01",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q31",
+      "group": "结算",
+      "title": "饥荒不能算稳定",
+      "steps": "stable=4、foodYears=7，设置钱粮无法覆盖生活。",
+      "expected": "记录困境与实际损失；稳定/连续粮年按正式条件归零，不能因余额清零变成功。",
+      "implementation_step": "T06",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q32",
+      "group": "结算",
+      "title": "同辈夫妻不算两代",
+      "steps": "第二代成员与婚入配偶分别达到教书年限。",
+      "expected": "职业传承代际计为同一代，显示与结局判定一致。",
+      "implementation_step": "T06",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q33",
+      "group": "信物",
+      "title": "保管人离世回收",
+      "steps": "让保管人恰为现任族长并在本年离世。",
+      "expected": "物件不丢；新保管人有效或回家中待托付；不再指向亡者。",
+      "implementation_step": "T07",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q34",
+      "group": "信物",
+      "title": "七物不同故事",
+      "steps": "分别触发三件基础物与四件后续物的入口。",
+      "expected": "来源、参与者、选项、代价与后续不同；不是同一快查计时器换名。",
+      "implementation_step": "T07",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q35",
+      "group": "信物",
+      "title": "暂停恢复出售与重复",
+      "steps": "调查后暂缓/继续、售出前有待决事件，再重复提交。",
+      "expected": "状态可恢复或取消；售出停止未完奖励；已解锁仍在；重复不双扣双发。",
+      "implementation_step": "T07",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q36",
+      "group": "收藏",
+      "title": "重启后新局不丢解锁",
+      "steps": "解锁营造图→退出→启动→不点继续而直接新开。",
+      "expected": "先恢复Profile，新草案可用该资格；新局仍100点，不覆盖为初始三物。",
+      "implementation_step": "T01",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q37",
+      "group": "存档",
+      "title": "坏导入和写失败",
+      "steps": "导入未知版本/坏引用、模拟保存导出失败。",
+      "expected": "不污染当前状态；不虚报成功；有恢复或备份入口。",
+      "implementation_step": "T10",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q38",
+      "group": "终章",
+      "title": "资格与结束分开",
+      "steps": "满足发展终章后继续操作，再确认落笔。",
+      "expected": "达标不强停；确认后本局只读，记录条件和关键事实。",
+      "implementation_step": "T08",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q39",
+      "group": "终章",
+      "title": "只读与自然结束",
+      "steps": "终局后尝试各写入口；或使全部成员离世。",
+      "expected": "所有写入口一致拒绝；自然终局检查实际无在世成员，不因族长无子触发。",
+      "implementation_step": "T08",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q40",
+      "group": "手机",
+      "title": "360/390/430及大字",
+      "steps": "在真实引擎分别布局三宽度与系统字体放大。",
+      "expected": "不是整图缩放；关键数值可读、按钮不遮挡、主触控区达到项目目标。",
+      "implementation_step": "T09",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q41",
+      "group": "手机",
+      "title": "长名多人长故事",
+      "steps": "使用复姓长名、较多代际/族人、长事件正文与键盘。",
+      "expected": "列表/图可定位，人数不删减；正文滚动，主操作和安全区合理。",
+      "implementation_step": "T09",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    },
+    {
+      "id": "Q42",
+      "group": "手机",
+      "title": "家事优先与真实入口",
+      "steps": "进入有待决家事的主页并点击族人/家史/购粮/藏阁。",
+      "expected": "家事不被终章进度压住；入口对应真实功能；插画不代替按钮说明。",
+      "implementation_step": "T09",
+      "status": "NOT_EXECUTED_IN_THIS_PACKAGE",
+      "evidence": null
+    }
+  ]
+}

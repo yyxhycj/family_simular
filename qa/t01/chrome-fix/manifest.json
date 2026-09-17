@@ -1,0 +1,22 @@
+{
+  "captured_at": "2026-09-16T11:06:14.394548+00:00",
+  "base_sha": "ca5b5f2385c54a641393c565db3ebc9d4a35b30e",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "lupa": "2.6",
+  "lua": "Lua 5.4",
+  "layer": "actual Lua modules and UI callbacks; declaration-only UI; disk File adapter and Python JSON; new VM restart",
+  "engine": false,
+  "real_device": false,
+  "sources": {
+    "scripts/Jiaye/App.lua": "8c56be99b4a21ff9812cf9516d918a0dc6792ca50aca705c897d843e47f56513",
+    "scripts/Jiaye/Data.lua": "c1bce6637844975659af67df5d9aa6c5fa454a5dd431c791d9ebf08c521514f6",
+    "scripts/Jiaye/Simulation.lua": "996cd5fe17b0279531a2a023827b6dfd60ab47a80d1bf5f44496d536ce448030",
+    "scripts/Jiaye/State.lua": "24a331314faff743b731fbd1506f5209cbaa5297f4189bb3ad3b7fa287939dfa",
+    "tests/t01/README.md": "ea5aa2e369dad67aa184e0d36e6100ac4090fed306e3fc8af06c2af84f16ecf0",
+    "tests/t01/boundary.lua": "8ee836965bcc365b12e98bf4be79b68fb42831e0f484af867dafae597a9a02c1",
+    "tests/t01/cases.lua": "8014d646d878005efbe5f1b2f013bf2449309a23e249656ee518a94075a1f938",
+    "tests/t01/run.py": "3953f9249c47615dcc663dac60fd285791650dc2d57318ec2c6814c5f07d9113"
+  },
+  "passed": 6,
+  "failed": 0
+}

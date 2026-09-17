@@ -1,0 +1,74 @@
+[
+  {
+    "file": "scripts/main.lua",
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+        }
+      ]
+    }
+  },
+  {
+    "file": "scripts/Jiaye/App.lua",
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+        }
+      ]
+    }
+  },
+  {
+    "file": "scripts/Jiaye/Data.lua",
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+        }
+      ]
+    }
+  },
+  {
+    "file": "scripts/Jiaye/State.lua",
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+        }
+      ]
+    }
+  },
+  {
+    "file": "scripts/Jiaye/Simulation.lua",
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+        }
+      ]
+    }
+  },
+  {
+    "file": "tests/t00/audit.lua",
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+        }
+      ]
+    }
+  }
+]

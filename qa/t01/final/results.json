@@ -1,0 +1,293 @@
+[
+  {
+    "id": "history",
+    "status": "PASS",
+    "evidence": {
+      "readOnly": true,
+      "oldest": {
+        "text": "entry-1",
+        "year": 72
+      },
+      "pages": 8,
+      "count": 151,
+      "pageSize": 20
+    },
+    "restart": {
+      "oldestVisible": true,
+      "rng": 72831,
+      "count": 151
+    }
+  },
+  {
+    "id": "succession",
+    "status": "PASS",
+    "evidence": {
+      "event": {
+        "reputation": 3,
+        "event": {
+          "blocking": true,
+          "resolvedYear": 1,
+          "instanceId": "event-73-1",
+          "type": "leader",
+          "title": "族长之位空缺",
+          "status": "resolved",
+          "memberId": 2
+        },
+        "leader": 2,
+        "terms": [
+          {
+            "reason": "开局任命",
+            "startYear": 0,
+            "effective": true,
+            "memberId": 1,
+            "endYear": 1
+          },
+          {
+            "reason": "前任离世",
+            "startYear": 1,
+            "effective": false,
+            "memberId": 2
+          }
+        ]
+      },
+      "member": {
+        "reputation": 3,
+        "event": {
+          "blocking": true,
+          "resolvedYear": 1,
+          "instanceId": "event-73-1",
+          "type": "leader",
+          "title": "族长之位空缺",
+          "status": "resolved",
+          "memberId": 2
+        },
+        "leader": 2,
+        "terms": [
+          {
+            "reason": "开局任命",
+            "startYear": 0,
+            "effective": true,
+            "memberId": 1,
+            "endYear": 1
+          },
+          {
+            "reason": "主动交接",
+            "startYear": 1,
+            "effective": false,
+            "memberId": 2
+          }
+        ]
+      }
+    },
+    "restart": {
+      "resumedYear": 2,
+      "leader": 2
+    }
+  },
+  {
+    "id": "collection",
+    "status": "PASS",
+    "evidence": {
+      "cancelledUnchanged": true,
+      "snapshot": {
+        "grain": 24,
+        "worldId": "mortal",
+        "family": "林",
+        "habitId": "none",
+        "land": 1,
+        "originId": "artisan",
+        "selectedRelicIds": [
+          "ruler",
+          "plan"
+        ],
+        "leaderId": 1,
+        "tieId": "none",
+        "money": 0,
+        "placeId": "village",
+        "workshop": false,
+        "calendar": 72,
+        "members": [
+          {
+            "sex": "男",
+            "talent": 2,
+            "spouseId": 2,
+            "jobId": "craft",
+            "name": "林成",
+            "parents": {},
+            "experienceId": "craft",
+            "age": 42,
+            "id": 1,
+            "trait": "踏实",
+            "focus": "skill"
+          },
+          {
+            "sex": "女",
+            "talent": 2,
+            "spouseId": 1,
+            "jobId": "farm",
+            "name": "许青",
+            "parents": {},
+            "experienceId": "basic",
+            "age": 40,
+            "id": 2,
+            "trait": "细致",
+            "focus": "general"
+          },
+          {
+            "sex": "女",
+            "talent": 3,
+            "jobId": "medical",
+            "name": "林芸",
+            "parents": [
+              1,
+              2
+            ],
+            "experienceId": "none",
+            "age": 18,
+            "id": 3,
+            "trait": "仁厚",
+            "focus": "medicine"
+          },
+          {
+            "sex": "男",
+            "talent": 3,
+            "jobId": "study",
+            "name": "林安",
+            "parents": [
+              1,
+              2
+            ],
+            "experienceId": "none",
+            "age": 10,
+            "id": 4,
+            "trait": "好奇",
+            "focus": "learn"
+          }
+        ],
+        "homeId": "simple",
+        "periodId": "peace",
+        "shop": false,
+        "nextId": 5,
+        "rngSeed": 72831
+      },
+      "unlocked": {
+        "letter": true,
+        "ruler": true,
+        "plan": true,
+        "book": true
+      },
+      "total": 99
+    },
+    "restart": {
+      "unlocked": {
+        "letter": true,
+        "book": true,
+        "ruler": true,
+        "plan": true
+      },
+      "total": 99
+    }
+  },
+  {
+    "id": "failed_new_run",
+    "status": "PASS",
+    "evidence": {
+      "open": {
+        "oldRunPreserved": true,
+        "candidatePreserved": true,
+        "notification": {
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。",
+          "variant": "error"
+        }
+      },
+      "partial": {
+        "oldRunPreserved": true,
+        "candidatePreserved": true,
+        "notification": {
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。",
+          "variant": "error"
+        }
+      },
+      "zero": {
+        "oldRunPreserved": true,
+        "candidatePreserved": true,
+        "notification": {
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。",
+          "variant": "error"
+        }
+      },
+      "exception": {
+        "oldRunPreserved": true,
+        "candidatePreserved": true,
+        "notification": {
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。",
+          "variant": "error"
+        }
+      },
+      "corrupt": {
+        "oldRunPreserved": true,
+        "candidatePreserved": true,
+        "notification": {
+          "message": "新局未开始。存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。",
+          "variant": "error"
+        }
+      }
+    },
+    "restart": {
+      "oldFamily": "林",
+      "recoveryMessage": "一份存档不可读，已恢复另一份可读进度；请核对年份。"
+    }
+  },
+  {
+    "id": "failed_action",
+    "status": "PASS",
+    "evidence": {
+      "exportMatches": true,
+      "aidCount": 1,
+      "logCount": 1,
+      "money": 65
+    },
+    "restart": {
+      "aidCount": 1,
+      "money": 65,
+      "logs": [
+        {
+          "year": 72,
+          "text": "家中接济了邻里，声望提升。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "recovery",
+    "status": "PASS",
+    "evidence": {
+      "recoveredProfile": {
+        "unlockedRelicIds": {
+          "letter": true,
+          "ruler": true,
+          "plan": true,
+          "book": true
+        },
+        "schemaVersion": 1,
+        "endingRecords": {}
+      },
+      "legacyLoaded": true,
+      "bothBadBlocked": true,
+      "validSlotRecovered": true
+    },
+    "restart": {
+      "year": 0,
+      "profile": {
+        "endingRecords": {},
+        "schemaVersion": 1,
+        "unlockedRelicIds": {
+          "letter": true,
+          "ruler": true,
+          "plan": true,
+          "book": true
+        }
+      }
+    }
+  }
+]

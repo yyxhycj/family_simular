@@ -1,0 +1,25 @@
+{
+  "captured_at": "2026-09-17T03:29:42.864519+00:00",
+  "base_sha": "7a11470d6f0cec069677cb2e16dfc4cfd9b02f91",
+  "layer": "production Lua 5.4 modules; declaration-only UI, disk File adapter, separate Lua VM restart",
+  "engine": false,
+  "real_device": false,
+  "sources": {
+    "scripts/Jiaye/App.lua": "7ee99eedbbe3dee6e5b00757f2ea7f072944ccd5509e165a2e585351c9b11575",
+    "scripts/Jiaye/Data.lua": "be96bcb9467ab4e2227debdc199502fae76017e3b5132f6900431df8a8f28f7f",
+    "scripts/Jiaye/Economy.lua": "7b51ea5625616cd8eb5e8637415e3b52dd8e6a624040b472c2127685312852b4",
+    "scripts/Jiaye/Opening.lua": "d8e2cb59d3f574ffab130c819d91cbfb0db48ffa7c67fb959455564023bdb899",
+    "scripts/Jiaye/OpeningView.lua": "c72cb33d0cae75e22fb864ef5361d1b7416600b913b9247b423f79c793ddec59",
+    "scripts/Jiaye/Simulation.lua": "4d26883408b2849ba011e81745414dd3ee9938b9e24794b050ed2d83411d2274",
+    "scripts/Jiaye/State.lua": "07cb20634fdd08051779fded39e91b40c090d0feee8c15e145f0b3d21cdbfa54",
+    "tests/opening/economy.lua": "01e477ff50103042934115c3d7f8d2f7dd51d5d6df817433f6c93dabab686f5d",
+    "tests/opening/integration.lua": "6d4daee35b276e4114a0b189e5d3ccab9d3bbd6e7aeaecf9ba93a94221d0966f",
+    "tests/opening/model.lua": "84e7d8ecd46faa18ba0ec3769bd710a009f09c4ce612fc3fac36594d9a4c2e3b",
+    "tests/opening/run.py": "f1db7dfa41546f2ae4f0da487c837193f599ee20e8fdb580f3e295905c1488df",
+    "tests/opening/ui.lua": "5354c9eb8be7758a9a786408a41cfb68c5314ee879a72d24700ac6f24f8ff12b",
+    "tests/t01/boundary.lua": "7d525a60ab6d0340f8b883179b9adcafae632e36f525ad3d0cee91d6d230689b",
+    "tests/t01/run.py": "915566974449dd7708b193a245cb08c461dfdf12fb5007de2c5a5842f47117d2"
+  },
+  "passed": 4,
+  "failed": 0
+}

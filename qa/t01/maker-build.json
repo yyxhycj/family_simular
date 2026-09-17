@@ -1,0 +1,20 @@
+{
+  "blocked": {
+    "content": [
+      {
+        "type": "text",
+        "text": "✗ Maker project submit blocked before commit/push; remote build was not started\n- project_root: /Users/yan/code/learning/word_family\n- project_id: 4e7e4ee8-41b8-4dbb-9b5d-24831ca14273\n- failure_stage: code_submit\n- code_submit_status: failed\n- remote_build_status: not_started\n- branch: main\n- status: clean\n- committed: no\n- git_state: ## main...origin/main [ahead 17, behind 15]\n- elapsed_ms: 932\n- elapsed: 1s\n- progress_events: 4\n- last_progress: [auth] 10% Authenticated Maker git origin ready\nnote: Maker build was not started because submit did not produce a pushed state.\nfailure:\n- stage: remote_sync\n- classification: remote_rejected\n- retryable: no\n- exit_code: (none)\n- stderr:\n  Maker remote sync status: diverged\n  branch: main\n  ahead: 17\n  behind: 15\n  本地和远端都已有新提交（本地 ahead 17，远端 behind 15）。不要直接 push 或无脑 pull；请让本地 AI 先检查 git status，再选择 rebase 或 merge 当前 Maker 远端变更。\n- next_action: 本地和远端都已有新提交（本地 ahead 17，远端 behind 15）。不要直接 push 或无脑 pull；请让本地 AI 先检查 git status，再选择 rebase 或 merge 当前 Maker 远端变更。\nlocal_execution_check:\n- restriction_signal: not_detected\n- diagnostic_priority: remote_git_error_first\n- sandbox_check_condition: only_if_local_commands_are_also_blocked\n- fallback_check: If Windows PowerShell, CLI, Git, or MCP commands are also blocked locally, ask the user to check the AI client sandbox/access setting and enable Full Access mode (\"完全访问模式\") only for a trusted project.\n- evidence_rule: A remote Git failure is not evidence of a local sandbox restriction."
+      }
+    ],
+    "isError": true
+  },
+  "built": {
+    "content": [
+      {
+        "type": "text",
+        "text": "✓ Maker project submitted, then remote Maker build finished\n\n- project_root: /Users/yan/code/learning/word_family\n- project_id: 4e7e4ee8-41b8-4dbb-9b5d-24831ca14273\n- maker_url: https://maker.taptap.cn/app/4e7e4ee8-41b8-4dbb-9b5d-24831ca14273?localDev=1\n- project_path: 4e7e4ee8-41b8-4dbb-9b5d-24831ca14273/workspace\n- timeout_ms: 60000\n- build_args: {\"entry\":\"main.lua\",\"scriptsPath\":\"scripts\"}\n- preview_refresh: ok\n- preview_refresh_status: 200\n- preview_refresh_url: https://maker.taptap.cn/api/v1/apps/4e7e4ee8-41b8-4dbb-9b5d-24831ca14273/preview-refresh\n- elapsed_ms: 13520\n- elapsed: 14s\n- progress_events: 17\n- last_progress: [remote_build] 100% 构建流程全部完成\n\nruntime_logs:\n- watch_started: yes\n- watch_pid: 19552\n- watch_command: taptap-maker logs watch --target-dir /Users/yan/code/learning/word_family --reset --interval 5s\n- actual_watch_command: /Users/yan/.nvm/versions/node/v22.19.0/bin/node /Users/yan/.taptap-maker/mcp-runtime/0.0.32/dist/maker.js logs watch --target-dir /Users/yan/code/learning/word_family --reset --interval 5s --env production --server-url https://maker.taptap.cn/mcp/v1\n- local_file: /Users/yan/code/learning/word_family/.maker/logs/runtime/runtime.log\n- watcher_stdout: /Users/yan/code/learning/word_family/.maker/logs/runtime/watcher.out.log\n- watcher_stderr: /Users/yan/code/learning/word_family/.maker/logs/runtime/watcher.err.log\n- watcher_pid_file: /Users/yan/code/learning/word_family/.maker/logs/runtime/watcher.pid\n- state_file: /Users/yan/code/learning/word_family/.maker/logs/runtime/state.json\n- note: 构建成功后已启动本地 CLI watcher，正在清理历史日志并每 5 秒持续追加 Lua 运行日志。\n- next_action: 如需分析游戏运行结果或报错，请读取 runtime_logs.local_file；如需判断 watcher 是否正常，请读取 runtime_logs.state_file。\n\nsubmit_result:\n  - branch: main\n  - status: pushed\n  - committed: yes\n  - commit_hash: ca5b5f2\n  - commit_message: 修复T01收藏保留、完整家史、继任待决与保存失败保护\n\n保留跨局收藏，增加取消新局与覆盖确认；家史全量分页；统一两入口继任状态；双存档回读及失败重试保护。\n\ncodex提交\nremote_result:\n  # 🎉 项目构建成功\n  \n  ## 📊 构建信息\n  \n  | 项目 | 值 |\n  |------|-----|\n  | 入口脚本 | `main.lua` |\n  | 脚本目录 | `scripts` |\n  \n  <details>\n  <summary><sub>📋 Runtime Logs</sub></summary>\n  \n  <sub>\n  \n  - `/opt/log/dev/{topic}.log` — e.g. engine.log, user_script.log, official_script.log\n  \n  </sub>\n  </details>"
+      }
+    ],
+    "isError": false
+  }
+}

@@ -1,0 +1,253 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "distinct": 48,
+        "id": "seeded_generation",
+        "samples": 48
+      },
+      {
+        "family": "司马",
+        "points": 66,
+        "id": "name_isolation"
+      },
+      {
+        "pointLinesSafe": true,
+        "id": "edit_validation",
+        "rejected": 3
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netGrain": 5,
+        "income": 29,
+        "netMoney": -1,
+        "id": "preview"
+      },
+      {
+        "reputation": 26,
+        "ledger": {
+          "saleIncome": 0,
+          "beforeMoney": 80,
+          "money": 79,
+          "foodCost": 0,
+          "netGrain": 5,
+          "boughtGrain": 0,
+          "industryIncome": 0,
+          "grainSold": 0,
+          "training": 16,
+          "grain": 29,
+          "moneySatisfied": true,
+          "landGrain": 4,
+          "foodSatisfied": true,
+          "foodNeed": 7,
+          "netMoney": -1,
+          "members": [
+            {
+              "grain": 0,
+              "memberId": 1,
+              "name": "林成",
+              "money": 21,
+              "job": "手艺谋生"
+            },
+            {
+              "grain": 8,
+              "memberId": 2,
+              "name": "许青",
+              "money": 8,
+              "job": "耕作谋生"
+            },
+            {
+              "grain": 0,
+              "memberId": 3,
+              "name": "林芸",
+              "money": -9,
+              "job": "随师学医"
+            },
+            {
+              "grain": 0,
+              "memberId": 4,
+              "name": "林安",
+              "money": -7,
+              "job": "读书求学"
+            }
+          ],
+          "foodShortfall": 0,
+          "income": 29,
+          "beforeGrain": 24,
+          "livingExpense": 14
+        },
+        "id": "advance"
+      },
+      {
+        "shortfall": 3,
+        "foodYears": 0,
+        "stable": 0,
+        "id": "shortage"
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "pageUndoScoped": true,
+      "addCancelPure": true,
+      "invalidStartInline": true,
+      "editCancelPure": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "ledger": {
+        "boughtGrain": 0,
+        "foodShortfall": 0,
+        "moneySatisfied": true,
+        "members": [
+          {
+            "name": "周知允",
+            "job": "料理家事",
+            "money": 0,
+            "grain": 0,
+            "memberId": 1
+          },
+          {
+            "name": "闻微",
+            "job": "读书求学",
+            "money": -6,
+            "grain": 0,
+            "memberId": 2
+          }
+        ],
+        "beforeGrain": 36,
+        "industryIncome": 0,
+        "foodSatisfied": true,
+        "foodCost": 0,
+        "saleIncome": 0,
+        "netGrain": -4,
+        "foodNeed": 4,
+        "beforeMoney": 20,
+        "landGrain": 0,
+        "grain": 32,
+        "income": 0,
+        "money": 10,
+        "training": 6,
+        "grainSold": 0,
+        "livingExpense": 4,
+        "netMoney": -10
+      },
+      "snapshot": {
+        "nextId": 3,
+        "shop": false,
+        "selectedRelicIds": [
+          "book"
+        ],
+        "periodId": "rebuild",
+        "placeId": "border",
+        "homeId": "simple",
+        "tieId": "none",
+        "worldId": "mortal",
+        "family": "周",
+        "rngSeed": 1373007925,
+        "habitId": "frugal",
+        "leaderId": 1,
+        "nameSeed": 1373007925,
+        "grain": 36,
+        "calendar": 24,
+        "originId": "military",
+        "land": 0,
+        "money": 20,
+        "workshop": false,
+        "generatorVersion": 1,
+        "members": [
+          {
+            "focus": "general",
+            "spouseId": 2,
+            "name": "周知允",
+            "age": 40,
+            "surname": "周",
+            "nameSource": "family",
+            "parents": {},
+            "id": 1,
+            "trait": "细致",
+            "sex": "男",
+            "jobId": "home",
+            "talent": 2,
+            "experienceId": "trade",
+            "givenName": "知允"
+          },
+          {
+            "focus": "martial",
+            "spouseId": 1,
+            "name": "闻微",
+            "age": 39,
+            "surname": "闻",
+            "nameSource": "external",
+            "parents": {},
+            "id": 2,
+            "trait": "好奇",
+            "sex": "女",
+            "jobId": "study",
+            "talent": 4,
+            "experienceId": "scholar",
+            "givenName": "微"
+          }
+        ]
+      },
+      "priorSaveRetainedUntilConfirmation": true,
+      "duplicateConfirmationIgnored": true,
+      "points": 90,
+      "readOnlyViews": 5
+    },
+    "restart": {
+      "points": 90,
+      "family": "周",
+      "ledger": {
+        "members": [
+          {
+            "money": 0,
+            "memberId": 1,
+            "job": "料理家事",
+            "name": "周知允",
+            "grain": 0
+          },
+          {
+            "money": -6,
+            "memberId": 2,
+            "job": "读书求学",
+            "name": "闻微",
+            "grain": 0
+          }
+        ],
+        "income": 0,
+        "saleIncome": 0,
+        "moneySatisfied": true,
+        "netGrain": -4,
+        "grain": 32,
+        "grainSold": 0,
+        "foodNeed": 4,
+        "foodSatisfied": true,
+        "foodCost": 0,
+        "training": 6,
+        "netMoney": -10,
+        "boughtGrain": 0,
+        "money": 10,
+        "landGrain": 0,
+        "foodShortfall": 0,
+        "livingExpense": 4,
+        "beforeGrain": 36,
+        "beforeMoney": 20,
+        "industryIncome": 0
+      },
+      "year": 1
+    }
+  }
+]

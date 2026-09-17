@@ -1,0 +1,184 @@
+{
+  "pointGroups": {
+    "html_lines": [
+      196
+    ],
+    "extracted_game_js_lines": [
+      109
+    ]
+  },
+  "totalPoints": {
+    "html_lines": [
+      208
+    ],
+    "extracted_game_js_lines": [
+      121
+    ]
+  },
+  "validateDraft": {
+    "html_lines": [
+      215,
+      531
+    ],
+    "extracted_game_js_lines": [
+      128,
+      444
+    ]
+  },
+  "pageBudget": {
+    "html_lines": [
+      478
+    ],
+    "extracted_game_js_lines": [
+      391
+    ]
+  },
+  "setOpeningPeriod": {
+    "html_lines": [
+      534
+    ],
+    "extracted_game_js_lines": [
+      447
+    ]
+  },
+  "setOpeningYear": {
+    "html_lines": [
+      535
+    ],
+    "extracted_game_js_lines": [
+      448
+    ]
+  },
+  "renderFamilyPreview": {
+    "html_lines": [
+      497
+    ],
+    "extracted_game_js_lines": [
+      410
+    ]
+  },
+  "randomizePage": {
+    "html_lines": [
+      597
+    ],
+    "extracted_game_js_lines": [
+      510
+    ]
+  },
+  "undoPageRandom": {
+    "html_lines": [
+      603
+    ],
+    "extracted_game_js_lines": [
+      516
+    ]
+  },
+  "commitStart": {
+    "html_lines": [
+      235,
+      618
+    ],
+    "extracted_game_js_lines": [
+      148,
+      531
+    ]
+  },
+  "makeGame": {
+    "html_lines": [
+      222
+    ],
+    "extracted_game_js_lines": [
+      135
+    ]
+  },
+  "estimate": {
+    "html_lines": [
+      223
+    ],
+    "extracted_game_js_lines": [
+      136
+    ]
+  },
+  "advanceYear": {
+    "html_lines": [
+      295
+    ],
+    "extracted_game_js_lines": [
+      208
+    ]
+  },
+  "resolveEvent": {
+    "html_lines": [
+      269
+    ],
+    "extracted_game_js_lines": [
+      182
+    ]
+  },
+  "unlockRelic": {
+    "html_lines": [
+      233
+    ],
+    "extracted_game_js_lines": [
+      146
+    ]
+  },
+  "setMemberJob": {
+    "html_lines": [
+      294
+    ],
+    "extracted_game_js_lines": [
+      207
+    ]
+  },
+  "commitLeader": {
+    "html_lines": [
+      419
+    ],
+    "extracted_game_js_lines": [
+      332
+    ]
+  },
+  "handovers": {
+    "html_lines": [
+      291
+    ],
+    "extracted_game_js_lines": [
+      204
+    ]
+  },
+  "sellRelic": {
+    "html_lines": [
+      426
+    ],
+    "extracted_game_js_lines": [
+      339
+    ]
+  },
+  "finishRun": {
+    "html_lines": [
+      338
+    ],
+    "extracted_game_js_lines": [
+      251
+    ]
+  },
+  "commitImport": {
+    "html_lines": [
+      452,
+      621
+    ],
+    "extracted_game_js_lines": [
+      365,
+      534
+    ]
+  },
+  "isValidImport": {
+    "html_lines": [
+      446
+    ],
+    "extracted_game_js_lines": [
+      359
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "status": "design_contract_not_runtime_code",
+  "commands": {
+    "RegenerateFamily": {
+      "scope": "entire OpeningDraft",
+      "requires": [
+        "selected world",
+        "current Profile unlocks",
+        "price version",
+        "generator version",
+        "RNG state"
+      ],
+      "forbidden": [
+        "modify current Run",
+        "erase Profile",
+        "reuse fixed finished families only"
+      ]
+    },
+    "RandomizeFamilyName": {
+      "scope": "family name and explicitly linked naming fields only",
+      "no_changes": [
+        "member IDs",
+        "age",
+        "stats",
+        "assets",
+        "relationships",
+        "points"
+      ]
+    },
+    "RandomizeOpeningPage": {
+      "scope": "one page declared fields",
+      "undo": "field-scoped snapshot; invalidate after manual changes on that page"
+    },
+    "CreateRun": {
+      "uses": "exact current validated draft snapshot",
+      "revalidate": [
+        "price <=100",
+        "relations",
+        "adult leader",
+        "valid period/year",
+        "unlocked relics"
+      ],
+      "must_not": "regenerate any opening data"
+    }
+  },
+  "read_models": {
+    "OpeningSummary": "current draft/temporary editing projection",
+    "Budget": "same price functions for draft and CreateRun",
+    "YearForecast": "same economy kernel, read-only, no RNG consumption",
+    "Biography": "actual indexed facts with member IDs",
+    "RelicCollection": "Profile, not Run relic ownership"
+  }
+}

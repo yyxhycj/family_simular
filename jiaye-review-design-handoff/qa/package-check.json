@@ -1,0 +1,128 @@
+{
+  "checked_on": "2026-09-16",
+  "scope": "Archive integrity, original-byte preservation, local links and new handbook/gallery UI only. Not repository game verification.",
+  "browser_environment": "Chromium set_content with local bytes fulfilled through an in-memory virtual origin; viewport 1440×1000 and 390×844. Direct file:// navigation was blocked by this environment administrator policy; not verified in the user browser, UrhoX or a real mobile device.",
+  "not_executed": [
+    "GitHub current-main review",
+    "UrhoX runtime",
+    "gameplay regression",
+    "historical Lua probes",
+    "42 new acceptance designs",
+    "real-device UI/save validation"
+  ],
+  "check_count": 21,
+  "passed": 21,
+  "checks": [
+    {
+      "name": "new_html_relative_links",
+      "passed": true,
+      "detail": {
+        "checked": 122,
+        "errors": []
+      }
+    },
+    {
+      "name": "no_font_files",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "original_source_bytes_preserved",
+      "passed": true,
+      "detail": {
+        "count": 69,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "acceptance_count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "new_acceptance_marked_not_run",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "start_page_desktop",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "start_images_loaded",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "start_desktop_no_horizontal_overflow",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "start_mobile_no_horizontal_overflow",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gallery_initial_image",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gallery_explicitly_static",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gallery_next_selects_home",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gallery_poster_loaded",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gallery_board_hides_size_controls",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gallery_width_button",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gallery_mobile_no_horizontal_overflow",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "document_mobile_readable_structure",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "document_mobile_no_horizontal_overflow",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "review_original_sections_visible",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "review_supersession_notice",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "new_pages_no_javascript_errors",
+      "passed": true,
+      "detail": []
+    }
+  ]
+}

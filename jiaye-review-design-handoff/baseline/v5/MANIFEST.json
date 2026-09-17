@@ -1,0 +1,285 @@
+{
+  "version": "V5 handoff 2026-09-11",
+  "prototype_sha256": "6ad1c282a764aea6c68878500489c283436bd705d2c5f480bfcd882b8dc4b7b4",
+  "exclusions": [
+    "MANIFEST.json",
+    "qa/package-verification.json"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3208,
+      "sha256": "c97f11c86a5812ca46dacde5634956ca1325119dca77dcecaf57bf38e61730ad"
+    },
+    {
+      "path": "START_HERE.html",
+      "bytes": 6230,
+      "sha256": "56706ba9018476c527509ba691b0a480bca11f0d6cd2716e20f7a973b2afcf71"
+    },
+    {
+      "path": "archive/jiaye-v2-design-and-144-endings.md",
+      "bytes": 64044,
+      "sha256": "fcf9686449dd5c73f14f2ba0caa3f954d2132780307faada9e1f53b4c4b7de08"
+    },
+    {
+      "path": "archive/jiaye-v3-试玩说明.md",
+      "bytes": 9229,
+      "sha256": "186cc8b414058e28bcc2c4d55e3f8d20a627675210c9e2f16d8ac297e3e22951"
+    },
+    {
+      "path": "archive/jiaye-v4-更新说明.md",
+      "bytes": 6455,
+      "sha256": "63a9299b102f76f8e31f4c4c4a7213409a6f349356a65c0466f49625a71601af"
+    },
+    {
+      "path": "archive/v5-original-ui/jiaye-v5-检查记录.json",
+      "bytes": 3227,
+      "sha256": "a10c628216c566a4ef2d3a7c956cfcdf8c641dae008c06921cd3fca764d1c3df"
+    },
+    {
+      "path": "archive/v5-original-ui/jiaye-v5-设计与试玩说明.md",
+      "bytes": 2724,
+      "sha256": "f2270def02e6fe3561aad4a5f759cb6939c0ccb12c627683dfda393cde03d972"
+    },
+    {
+      "path": "archive/v5-original-ui/source/build-manifest.json",
+      "bytes": 304,
+      "sha256": "f7a4dc16d003fd20231b8ccd519b6d692b83714a85be98a984bac4a5863a5f66"
+    },
+    {
+      "path": "archive/v5-original-ui/source/check_mobile.py",
+      "bytes": 11157,
+      "sha256": "b1263ee1a0d76b1970fb460b2f6bbc8c63008a3e194983eda3d8bbbbbd07cbb8"
+    },
+    {
+      "path": "archive/v5-original-ui/source/mobile-ui.js",
+      "bytes": 15852,
+      "sha256": "714612f1f616396fca37157b4c0f8a9c212f4677c76990c359c76104896d64e7"
+    },
+    {
+      "path": "archive/v5-original-ui/source/mobile.css",
+      "bytes": 44709,
+      "sha256": "d12c80187475c321bbb61e4d243e6ec5444de5b4c96af78c72de83a05f87d6ca"
+    },
+    {
+      "path": "assets/previews/collection-390.png",
+      "bytes": 68231,
+      "sha256": "634a045065677eb219858ceb2febbb731a90626939bad6d50c5cbd308dfb99da"
+    },
+    {
+      "path": "assets/previews/home-390.png",
+      "bytes": 76490,
+      "sha256": "98dab162ea81f54236aa152c5db08572828256c301bc08c6a07fedb255e484a4"
+    },
+    {
+      "path": "assets/previews/member-390.png",
+      "bytes": 62179,
+      "sha256": "427ac6462d52ada91cafdc2cbe3fb7341a41a5f06084a2ed767b4eb90dd324bf"
+    },
+    {
+      "path": "assets/previews/opening-390.png",
+      "bytes": 65092,
+      "sha256": "61cd33ab1e8c4270e7b02451e5e0fac24dfbdfd24749e8e06122fa1f7aa3b381"
+    },
+    {
+      "path": "assets/previews/overbudget-390.png",
+      "bytes": 73241,
+      "sha256": "1a6184fb6f101a92910025cc9e9f985097f6ebe9280cd970174998222d0a0689"
+    },
+    {
+      "path": "assets/previews/relics-390.png",
+      "bytes": 73139,
+      "sha256": "89a0ac2d7a9bc8714579cbef2752783e442e92b358ff0f99d770e0a4d5bc640f"
+    },
+    {
+      "path": "assets/previews/setup-members-390.png",
+      "bytes": 70336,
+      "sha256": "11e76c015bed09986848e713d076eaefd8a5e0c2b3cb8a07dffb59044518a2c7"
+    },
+    {
+      "path": "data/code-map.json",
+      "bytes": 2504,
+      "sha256": "4417411c426305617c3e5e90fb86bc036b72c26e8d0bf210c5b10eea51f238c2"
+    },
+    {
+      "path": "data/legacy-144.design-only.json",
+      "bytes": 81845,
+      "sha256": "e31c2317655cdcd04d0532eedd3a67df91052102637faf40daf931c125f26fdb"
+    },
+    {
+      "path": "data/v5-config.snapshot.json",
+      "bytes": 20473,
+      "sha256": "3202824fbbf5cc2afa0029a6d2f6372444605f693944483ad62f658a53ca8baa"
+    },
+    {
+      "path": "data/v5-endings-13.snapshot.json",
+      "bytes": 7582,
+      "sha256": "1353297e8ba84ac88f9e577b602b6149b47977c05c3e98a6e4dcb6631d9a3bf4"
+    },
+    {
+      "path": "docs/00-交付边界与冻结决策.md",
+      "bytes": 6375,
+      "sha256": "fe492b55ae4174b93f5758c558a599d2db5f472c5a260220254ca45043b51b25"
+    },
+    {
+      "path": "docs/01-游戏总案与凡世王朝.md",
+      "bytes": 8665,
+      "sha256": "3147272c9ad923ab95cf42f505937fe0414337c1c33a927618e275d7cb215d36"
+    },
+    {
+      "path": "docs/02-开局配点与当前数值基线.md",
+      "bytes": 6868,
+      "sha256": "25204d936f718733d53cb236613a532b35e583ccb5b4e35517f64107a8d8faf0"
+    },
+    {
+      "path": "docs/03-手机UI与逐页交互规格.md",
+      "bytes": 9522,
+      "sha256": "10c66c59961fa7299c4a25469b64d5c86db7a50bb88b45cd417170186b721378"
+    },
+    {
+      "path": "docs/04-实现架构与状态数据契约.md",
+      "bytes": 9237,
+      "sha256": "f0a88fa461d6de24bce9290e37ad2564334eea4ddfb311061bb4035fb89ba51f"
+    },
+    {
+      "path": "docs/05-事件信物与结局内容生产.md",
+      "bytes": 7826,
+      "sha256": "a983013bfee6421ebec88451f84edd8a2021512b634dd1122c16df27399552bc"
+    },
+    {
+      "path": "docs/06-逐步实施手册.md",
+      "bytes": 31784,
+      "sha256": "95a7f9f668cb5d0b3976c5db54e37f3d1aef83323b281de0c47eb973b7451b47"
+    },
+    {
+      "path": "docs/07-测试用例与发布检查.md",
+      "bytes": 15863,
+      "sha256": "921ae47f9aeb888ee23b3981570db65b2ff56b47faee6df8514e4f85ccaa8508"
+    },
+    {
+      "path": "docs/08-AI开发总提示词与分步用法.md",
+      "bytes": 5711,
+      "sha256": "28d07db09c74b5fb20c51484e87de1bae64ac7d78a9ef2bb90e9079ea494e5bd"
+    },
+    {
+      "path": "docs/09-现状审计与代码导航.md",
+      "bytes": 6707,
+      "sha256": "fc1d21789a00cb9fc8bb746792de0dbb89460319e311f0130149e746b2de0d4b"
+    },
+    {
+      "path": "docs/10-阶段里程碑与待定事项.md",
+      "bytes": 3278,
+      "sha256": "34c0eb39e0babee75d85a183af41033808972328640eb2b91b295642320529a9"
+    },
+    {
+      "path": "prototype/jiaye-demo-v5.html",
+      "bytes": 339216,
+      "sha256": "6ad1c282a764aea6c68878500489c283436bd705d2c5f480bfcd882b8dc4b7b4"
+    },
+    {
+      "path": "prototype/jiaye-v5-mobile-preview.html",
+      "bytes": 373270,
+      "sha256": "f33ef42a14236b0e0535ac27895c2b08e16fb2544a2a1021346b26c2792deb99"
+    },
+    {
+      "path": "qa/acceptance-cases.json",
+      "bytes": 29406,
+      "sha256": "4c4ab9777007eb0fe914642e71a6d73958f248c357ffcd2a082811844323739c"
+    },
+    {
+      "path": "qa/current-smoke.json",
+      "bytes": 6022,
+      "sha256": "abf38b5a306d4663d13f31bf82dc67dbdb3262fb9323157bd0211216fc59d170"
+    },
+    {
+      "path": "qa/document-layout-checks.json",
+      "bytes": 444,
+      "sha256": "51db6c9072cef7d4ca52e1e4a82fb29dd3b4cb97968348d361dd743ba84da416"
+    },
+    {
+      "path": "qa/smoke_v5.py",
+      "bytes": 9351,
+      "sha256": "1b6f2a5ebf88c6e173eb12cf2a2e2134fa8aef2bd3688f04bac0181821322ad7"
+    },
+    {
+      "path": "source/prototype/blocks.json",
+      "bytes": 361,
+      "sha256": "c235ffd467156b09fd491a9708390a8a736819729656bc131636f2a3eb2bc1a0"
+    },
+    {
+      "path": "source/prototype/game.js",
+      "bytes": 215761,
+      "sha256": "f33cf9df203c8d177cba2fbacad47fdc76ae60cf443a5d753568e416c7d032e0"
+    },
+    {
+      "path": "source/prototype/legacy.css",
+      "bytes": 61949,
+      "sha256": "d895d73d31ad812e8ed69f20258290abde4726a1531efd6015145a4976121a05"
+    },
+    {
+      "path": "source/prototype/mobile-ui.js",
+      "bytes": 15891,
+      "sha256": "bbabb8c16e73c4aa31c7f2b38c833c38ffc1f8ba81500a54636f35a58d19dce1"
+    },
+    {
+      "path": "source/prototype/mobile.css",
+      "bytes": 44709,
+      "sha256": "d12c80187475c321bbb61e4d243e6ec5444de5b4c96af78c72de83a05f87d6ca"
+    },
+    {
+      "path": "source/prototype/shell.template.html",
+      "bytes": 976,
+      "sha256": "88e369a09db23933305501e85354dc26a13ee8caf03bb2ac1843866079deb3d1"
+    },
+    {
+      "path": "tasks/steps.json",
+      "bytes": 35112,
+      "sha256": "46346ecac72c691dcd0ddf26ab773cefd0c4e0f1955c1272ef73cf6b78be19d1"
+    },
+    {
+      "path": "templates/README.md",
+      "bytes": 443,
+      "sha256": "b7afa54bfeaeacd6bf0763e02e6c009b0d93082b56fadd49ec7eef6c7640bf9a"
+    },
+    {
+      "path": "templates/ending.example.json",
+      "bytes": 1096,
+      "sha256": "c836e7e079b763e95cd678539acda741d36600fb97030375aa564d92edf0635f"
+    },
+    {
+      "path": "templates/event.example.json",
+      "bytes": 1591,
+      "sha256": "7d910c0c8d3a078ff3130adba7e3a2aad3a0d36c6a408c2d90f5fd2a99600405"
+    },
+    {
+      "path": "templates/relic.example.json",
+      "bytes": 832,
+      "sha256": "c4a9f4342ac2564709d47ab21264023b7dc03b2c1109ddae0ae01cc3e7e4ae3f"
+    },
+    {
+      "path": "templates/step-report.template.json",
+      "bytes": 369,
+      "sha256": "dc88694f84fb4eb4c313e4be5a08fb1aa3619c6a1d4c81db9ca8115d35d7fd4f"
+    },
+    {
+      "path": "tools/build_prototype.py",
+      "bytes": 1083,
+      "sha256": "7dfeec1cb5e383dc6347118616197aef3cc0180fa1d6512497bfbd7f6789e40e"
+    },
+    {
+      "path": "tools/verify_package.py",
+      "bytes": 4567,
+      "sha256": "0ef66da318ec5c68ecc20ed2b985bf5582556f93324eda6ed103e89445d0e53b"
+    },
+    {
+      "path": "家业-完整设计与开发方案.html",
+      "bytes": 416996,
+      "sha256": "bd659879f79b6db14990aff54be085efe0f6e592013413c619dfd85f6ab9341d"
+    },
+    {
+      "path": "家业-完整设计与开发方案.md",
+      "bytes": 112277,
+      "sha256": "806ffa88086e1818fbbfe7b97e3030a6bd9a20333fd9db73528062e3271b53e2"
+    }
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "captured_at": "2026-09-16T11:34:40.216874+00:00",
+  "implementation_sha": "c2f24fd2dfeae9d889a6424992c57c121f5c75d7",
+  "restored_main_sha": "ca26af6cb6fb9dc9c18ca747f8f1de78edc9bb86",
+  "layer": "Chrome Maker hosted UrhoX runtime, native UI/File/cjson, isolated fixtures and preview engine restart",
+  "real_phone": false,
+  "physical_disk_failure": false,
+  "log_file": "engine-run-02.jsonl",
+  "log_rows": 137,
+  "render_observations": 44,
+  "equal_saved_summaries_for_all_non_unsaved_renders": true,
+  "contracts": {
+    "history_151_oldest_and_restart": [
+      16,
+      18,
+      29
+    ],
+    "event_succession_and_restart": [
+      40,
+      41,
+      48
+    ],
+    "member_succession_final_color": [
+      136,
+      137
+    ],
+    "collection_new_run_99_and_restart": [
+      79,
+      88,
+      102,
+      103,
+      108
+    ],
+    "injected_short_write_preserves_old_file": [
+      115,
+      116
+    ],
+    "retry_once_and_restart": [
+      117,
+      118,
+      127,
+      128
+    ]
+  },
+  "ui_observations": {
+    "confirmation_cancel": "02-confirmation-and-save-after-fix.mp4",
+    "history_paging": "03-history-151.mp4",
+    "event_succession": "04-succession-event.mp4",
+    "collection": "06-collection-new-run.mp4",
+    "short_write_error_and_retry": "07-short-write-retry.mp4",
+    "member_modal_fixed": "08-succession-member-after-color-fix.mp4",
+    "original_save_after_restoring_main": "09-main-restored-original-save.mp4"
+  },
+  "original_save_observed": {
+    "family": "顾氏",
+    "leader": "顾安",
+    "displayed_year": 6,
+    "calendar": 53,
+    "alive": 4,
+    "money": 7,
+    "grain": 22,
+    "land": 0,
+    "reputation": 0,
+    "history_count": 9,
+    "oldest_calendar": 48
+  },
+  "interruptions": [
+    {
+      "time_unix": 1789557503,
+      "observation": "Preview restarted during first collection attempt; cause not established; interrupted recording not counted as PASS."
+    },
+    {
+      "time_unix": 1789557549,
+      "observation": "Preview restarted again; later stable repetition and restart checks passed; no Lua ERROR or T01_QA_FAIL in captured runtime log."
+    }
+  ],
+  "videos": [
+    {
+      "file": "01-confirmation-before-fix.mp4",
+      "bytes": 3373077,
+      "sha256": "c56370acc8cb1a165b94fd83baf9132a5ffb28aa0c0bedd4742a9441192df31a",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "41.842358"
+      }
+    },
+    {
+      "file": "02-confirmation-and-save-after-fix.mp4",
+      "bytes": 6288138,
+      "sha256": "6a92993f0fa08715ba5985cffda7967877691eeb8504f7807d0fbff0dd95ab78",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "68.057687"
+      }
+    },
+    {
+      "file": "03-history-151.mp4",
+      "bytes": 1691293,
+      "sha256": "b7e895ed31303c124aee7973536f9a3fd23fc74e9f7ab1061012838e50ddab4d",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "19.388662"
+      }
+    },
+    {
+      "file": "04-succession-event.mp4",
+      "bytes": 3491138,
+      "sha256": "121520d7aad496d968866d1fa372232493634068e34b959d7a236e9e07ec54a3",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "26.424308"
+      }
+    },
+    {
+      "file": "05-succession-member-before-color-fix.mp4",
+      "bytes": 2905459,
+      "sha256": "6a60f95f7e1cdde828c321bb078af6360221dc40c71e40305a1ed10f2c577725",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "37.755646"
+      }
+    },
+    {
+      "file": "06-collection-new-run.mp4",
+      "bytes": 2087472,
+      "sha256": "6b1873399d06dcd010a6f06b6237eccf3f2a66d58d92db7d13f6b790aceb08cb",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "21.919637"
+      }
+    },
+    {
+      "file": "07-short-write-retry.mp4",
+      "bytes": 2680198,
+      "sha256": "8ca0d705f6e21e132ae2a4f58b7cad9b4bce988b98592dc8333ac3dbd6c87cd3",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "27.434667"
+      }
+    },
+    {
+      "file": "08-succession-member-after-color-fix.mp4",
+      "bytes": 1925136,
+      "sha256": "1755f041389e500f924a85f1fd80e3366cfc4177447ffba88309b4966ea26495",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "21.034667"
+      }
+    },
+    {
+      "file": "09-main-restored-original-save.mp4",
+      "bytes": 1248814,
+      "sha256": "02cdd69852d39ff3e0ed48e0f85dc83d42ab2a156adfa2871d65559f076e1595",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 2162,
+          "height": 1440
+        },
+        {
+          "codec_name": "aac"
+        }
+      ],
+      "format": {
+        "duration": "13.269333"
+      }
+    }
+  ]
+}

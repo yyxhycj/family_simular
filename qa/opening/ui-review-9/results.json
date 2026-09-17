@@ -1,0 +1,292 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "seeded_generation",
+        "maxPopulation": 6,
+        "distinct": 48,
+        "samples": 48
+      },
+      {
+        "id": "name_isolation",
+        "points": 66,
+        "family": "司马"
+      },
+      {
+        "rejected": 3,
+        "limits": "100/101",
+        "pointLinesSafe": true,
+        "id": "edit_validation",
+        "pageIsolation": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "income": 29,
+        "netMoney": -1,
+        "netGrain": 5
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "foodShortfall": 0,
+          "income": 29,
+          "landGrain": 4,
+          "boughtGrain": 0,
+          "industryIncome": 0,
+          "livingExpense": 14,
+          "foodSatisfied": true,
+          "beforeGrain": 24,
+          "saleIncome": 0,
+          "moneySatisfied": true,
+          "beforeMoney": 80,
+          "netGrain": 5,
+          "netMoney": -1,
+          "grainSold": 0,
+          "money": 79,
+          "foodCost": 0,
+          "foodNeed": 7,
+          "grain": 29,
+          "training": 16,
+          "members": [
+            {
+              "name": "林成",
+              "money": 21,
+              "grain": 0,
+              "memberId": 1,
+              "job": "手艺谋生"
+            },
+            {
+              "name": "许青",
+              "money": 8,
+              "grain": 8,
+              "memberId": 2,
+              "job": "耕作谋生"
+            },
+            {
+              "name": "林芸",
+              "money": -9,
+              "grain": 0,
+              "memberId": 3,
+              "job": "随师学医"
+            },
+            {
+              "name": "林安",
+              "money": -7,
+              "grain": 0,
+              "memberId": 4,
+              "job": "读书求学"
+            }
+          ]
+        }
+      },
+      {
+        "id": "shortage",
+        "stable": 0,
+        "shortfall": 3,
+        "foodYears": 0
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "addCancelPure": true,
+      "inputKeepsFocus": true,
+      "coverActionsReachable": true,
+      "pageUndoScoped": true,
+      "generatedFailureInjected": true,
+      "editCancelPure": true,
+      "newMemberPreview": true,
+      "detailReturnPreserved": true,
+      "newMemberSpouseSaved": true,
+      "invalidStartInline": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "duplicateConfirmationIgnored": true,
+      "readOnlyViews": 5,
+      "snapshot": {
+        "periodId": "strain",
+        "generatorVersion": 1,
+        "habitId": "none",
+        "nameSeed": 109975245,
+        "placeId": "village",
+        "selectedRelicIds": [
+          "ruler",
+          "letter"
+        ],
+        "nextId": 4,
+        "family": "周",
+        "calendar": 120,
+        "originId": "plain",
+        "tieId": "partner",
+        "rngSeed": 109975245,
+        "money": 60,
+        "grain": 4,
+        "workshop": false,
+        "leaderId": 1,
+        "members": [
+          {
+            "id": 1,
+            "talent": 2,
+            "age": 35,
+            "givenName": "修",
+            "sex": "男",
+            "parents": {},
+            "trait": "爽朗",
+            "name": "周修",
+            "nameSource": "family",
+            "spouseId": 2,
+            "jobId": "home",
+            "experienceId": "trade",
+            "focus": "skill"
+          },
+          {
+            "id": 2,
+            "talent": 3,
+            "age": 34,
+            "givenName": "昭微",
+            "sex": "女",
+            "parents": {},
+            "trait": "爽朗",
+            "name": "顾昭微",
+            "nameSource": "external",
+            "spouseId": 1,
+            "jobId": "rest",
+            "experienceId": "craft",
+            "focus": "skill"
+          },
+          {
+            "id": 3,
+            "talent": 3,
+            "age": 7,
+            "givenName": "允衡",
+            "sex": "男",
+            "parents": [
+              1,
+              2
+            ],
+            "trait": "好奇",
+            "nameSource": "family",
+            "jobId": "study",
+            "name": "周允衡",
+            "experienceId": "none",
+            "focus": "general"
+          }
+        ],
+        "land": 0,
+        "worldId": "mortal",
+        "homeId": "simple",
+        "shop": false
+      },
+      "ledger": {
+        "saleIncome": 0,
+        "moneySatisfied": true,
+        "foodNeed": 5,
+        "foodCost": 3,
+        "netMoney": -17,
+        "landGrain": 0,
+        "foodShortfall": 1,
+        "money": 43,
+        "training": 6,
+        "beforeGrain": 4,
+        "grainSold": 0,
+        "netGrain": -4,
+        "grain": 0,
+        "beforeMoney": 60,
+        "industryIncome": 0,
+        "members": [
+          {
+            "memberId": 1,
+            "job": "料理家事",
+            "grain": 0,
+            "money": 0,
+            "name": "周修"
+          },
+          {
+            "memberId": 2,
+            "job": "休养",
+            "grain": 0,
+            "money": 0,
+            "name": "顾昭微"
+          },
+          {
+            "memberId": 3,
+            "job": "读书求学",
+            "grain": 0,
+            "money": -6,
+            "name": "周允衡"
+          }
+        ],
+        "foodSatisfied": true,
+        "income": 0,
+        "boughtGrain": 1,
+        "livingExpense": 8
+      },
+      "points": 76,
+      "priorSaveRetainedUntilConfirmation": true
+    },
+    "restart": {
+      "points": 76,
+      "ledger": {
+        "grain": 0,
+        "landGrain": 0,
+        "grainSold": 0,
+        "beforeMoney": 60,
+        "netMoney": -17,
+        "foodShortfall": 1,
+        "moneySatisfied": true,
+        "netGrain": -4,
+        "boughtGrain": 1,
+        "training": 6,
+        "foodSatisfied": true,
+        "saleIncome": 0,
+        "beforeGrain": 4,
+        "industryIncome": 0,
+        "income": 0,
+        "livingExpense": 8,
+        "foodNeed": 5,
+        "money": 43,
+        "members": [
+          {
+            "grain": 0,
+            "name": "周修",
+            "money": 0,
+            "job": "料理家事",
+            "memberId": 1
+          },
+          {
+            "grain": 0,
+            "name": "顾昭微",
+            "money": 0,
+            "job": "休养",
+            "memberId": 2
+          },
+          {
+            "grain": 0,
+            "name": "周允衡",
+            "money": -6,
+            "job": "读书求学",
+            "memberId": 3
+          }
+        ],
+        "foodCost": 3
+      },
+      "year": 1,
+      "family": "周"
+    }
+  }
+]

@@ -1,0 +1,259 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "maxPopulation": 6,
+        "id": "seeded_generation",
+        "samples": 48,
+        "distinct": 48
+      },
+      {
+        "points": 66,
+        "id": "name_isolation",
+        "family": "司马"
+      },
+      {
+        "pageIsolation": true,
+        "id": "edit_validation",
+        "pointLinesSafe": true,
+        "rejected": 3,
+        "limits": "100/101"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netMoney": -1,
+        "id": "preview",
+        "netGrain": 5,
+        "income": 29
+      },
+      {
+        "reputation": 26,
+        "id": "advance",
+        "ledger": {
+          "foodShortfall": 0,
+          "industryIncome": 0,
+          "foodNeed": 7,
+          "grainSold": 0,
+          "foodSatisfied": true,
+          "boughtGrain": 0,
+          "beforeMoney": 80,
+          "income": 29,
+          "moneySatisfied": true,
+          "netGrain": 5,
+          "netMoney": -1,
+          "members": [
+            {
+              "memberId": 1,
+              "job": "手艺谋生",
+              "grain": 0,
+              "money": 21,
+              "name": "林成"
+            },
+            {
+              "memberId": 2,
+              "job": "耕作谋生",
+              "grain": 8,
+              "money": 8,
+              "name": "许青"
+            },
+            {
+              "memberId": 3,
+              "job": "随师学医",
+              "grain": 0,
+              "money": -9,
+              "name": "林芸"
+            },
+            {
+              "memberId": 4,
+              "job": "读书求学",
+              "grain": 0,
+              "money": -7,
+              "name": "林安"
+            }
+          ],
+          "grain": 29,
+          "livingExpense": 14,
+          "saleIncome": 0,
+          "foodCost": 0,
+          "beforeGrain": 24,
+          "training": 16,
+          "money": 79,
+          "landGrain": 4
+        }
+      },
+      {
+        "foodYears": 0,
+        "id": "shortage",
+        "shortfall": 3,
+        "stable": 0
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "addCancelPure": true,
+      "pageUndoScoped": true,
+      "generatedFailureInjected": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "invalidStartInline": true,
+      "newMemberPreview": true,
+      "inputKeepsFocus": true,
+      "editCancelPure": true,
+      "coverActionsReachable": true,
+      "newMemberSpouseSaved": true,
+      "detailReturnPreserved": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 95,
+      "ledger": {
+        "saleIncome": 0,
+        "grain": 24,
+        "grainSold": 0,
+        "beforeMoney": 20,
+        "members": [
+          {
+            "job": "料理家事",
+            "grain": 0,
+            "money": 0,
+            "memberId": 1,
+            "name": "许知川"
+          },
+          {
+            "job": "休养",
+            "grain": 0,
+            "money": 0,
+            "memberId": 2,
+            "name": "许青宁"
+          }
+        ],
+        "boughtGrain": 0,
+        "beforeGrain": 20,
+        "moneySatisfied": true,
+        "netGrain": 4,
+        "training": 0,
+        "foodShortfall": 0,
+        "netMoney": -5,
+        "foodNeed": 4,
+        "industryIncome": 0,
+        "foodSatisfied": true,
+        "income": 0,
+        "livingExpense": 5,
+        "foodCost": 0,
+        "money": 15,
+        "landGrain": 8
+      },
+      "snapshot": {
+        "selectedRelicIds": [
+          "letter"
+        ],
+        "leaderId": 1,
+        "periodId": "unrest",
+        "grain": 20,
+        "tieId": "neighbor",
+        "nextId": 3,
+        "homeId": "simple",
+        "members": [
+          {
+            "parents": {},
+            "givenName": "知川",
+            "name": "许知川",
+            "sex": "男",
+            "focus": "learn",
+            "talent": 5,
+            "age": 24,
+            "nameSource": "family",
+            "trait": "沉静",
+            "experienceId": "trade",
+            "jobId": "home",
+            "id": 1
+          },
+          {
+            "parents": {},
+            "givenName": "青宁",
+            "name": "许青宁",
+            "sex": "女",
+            "focus": "skill",
+            "talent": 5,
+            "age": 31,
+            "nameSource": "family",
+            "trait": "细致",
+            "experienceId": "none",
+            "jobId": "rest",
+            "id": 2
+          }
+        ],
+        "rngSeed": 714965202,
+        "placeId": "mountain",
+        "generatorVersion": 1,
+        "worldId": "mortal",
+        "family": "许",
+        "habitId": "none",
+        "originId": "military",
+        "land": 2,
+        "shop": false,
+        "calendar": 156,
+        "nameSeed": 714965202,
+        "money": 20,
+        "workshop": false
+      },
+      "duplicateConfirmationIgnored": true,
+      "priorSaveRetainedUntilConfirmation": true,
+      "readOnlyViews": 5
+    },
+    "restart": {
+      "points": 95,
+      "ledger": {
+        "industryIncome": 0,
+        "foodCost": 0,
+        "livingExpense": 5,
+        "landGrain": 8,
+        "income": 0,
+        "saleIncome": 0,
+        "beforeMoney": 20,
+        "grain": 24,
+        "training": 0,
+        "foodShortfall": 0,
+        "foodSatisfied": true,
+        "moneySatisfied": true,
+        "beforeGrain": 20,
+        "boughtGrain": 0,
+        "members": [
+          {
+            "grain": 0,
+            "job": "料理家事",
+            "memberId": 1,
+            "name": "许知川",
+            "money": 0
+          },
+          {
+            "grain": 0,
+            "job": "休养",
+            "memberId": 2,
+            "name": "许青宁",
+            "money": 0
+          }
+        ],
+        "netGrain": 4,
+        "netMoney": -5,
+        "foodNeed": 4,
+        "grainSold": 0,
+        "money": 15
+      },
+      "family": "许",
+      "year": 1
+    }
+  }
+]

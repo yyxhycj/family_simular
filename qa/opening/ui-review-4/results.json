@@ -1,0 +1,287 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "seeded_generation",
+        "samples": 48,
+        "distinct": 48
+      },
+      {
+        "id": "name_isolation",
+        "family": "司马",
+        "points": 66
+      },
+      {
+        "rejected": 3,
+        "id": "edit_validation",
+        "pointLinesSafe": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "netGrain": 5,
+        "netMoney": -1,
+        "income": 29
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "landGrain": 4,
+          "netMoney": -1,
+          "beforeGrain": 24,
+          "foodNeed": 7,
+          "members": [
+            {
+              "name": "林成",
+              "memberId": 1,
+              "job": "手艺谋生",
+              "grain": 0,
+              "money": 21
+            },
+            {
+              "name": "许青",
+              "memberId": 2,
+              "job": "耕作谋生",
+              "grain": 8,
+              "money": 8
+            },
+            {
+              "name": "林芸",
+              "memberId": 3,
+              "job": "随师学医",
+              "grain": 0,
+              "money": -9
+            },
+            {
+              "name": "林安",
+              "memberId": 4,
+              "job": "读书求学",
+              "grain": 0,
+              "money": -7
+            }
+          ],
+          "foodCost": 0,
+          "moneySatisfied": true,
+          "netGrain": 5,
+          "saleIncome": 0,
+          "money": 79,
+          "livingExpense": 14,
+          "grainSold": 0,
+          "training": 16,
+          "income": 29,
+          "foodShortfall": 0,
+          "boughtGrain": 0,
+          "foodSatisfied": true,
+          "grain": 29,
+          "beforeMoney": 80,
+          "industryIncome": 0
+        }
+      },
+      {
+        "id": "shortage",
+        "foodYears": 0,
+        "stable": 0,
+        "shortfall": 3
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "pageUndoScoped": true,
+      "invalidStartInline": true,
+      "inputKeepsFocus": true,
+      "detailReturnPreserved": true,
+      "addCancelPure": true,
+      "editCancelPure": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "snapshot": {
+        "money": 0,
+        "rngSeed": 1943590145,
+        "worldId": "mortal",
+        "shop": false,
+        "tieId": "teacher",
+        "placeId": "village",
+        "nextId": 4,
+        "nameSeed": 1943590145,
+        "periodId": "rebuild",
+        "calendar": 24,
+        "generatorVersion": 1,
+        "land": 1,
+        "leaderId": 1,
+        "family": "程",
+        "homeId": "rented",
+        "grain": 4,
+        "workshop": false,
+        "habitId": "care",
+        "members": [
+          {
+            "name": "程砚砚",
+            "id": 1,
+            "experienceId": "craft",
+            "sex": "男",
+            "focus": "general",
+            "talent": 1,
+            "spouseId": 2,
+            "givenName": "砚砚",
+            "surname": "程",
+            "nameSource": "family",
+            "age": 24,
+            "jobId": "farm",
+            "parents": {},
+            "trait": "爽朗"
+          },
+          {
+            "name": "宋昭",
+            "id": 2,
+            "experienceId": "medical",
+            "sex": "女",
+            "focus": "learn",
+            "talent": 5,
+            "spouseId": 1,
+            "givenName": "昭",
+            "surname": "宋",
+            "nameSource": "external",
+            "age": 18,
+            "jobId": "apprentice",
+            "parents": {},
+            "trait": "踏实"
+          },
+          {
+            "name": "程晚",
+            "id": 3,
+            "experienceId": "none",
+            "sex": "女",
+            "focus": "general",
+            "talent": 4,
+            "givenName": "晚",
+            "surname": "程",
+            "nameSource": "family",
+            "jobId": "rest",
+            "age": 0,
+            "parents": [
+              1,
+              2
+            ],
+            "trait": "好奇"
+          }
+        ],
+        "originId": "artisan",
+        "selectedRelicIds": [
+          "book"
+        ]
+      },
+      "duplicateConfirmationIgnored": true,
+      "points": 95,
+      "readOnlyViews": 5,
+      "ledger": {
+        "money": 0,
+        "livingExpense": 14,
+        "beforeMoney": 0,
+        "landGrain": 4,
+        "moneySatisfied": true,
+        "foodNeed": 5,
+        "beforeGrain": 4,
+        "boughtGrain": 0,
+        "members": [
+          {
+            "name": "程砚砚",
+            "job": "耕作谋生",
+            "memberId": 1,
+            "grain": 8,
+            "money": 8
+          },
+          {
+            "name": "宋昭",
+            "job": "学一门手艺",
+            "memberId": 2,
+            "grain": 0,
+            "money": -4
+          },
+          {
+            "name": "程晚",
+            "job": "休养",
+            "memberId": 3,
+            "grain": 0,
+            "money": 0
+          }
+        ],
+        "foodSatisfied": true,
+        "saleIncome": 10,
+        "netGrain": 2,
+        "netMoney": 0,
+        "grain": 6,
+        "training": 4,
+        "industryIncome": 0,
+        "income": 8,
+        "foodCost": 0,
+        "grainSold": 5,
+        "foodShortfall": 0
+      },
+      "priorSaveRetainedUntilConfirmation": true
+    },
+    "restart": {
+      "family": "程",
+      "ledger": {
+        "foodCost": 0,
+        "money": 0,
+        "beforeGrain": 4,
+        "moneySatisfied": true,
+        "netGrain": 2,
+        "grainSold": 5,
+        "industryIncome": 0,
+        "foodNeed": 5,
+        "livingExpense": 14,
+        "income": 8,
+        "training": 4,
+        "saleIncome": 10,
+        "netMoney": 0,
+        "landGrain": 4,
+        "foodShortfall": 0,
+        "members": [
+          {
+            "name": "程砚砚",
+            "job": "耕作谋生",
+            "money": 8,
+            "grain": 8,
+            "memberId": 1
+          },
+          {
+            "name": "宋昭",
+            "job": "学一门手艺",
+            "money": -4,
+            "grain": 0,
+            "memberId": 2
+          },
+          {
+            "name": "程晚",
+            "job": "休养",
+            "money": 0,
+            "grain": 0,
+            "memberId": 3
+          }
+        ],
+        "boughtGrain": 0,
+        "grain": 6,
+        "beforeMoney": 0,
+        "foodSatisfied": true
+      },
+      "year": 1,
+      "points": 95
+    }
+  }
+]

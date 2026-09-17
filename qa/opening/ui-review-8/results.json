@@ -1,0 +1,305 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "maxPopulation": 6,
+        "samples": 48,
+        "id": "seeded_generation",
+        "distinct": 48
+      },
+      {
+        "points": 66,
+        "id": "name_isolation",
+        "family": "司马"
+      },
+      {
+        "id": "edit_validation",
+        "pointLinesSafe": true,
+        "pageIsolation": true,
+        "limits": "100/101",
+        "rejected": 3
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netGrain": 5,
+        "income": 29,
+        "id": "preview",
+        "netMoney": -1
+      },
+      {
+        "reputation": 26,
+        "id": "advance",
+        "ledger": {
+          "foodNeed": 7,
+          "livingExpense": 14,
+          "industryIncome": 0,
+          "foodShortfall": 0,
+          "saleIncome": 0,
+          "money": 79,
+          "foodCost": 0,
+          "beforeGrain": 24,
+          "members": [
+            {
+              "memberId": 1,
+              "grain": 0,
+              "job": "手艺谋生",
+              "money": 21,
+              "name": "林成"
+            },
+            {
+              "memberId": 2,
+              "grain": 8,
+              "job": "耕作谋生",
+              "money": 8,
+              "name": "许青"
+            },
+            {
+              "memberId": 3,
+              "grain": 0,
+              "job": "随师学医",
+              "money": -9,
+              "name": "林芸"
+            },
+            {
+              "memberId": 4,
+              "grain": 0,
+              "job": "读书求学",
+              "money": -7,
+              "name": "林安"
+            }
+          ],
+          "moneySatisfied": true,
+          "training": 16,
+          "netGrain": 5,
+          "netMoney": -1,
+          "grain": 29,
+          "grainSold": 0,
+          "boughtGrain": 0,
+          "foodSatisfied": true,
+          "income": 29,
+          "landGrain": 4,
+          "beforeMoney": 80
+        }
+      },
+      {
+        "stable": 0,
+        "shortfall": 3,
+        "id": "shortage",
+        "foodYears": 0
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:17: attempt to index a nil value (local \\'root\\')\\nstack traceback:\\n\\t[string \"<python>\"]:33: in function <[string \"<python>\"]:24>\\n\\t[string \"<python>\"]:17: in upvalue \\'findText\\'')"
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "duplicateConfirmationIgnored": true,
+      "priorSaveRetainedUntilConfirmation": true,
+      "snapshot": {
+        "money": 100,
+        "habitId": "none",
+        "nextId": 5,
+        "tieId": "healer",
+        "homeId": "rented",
+        "family": "沈",
+        "land": 2,
+        "shop": false,
+        "calendar": 144,
+        "nameSeed": 1099437578,
+        "workshop": false,
+        "rngSeed": 1099437578,
+        "selectedRelicIds": {},
+        "placeId": "village",
+        "worldId": "mortal",
+        "periodId": "unrest",
+        "originId": "plain",
+        "generatorVersion": 1,
+        "grain": 36,
+        "members": [
+          {
+            "sex": "女",
+            "parents": [
+              3
+            ],
+            "talent": 4,
+            "focus": "skill",
+            "jobId": "apprentice",
+            "trait": "仁厚",
+            "age": 30,
+            "name": "沈芸",
+            "nameSource": "family",
+            "experienceId": "none",
+            "givenName": "芸",
+            "id": 1
+          },
+          {
+            "sex": "女",
+            "parents": {},
+            "talent": 1,
+            "focus": "trade",
+            "jobId": "play",
+            "trait": "爽朗",
+            "age": 38,
+            "name": "沈微",
+            "nameSource": "family",
+            "experienceId": "trade",
+            "givenName": "微",
+            "id": 2
+          },
+          {
+            "sex": "男",
+            "parents": {},
+            "talent": 4,
+            "focus": "martial",
+            "jobId": "trade",
+            "trait": "踏实",
+            "age": 62,
+            "name": "沈修明",
+            "nameSource": "family",
+            "experienceId": "medical",
+            "givenName": "修明",
+            "id": 3
+          },
+          {
+            "sex": "女",
+            "parents": [
+              1
+            ],
+            "talent": 2,
+            "focus": "skill",
+            "jobId": "play",
+            "trait": "沉静",
+            "age": 12,
+            "name": "沈微",
+            "nameSource": "family",
+            "experienceId": "basic",
+            "givenName": "微",
+            "id": 4
+          }
+        ],
+        "leaderId": 1
+      },
+      "points": 93,
+      "readOnlyViews": 5,
+      "ledger": {
+        "money": 97,
+        "netMoney": -3,
+        "netGrain": 1,
+        "livingExpense": 18,
+        "foodSatisfied": true,
+        "landGrain": 8,
+        "income": 19,
+        "foodNeed": 7,
+        "industryIncome": 0,
+        "saleIncome": 0,
+        "beforeGrain": 36,
+        "beforeMoney": 100,
+        "grainSold": 0,
+        "training": 4,
+        "moneySatisfied": true,
+        "foodCost": 0,
+        "boughtGrain": 0,
+        "grain": 37,
+        "members": [
+          {
+            "memberId": 1,
+            "money": -4,
+            "job": "学一门手艺",
+            "name": "沈芸",
+            "grain": 0
+          },
+          {
+            "memberId": 2,
+            "money": 0,
+            "job": "随家人生活",
+            "name": "沈微",
+            "grain": 0
+          },
+          {
+            "memberId": 3,
+            "money": 19,
+            "job": "外出经商",
+            "name": "沈修明",
+            "grain": 0
+          },
+          {
+            "memberId": 4,
+            "money": 0,
+            "job": "随家人生活",
+            "name": "沈微",
+            "grain": 0
+          }
+        ],
+        "foodShortfall": 0
+      }
+    },
+    "restart": {
+      "points": 93,
+      "family": "沈",
+      "ledger": {
+        "foodCost": 0,
+        "moneySatisfied": true,
+        "beforeMoney": 100,
+        "members": [
+          {
+            "money": -4,
+            "job": "学一门手艺",
+            "name": "沈芸",
+            "grain": 0,
+            "memberId": 1
+          },
+          {
+            "money": 0,
+            "job": "随家人生活",
+            "name": "沈微",
+            "grain": 0,
+            "memberId": 2
+          },
+          {
+            "money": 19,
+            "job": "外出经商",
+            "name": "沈修明",
+            "grain": 0,
+            "memberId": 3
+          },
+          {
+            "money": 0,
+            "job": "随家人生活",
+            "name": "沈微",
+            "grain": 0,
+            "memberId": 4
+          }
+        ],
+        "saleIncome": 0,
+        "money": 97,
+        "foodNeed": 7,
+        "livingExpense": 18,
+        "landGrain": 8,
+        "foodSatisfied": true,
+        "income": 19,
+        "netMoney": -3,
+        "industryIncome": 0,
+        "training": 4,
+        "netGrain": 1,
+        "grainSold": 0,
+        "grain": 37,
+        "boughtGrain": 0,
+        "foodShortfall": 0,
+        "beforeGrain": 36
+      },
+      "year": 1
+    }
+  }
+]

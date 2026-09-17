@@ -1,0 +1,289 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "maxPopulation": 6,
+        "samples": 48,
+        "distinct": 48,
+        "id": "seeded_generation"
+      },
+      {
+        "points": 66,
+        "family": "司马",
+        "id": "name_isolation"
+      },
+      {
+        "limits": "100/101",
+        "id": "edit_validation",
+        "rejected": 3,
+        "pageIsolation": true,
+        "pointLinesSafe": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "netMoney": -1,
+        "income": 29,
+        "netGrain": 5
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "income": 29,
+          "grain": 29,
+          "foodShortfall": 0,
+          "boughtGrain": 0,
+          "moneySatisfied": true,
+          "landGrain": 4,
+          "saleIncome": 0,
+          "beforeGrain": 24,
+          "industryIncome": 0,
+          "grainSold": 0,
+          "netMoney": -1,
+          "livingExpense": 14,
+          "members": [
+            {
+              "money": 21,
+              "grain": 0,
+              "job": "手艺谋生",
+              "name": "林成",
+              "memberId": 1
+            },
+            {
+              "money": 8,
+              "grain": 8,
+              "job": "耕作谋生",
+              "name": "许青",
+              "memberId": 2
+            },
+            {
+              "money": -9,
+              "grain": 0,
+              "job": "随师学医",
+              "name": "林芸",
+              "memberId": 3
+            },
+            {
+              "money": -7,
+              "grain": 0,
+              "job": "读书求学",
+              "name": "林安",
+              "memberId": 4
+            }
+          ],
+          "foodCost": 0,
+          "foodNeed": 7,
+          "netGrain": 5,
+          "money": 79,
+          "training": 16,
+          "beforeMoney": 80,
+          "foodSatisfied": true
+        }
+      },
+      {
+        "id": "shortage",
+        "shortfall": 3,
+        "foodYears": 0,
+        "stable": 0
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "invalidStartInline": true,
+      "pageUndoScoped": true,
+      "addCancelPure": true,
+      "detailReturnPreserved": true,
+      "editCancelPure": true,
+      "newMemberPreview": true,
+      "inputKeepsFocus": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "snapshot": {
+        "members": [
+          {
+            "name": "程远成",
+            "id": 1,
+            "jobId": "guard",
+            "spouseId": 2,
+            "focus": "trade",
+            "age": 22,
+            "surname": "程",
+            "sex": "男",
+            "trait": "细致",
+            "nameSource": "family",
+            "givenName": "远成",
+            "talent": 2,
+            "experienceId": "martial",
+            "parents": {}
+          },
+          {
+            "name": "叶瑶",
+            "id": 2,
+            "jobId": "trade",
+            "spouseId": 1,
+            "focus": "general",
+            "age": 28,
+            "surname": "叶",
+            "sex": "女",
+            "trait": "爽朗",
+            "nameSource": "external",
+            "givenName": "瑶",
+            "talent": 4,
+            "experienceId": "basic",
+            "parents": {}
+          },
+          {
+            "name": "程晚",
+            "trait": "踏实",
+            "jobId": "rest",
+            "focus": "general",
+            "age": 3,
+            "surname": "程",
+            "sex": "女",
+            "id": 3,
+            "nameSource": "family",
+            "givenName": "晚",
+            "talent": 1,
+            "experienceId": "none",
+            "parents": [
+              1,
+              2
+            ]
+          }
+        ],
+        "calendar": 12,
+        "money": 100,
+        "leaderId": 1,
+        "originId": "merchant",
+        "family": "程",
+        "nextId": 4,
+        "tieId": "healer",
+        "rngSeed": 1422190230,
+        "placeId": "village",
+        "generatorVersion": 1,
+        "grain": 8,
+        "periodId": "rebuild",
+        "worldId": "mortal",
+        "nameSeed": 1422190230,
+        "homeId": "rented",
+        "land": 2,
+        "shop": false,
+        "habitId": "none",
+        "selectedRelicIds": {},
+        "workshop": false
+      },
+      "duplicateConfirmationIgnored": true,
+      "points": 85,
+      "readOnlyViews": 5,
+      "priorSaveRetainedUntilConfirmation": true,
+      "ledger": {
+        "members": [
+          {
+            "name": "程远成",
+            "job": "担任护卫",
+            "memberId": 1,
+            "money": 20,
+            "grain": 0
+          },
+          {
+            "name": "叶瑶",
+            "job": "外出经商",
+            "memberId": 2,
+            "money": 24,
+            "grain": 0
+          },
+          {
+            "name": "程晚",
+            "job": "休养",
+            "memberId": 3,
+            "money": 0,
+            "grain": 0
+          }
+        ],
+        "landGrain": 8,
+        "foodNeed": 5,
+        "money": 130,
+        "saleIncome": 0,
+        "industryIncome": 0,
+        "livingExpense": 14,
+        "beforeGrain": 8,
+        "beforeMoney": 100,
+        "boughtGrain": 0,
+        "grainSold": 0,
+        "training": 0,
+        "foodSatisfied": true,
+        "netGrain": 3,
+        "netMoney": 30,
+        "moneySatisfied": true,
+        "foodShortfall": 0,
+        "grain": 11,
+        "foodCost": 0,
+        "income": 44
+      }
+    },
+    "restart": {
+      "family": "程",
+      "ledger": {
+        "landGrain": 8,
+        "foodNeed": 5,
+        "grainSold": 0,
+        "netMoney": 30,
+        "beforeMoney": 100,
+        "grain": 11,
+        "beforeGrain": 8,
+        "members": [
+          {
+            "grain": 0,
+            "money": 20,
+            "name": "程远成",
+            "job": "担任护卫",
+            "memberId": 1
+          },
+          {
+            "grain": 0,
+            "money": 24,
+            "name": "叶瑶",
+            "job": "外出经商",
+            "memberId": 2
+          },
+          {
+            "grain": 0,
+            "money": 0,
+            "name": "程晚",
+            "job": "休养",
+            "memberId": 3
+          }
+        ],
+        "livingExpense": 14,
+        "training": 0,
+        "saleIncome": 0,
+        "netGrain": 3,
+        "foodShortfall": 0,
+        "boughtGrain": 0,
+        "foodCost": 0,
+        "foodSatisfied": true,
+        "money": 130,
+        "income": 44,
+        "moneySatisfied": true,
+        "industryIncome": 0
+      },
+      "year": 1,
+      "points": 85
+    }
+  }
+]

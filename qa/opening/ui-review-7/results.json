@@ -1,0 +1,324 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "maxPopulation": 6,
+        "samples": 48,
+        "distinct": 48,
+        "id": "seeded_generation"
+      },
+      {
+        "points": 66,
+        "family": "司马",
+        "id": "name_isolation"
+      },
+      {
+        "rejected": 3,
+        "id": "edit_validation",
+        "pageIsolation": true,
+        "pointLinesSafe": true,
+        "limits": "100/101"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netGrain": 5,
+        "income": 29,
+        "netMoney": -1,
+        "id": "preview"
+      },
+      {
+        "reputation": 26,
+        "ledger": {
+          "foodCost": 0,
+          "members": [
+            {
+              "money": 21,
+              "memberId": 1,
+              "job": "手艺谋生",
+              "grain": 0,
+              "name": "林成"
+            },
+            {
+              "money": 8,
+              "memberId": 2,
+              "job": "耕作谋生",
+              "grain": 8,
+              "name": "许青"
+            },
+            {
+              "money": -9,
+              "memberId": 3,
+              "job": "随师学医",
+              "grain": 0,
+              "name": "林芸"
+            },
+            {
+              "money": -7,
+              "memberId": 4,
+              "job": "读书求学",
+              "grain": 0,
+              "name": "林安"
+            }
+          ],
+          "foodShortfall": 0,
+          "grainSold": 0,
+          "saleIncome": 0,
+          "boughtGrain": 0,
+          "income": 29,
+          "grain": 29,
+          "foodSatisfied": true,
+          "beforeMoney": 80,
+          "foodNeed": 7,
+          "beforeGrain": 24,
+          "moneySatisfied": true,
+          "netMoney": -1,
+          "money": 79,
+          "netGrain": 5,
+          "livingExpense": 14,
+          "industryIncome": 0,
+          "training": 16,
+          "landGrain": 4
+        },
+        "id": "advance"
+      },
+      {
+        "stable": 0,
+        "shortfall": 3,
+        "foodYears": 0,
+        "id": "shortage"
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "newMemberPreview": true,
+      "pageUndoScoped": true,
+      "invalidStartInline": true,
+      "newMemberSpouseSaved": true,
+      "inputKeepsFocus": true,
+      "detailReturnPreserved": true,
+      "addCancelPure": true,
+      "editCancelPure": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "snapshot": {
+        "workshop": false,
+        "family": "沈",
+        "shop": false,
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "homeId": "rented",
+        "money": 30,
+        "placeId": "mountain",
+        "nameSeed": 1835414855,
+        "originId": "plain",
+        "habitId": "none",
+        "tieId": "healer",
+        "worldId": "mortal",
+        "nextId": 5,
+        "land": 2,
+        "leaderId": 1,
+        "rngSeed": 1835414855,
+        "grain": 24,
+        "periodId": "rebuild",
+        "generatorVersion": 1,
+        "members": [
+          {
+            "nameSource": "family",
+            "focus": "general",
+            "id": 1,
+            "parents": {},
+            "talent": 1,
+            "age": 25,
+            "experienceId": "craft",
+            "givenName": "川",
+            "surname": "沈",
+            "name": "沈川",
+            "jobId": "play",
+            "trait": "爽朗",
+            "sex": "男",
+            "spouseId": 2
+          },
+          {
+            "nameSource": "external",
+            "focus": "medicine",
+            "id": 2,
+            "parents": {},
+            "talent": 1,
+            "age": 28,
+            "experienceId": "martial",
+            "givenName": "棠瑶",
+            "surname": "许",
+            "name": "许棠瑶",
+            "jobId": "study",
+            "trait": "仁厚",
+            "sex": "女",
+            "spouseId": 1
+          },
+          {
+            "focus": "skill",
+            "id": 3,
+            "nameSource": "family",
+            "talent": 4,
+            "age": 0,
+            "experienceId": "none",
+            "givenName": "川",
+            "surname": "沈",
+            "name": "沈川",
+            "jobId": "play",
+            "trait": "细致",
+            "sex": "男",
+            "parents": [
+              1,
+              2
+            ]
+          },
+          {
+            "focus": "martial",
+            "id": 4,
+            "nameSource": "family",
+            "talent": 3,
+            "age": 2,
+            "experienceId": "none",
+            "givenName": "棠",
+            "surname": "沈",
+            "name": "沈棠",
+            "jobId": "rest",
+            "trait": "踏实",
+            "sex": "女",
+            "parents": [
+              1,
+              2
+            ]
+          }
+        ],
+        "calendar": 36
+      },
+      "ledger": {
+        "grainSold": 0,
+        "netGrain": 2,
+        "industryIncome": 0,
+        "beforeGrain": 24,
+        "training": 6,
+        "beforeMoney": 30,
+        "livingExpense": 16,
+        "income": 0,
+        "moneySatisfied": true,
+        "foodNeed": 6,
+        "landGrain": 8,
+        "netMoney": -22,
+        "members": [
+          {
+            "job": "随家人生活",
+            "memberId": 1,
+            "name": "沈川",
+            "grain": 0,
+            "money": 0
+          },
+          {
+            "job": "读书求学",
+            "memberId": 2,
+            "name": "许棠瑶",
+            "grain": 0,
+            "money": -6
+          },
+          {
+            "job": "随家人生活",
+            "memberId": 3,
+            "name": "沈川",
+            "grain": 0,
+            "money": 0
+          },
+          {
+            "job": "休养",
+            "memberId": 4,
+            "name": "沈棠",
+            "grain": 0,
+            "money": 0
+          }
+        ],
+        "money": 8,
+        "foodShortfall": 0,
+        "grain": 26,
+        "boughtGrain": 0,
+        "saleIncome": 0,
+        "foodCost": 0,
+        "foodSatisfied": true
+      },
+      "duplicateConfirmationIgnored": true,
+      "points": 89,
+      "readOnlyViews": 5,
+      "priorSaveRetainedUntilConfirmation": true
+    },
+    "restart": {
+      "family": "沈",
+      "year": 1,
+      "points": 89,
+      "ledger": {
+        "grainSold": 0,
+        "foodShortfall": 0,
+        "members": [
+          {
+            "money": 0,
+            "name": "沈川",
+            "grain": 0,
+            "job": "随家人生活",
+            "memberId": 1
+          },
+          {
+            "money": -6,
+            "name": "许棠瑶",
+            "grain": 0,
+            "job": "读书求学",
+            "memberId": 2
+          },
+          {
+            "money": 0,
+            "name": "沈川",
+            "grain": 0,
+            "job": "随家人生活",
+            "memberId": 3
+          },
+          {
+            "money": 0,
+            "name": "沈棠",
+            "grain": 0,
+            "job": "休养",
+            "memberId": 4
+          }
+        ],
+        "foodCost": 0,
+        "grain": 26,
+        "landGrain": 8,
+        "netGrain": 2,
+        "saleIncome": 0,
+        "income": 0,
+        "netMoney": -22,
+        "livingExpense": 16,
+        "training": 6,
+        "money": 8,
+        "moneySatisfied": true,
+        "beforeMoney": 30,
+        "foodNeed": 6,
+        "foodSatisfied": true,
+        "industryIncome": 0,
+        "boughtGrain": 0,
+        "beforeGrain": 24
+      }
+    }
+  }
+]

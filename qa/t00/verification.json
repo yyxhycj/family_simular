@@ -1,0 +1,30 @@
+{
+  "target_sha": "9532e4435bab5aea1e38f289e950208342becefb",
+  "checks": {
+    "production_files_unchanged": true,
+    "five_source_files_identical_to_historical": true,
+    "reference_package_unchanged": true,
+    "harness_hashes_match": true,
+    "v5_source_hash_matches_snapshot": true,
+    "default_drafts_match_after_field_mapping": true,
+    "both_default_points": 97,
+    "rv_rows": 18,
+    "n_rows": 12,
+    "result_groups": 16,
+    "passed_groups": 4,
+    "failed_groups": 12,
+    "documentation_links_resolve": true,
+    "lsp_files_without_errors": 6
+  },
+  "reference_file_count": 99,
+  "layer": "artifact consistency only; no game/engine/device acceptance",
+  "artifacts_sha256": {
+    "qa/t00/current-cases.json": "f2951d4eab807bb0a664a91ce9ebf2aa46016f43051e7ca2c1e7c401a5adbd74",
+    "qa/t00/current-default.json": "6ee9c1a739016662e5420676f04256d4f2f534a4c6231b89c924559b4c074384",
+    "qa/t00/lsp.json": "7e1d6ae9f90a8dc531f72db8f70b558d068b113d890b555ed895c71fb5189e6f",
+    "qa/t00/manifest.json": "5f590db44e3bd762a2239e6910d93fa1b9c763db576b902079d5943cf16021b6",
+    "qa/t00/results.json": "05aa85142db3b1cee4309474270bc00d45622260cce28a999d8d324b1b49721f",
+    "qa/t00/v5-default.json": "49db97f47e53039eb92a5ab9834b7c8195894a03224774b80f690cd53c9d4e4e"
+  },
+  "report_sha256": "48c8993c77661ee737c3e1de28d37204a7b00cad0bf91641bd0cd1f7097917fb"
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "history",
+    "status": "PASS",
+    "evidence": {
+      "pages": 8,
+      "readOnly": true,
+      "pageSize": 20,
+      "oldest": {
+        "text": "entry-1",
+        "year": 72
+      },
+      "count": 151
+    },
+    "restart": {
+      "oldestVisible": true,
+      "count": 151,
+      "rng": 72831
+    }
+  },
+  {
+    "id": "succession",
+    "status": "PASS",
+    "evidence": {
+      "member": {
+        "leader": 2,
+        "terms": [
+          {
+            "reason": "开局任命",
+            "endYear": 1,
+            "memberId": 1,
+            "startYear": 0,
+            "effective": true
+          },
+          {
+            "reason": "主动交接",
+            "effective": false,
+            "memberId": 2,
+            "startYear": 1
+          }
+        ],
+        "reputation": 3,
+        "event": {
+          "type": "leader",
+          "status": "resolved",
+          "resolvedYear": 1,
+          "memberId": 2,
+          "instanceId": "event-73-1",
+          "title": "族长之位空缺",
+          "blocking": true
+        }
+      },
+      "event": {
+        "leader": 2,
+        "terms": [
+          {
+            "reason": "开局任命",
+            "endYear": 1,
+            "memberId": 1,
+            "startYear": 0,
+            "effective": true
+          },
+          {
+            "reason": "前任离世",
+            "effective": false,
+            "memberId": 2,
+            "startYear": 1
+          }
+        ],
+        "reputation": 3,
+        "event": {
+          "type": "leader",
+          "status": "resolved",
+          "resolvedYear": 1,
+          "memberId": 2,
+          "instanceId": "event-73-1",
+          "title": "族长之位空缺",
+          "blocking": true
+        }
+      }
+    },
+    "restart": {
+      "leader": 2,
+      "resumedYear": 2
+    }
+  },
+  {
+    "id": "collection",
+    "status": "FAIL",
+    "error": "[string \"<python>\"]:4: attempt to index a number value (local 'props')\nstack traceback:\n\t[string \"<python>\"]:4: in function <[string \"<python>\"]:3>\n\t(...tail calls...)\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:412: in function 'Jiaye.App.BuildOpeningFooter'\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:637: in function 'Jiaye.App.BuildOpening'\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:1022: in function 'Jiaye.App.Render'\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:297: in function 'Jiaye.App.PrepareNewRun'\n\t[string \"<python>\"]:107: in function <[string \"<python>\"]:99>"
+  },
+  {
+    "id": "failed_new_run",
+    "status": "FAIL",
+    "error": "[string \"<python>\"]:4: attempt to index a number value (local 'props')\nstack traceback:\n\t[string \"<python>\"]:4: in function <[string \"<python>\"]:3>\n\t(...tail calls...)\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:412: in function 'Jiaye.App.BuildOpeningFooter'\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:637: in function 'Jiaye.App.BuildOpening'\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:1022: in function 'Jiaye.App.Render'\n\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:297: in function 'Jiaye.App.PrepareNewRun'\n\t[string \"<python>\"]:132: in function <[string \"<python>\"]:129>"
+  },
+  {
+    "id": "failed_action",
+    "status": "PASS",
+    "evidence": {
+      "exportMatches": true,
+      "aidCount": 1,
+      "money": 65,
+      "logCount": 1
+    },
+    "restart": {
+      "money": 65,
+      "aidCount": 1,
+      "logs": [
+        {
+          "year": 72,
+          "text": "家中接济了邻里，声望提升。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "recovery",
+    "status": "FAIL",
+    "error": "runtime.<locals>.<lambda>() takes 1 positional argument but 3 were given"
+  }
+]

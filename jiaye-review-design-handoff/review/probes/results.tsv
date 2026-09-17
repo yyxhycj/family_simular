@@ -1,0 +1,9 @@
+P01	ISSUE_REPRODUCED	long_history_deleted	length=120; oldest=entry-2	121 retained; entry-1 retrievable
+P02	ISSUE_REPRODUCED	page_undo_overwrites_other_page	money=80; origin=artisan	money=180; origin=artisan
+P03	ISSUE_REPRODUCED	starvation_counts_as_stable	health=48; stable=5	health drops; stable resets to 0
+P04	ISSUE_REPRODUCED	consecutive_food_not_reset	foodYears=7	foodYears=0 after starvation
+P05	ISSUE_REPRODUCED	married_in_member_generation_mismatch	same-generation couple counted as 2 generations	1 generation for two generation-2 members
+P06	ISSUE_REPRODUCED	dead_leader_remains_relic_custodian	leaderAlive=false; custodian=1	house custody or a living person
+P07	ISSUE_REPRODUCED	manual_succession_leaves_blocking_event	manual=true; resolve=false; status=pending	one successor chosen; leader event resolved
+P08	ISSUE_REPRODUCED	paid_reputation_options_do_not_stack	reputation=25	37 from documented +25 and +12
+TOTAL	8

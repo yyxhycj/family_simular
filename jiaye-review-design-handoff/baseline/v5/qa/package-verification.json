@@ -1,0 +1,230 @@
+{
+  "scope": "package consistency; does not certify gameplay or real devices",
+  "checks": [
+    {
+      "name": "存在: README.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: START_HERE.html",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: 家业-完整设计与开发方案.html",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: 家业-完整设计与开发方案.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: prototype/jiaye-demo-v5.html",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: prototype/jiaye-v5-mobile-preview.html",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: source/prototype/blocks.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: data/v5-config.snapshot.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: data/v5-endings-13.snapshot.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: data/legacy-144.design-only.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: tasks/steps.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: qa/acceptance-cases.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在: qa/current-smoke.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: MANIFEST.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: data/v5-config.snapshot.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: data/v5-endings-13.snapshot.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: data/code-map.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: data/legacy-144.design-only.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: qa/current-smoke.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: qa/acceptance-cases.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: qa/document-layout-checks.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: templates/relic.example.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: templates/step-report.template.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: templates/ending.example.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: templates/event.example.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: tasks/steps.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: archive/v5-original-ui/jiaye-v5-检查记录.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: archive/v5-original-ui/source/build-manifest.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JSON可读: source/prototype/blocks.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "27个唯一实施步骤",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "114项具体操作",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "依赖按顺序可执行",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "每步具备输出/验收/失败处理",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "88条验收设计且未冒充已执行",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "100点/7信物基线",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "13实际判定快照",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "144历史条目仅为设计",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "从分离源码重建与冻结V5字节一致",
+      "passed": true,
+      "detail": "Output: /tmp/tmp43nu1fyl/rebuilt.html\nSHA256: 6ad1c282a764aea6c68878500489c283436bd705d2c5f480bfcd882b8dc4b7b4\nPASS: byte-identical to frozen V5\n"
+    },
+    {
+      "name": "JS语法: game.js",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JS语法: mobile-ui.js",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "内部链接: START_HERE.html",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "内部链接: 家业-完整设计与开发方案.html",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "未打包字体文件",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "清单完整性与哈希",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "summary": {
+    "passed": 44,
+    "failed": 0,
+    "not_executed": 0
+  }
+}

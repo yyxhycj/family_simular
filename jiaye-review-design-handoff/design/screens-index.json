@@ -1,0 +1,66 @@
+[
+  {
+    "id": "UI-A01",
+    "title": "随机开局 · 一屏核对",
+    "path": "screens/A01-opening-390.png",
+    "category": "screen",
+    "status": "静态结构稿",
+    "note": "姓名可编辑/单独随机；换一家是整户生成。截图中的家庭和数值仅为示例。"
+  },
+  {
+    "id": "UI-C01",
+    "title": "家族主页 · 家事与家谱",
+    "path": "screens/C01-home-390.png",
+    "category": "screen",
+    "status": "静态结构稿",
+    "note": "家事优先；家谱中的每个人可进入详情。不是把全员操作缩成只有族长。"
+  },
+  {
+    "id": "UI-C03",
+    "title": "人物详情 · 概况与安排",
+    "path": "screens/C03-member-390.png",
+    "category": "screen",
+    "status": "静态结构稿",
+    "note": "潜力、能力、健康分开；操作反馈与保存须在真实界面实现。"
+  },
+  {
+    "id": "UI-D02",
+    "title": "事件面板 · 决定与后续",
+    "path": "screens/D02-event-390.png",
+    "category": "screen",
+    "status": "静态结构稿",
+    "note": "执行人、费用、等待和结果绑定事件实例；不能只用通用计时器换物件名。"
+  },
+  {
+    "id": "BOARD-LATEST",
+    "title": "最新手机关键界面 · 综合概念稿",
+    "path": "concepts/01-latest-mobile-storyboard.png",
+    "category": "board",
+    "status": "生成式概念稿",
+    "note": "用于方向与信息层级；文字、信物和数值不可直接作为规则配置。"
+  },
+  {
+    "id": "BOARD-A",
+    "title": "随机开局 · 多状态板",
+    "path": "boards/A-random-opening.png",
+    "category": "board",
+    "status": "静态状态板",
+    "note": "多种家庭是生成结果示意，不是固定家族轮播。"
+  },
+  {
+    "id": "REFERENCE",
+    "title": "用户提供的同类 UI 参考",
+    "path": "reference/user-ui-reference.png",
+    "category": "reference",
+    "status": "外部布局参考",
+    "note": "只研究布局，不能直接复制角色、图标、字体或修仙玩法。"
+  },
+  {
+    "id": "ARCHIVE",
+    "title": "早期流程稿 · 已归档",
+    "path": "archive/00-earlier-storyboard.png",
+    "category": "archive",
+    "status": "已被后续修订",
+    "note": "固定林家等表现已废弃；只记录设计演变。"
+  }
+]

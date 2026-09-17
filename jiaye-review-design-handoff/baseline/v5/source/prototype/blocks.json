@@ -1,0 +1,22 @@
+[
+  {
+    "token": "__JIAYE_STYLE_0__",
+    "file": "legacy.css",
+    "kind": "style"
+  },
+  {
+    "token": "__JIAYE_STYLE_1__",
+    "file": "mobile.css",
+    "kind": "style"
+  },
+  {
+    "token": "__JIAYE_SCRIPT_0__",
+    "file": "game.js",
+    "kind": "script"
+  },
+  {
+    "token": "__JIAYE_SCRIPT_1__",
+    "file": "mobile-ui.js",
+    "kind": "script"
+  }
+]

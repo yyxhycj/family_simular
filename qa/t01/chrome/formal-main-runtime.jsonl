@@ -1,0 +1,4 @@
+{"t": 1789558359, "topic": "user_script", "level": "INFO", "msg": "[2026-09-16 19_32_38_388][134]INFO[i18n] loadConfig: uuid='Q4M3GntfTmiNZCdTeiz5Kg' engine='Q4M3GntfTmiNZCdTeiz5Kg' match=true"}
+{"t": 1789558359, "topic": "user_script", "level": "INFO", "msg": "[2026-09-16 19_32_38_388][134]INFO[i18n] loadConfig: engine fallback, support_langs='zh_CN'"}
+{"t": 1789558359, "topic": "user_script", "level": "INFO", "msg": "[2026-09-16 19_32_38_388][134]INFO[i18n] PreloadI18nStep: resolved='zh_CN'"}
+{"t": 1789558359, "topic": "user_script", "level": "INFO", "msg": "[2026-09-16 19_32_38_500][136][Script] 《家业》已启动：本地单人存档、五步开局与凡世家族循环已就绪。\n"}

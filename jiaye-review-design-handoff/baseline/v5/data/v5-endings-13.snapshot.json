@@ -1,0 +1,124 @@
+{
+  "status": "13 rules in V5, not 144 shipped endings",
+  "world": "mortal",
+  "endings": [
+    {
+      "id": "peaceful",
+      "title": "炊烟未断",
+      "category": "安居与生计",
+      "desc": "不曾显赫，却把安稳的日子接过了两任人手。",
+      "epilogue": "没有哪一年值得写进天下的大事记。但厨房的火始终没有熄过，这本家谱记得每一顿安稳的饭。",
+      "criteria": null,
+      "criteriaSource": "()=>[['实际经营十年',state.elapsed,10,'年'],['连续五年基本生活充足',state.metrics.stable,5,'年'],['完成一次真实族长交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "scholar",
+      "title": "书香传家",
+      "category": "求学与文化",
+      "desc": "不是一个人读过书，而是两代人都能把书教给别人。",
+      "epilogue": "最初只有一盏灯。后来，孩子们带着书出门，另一些孩子又循着灯火回来。这个家留住的，是愿意把知识交给后来人的心意。",
+      "criteria": null,
+      "criteriaSource": "()=>[['两代族人各教书至少两年',jobGenerations('teach',2),2,'代'],['现有积蓄达到二百两',state.money,200,'两'],['完成一次真实交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "merchant",
+      "title": "商脉长存",
+      "category": "财富与产业",
+      "desc": "前人打开一条路，后人认真接过了账册。",
+      "epilogue": "账本不再只记一家铺子的出入，也记着两代人的脚步。生意经历过难处，又被另一个人稳稳接了下去。",
+      "criteria": null,
+      "criteriaSource": "()=>[['两代族人各经商至少三年',jobGenerations('trade',3),2,'代'],['积蓄三百两',state.money,300,'两'],['完成一次真实交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "craft",
+      "title": "百年手艺",
+      "category": "医术与匠艺",
+      "desc": "尺与刨子在不同的人手里，仍然做出可靠的东西。",
+      "epilogue": "作坊的门换过几回，墙角的工具却一直有人使用。一双手老去，另一双手接过来，本事便没有离开这个家。",
+      "criteria": null,
+      "criteriaSource": "()=>[['两代族人各做手艺至少三年',jobGenerations('craft',3),2,'代'],['拥有正在经营的木工作坊',state.workshop&&living().some(m=>m.job==='craft')?1:0,1,'项'],['完成一次真实交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "medical",
+      "title": "杏林人家",
+      "category": "医术与匠艺",
+      "desc": "药箱不只传给后人，看人的耐心也一起留下。",
+      "epilogue": "药柜上的字是上一代写的，柜前的人已经换了。乡人仍愿意来敲门，知道这里有人会认真听完一句话。",
+      "criteria": null,
+      "criteriaSource": "()=>[['两代族人各行医至少两年',jobGenerations('doctor',2),2,'代'],['本局实际行医累计十二人年',jobTotal('doctor'),12,'人年'],['完成一次真实交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "grain",
+      "title": "四时有余",
+      "category": "安居与生计",
+      "desc": "过冬不必再借粮，孩子也不必先说自己不饿。",
+      "epilogue": "粮仓没有写上谁的功劳。它只安静地立在那里，让家里的人知道，下一季还有余地。",
+      "criteria": null,
+      "criteriaSource": "()=>[['实际经营十五年',state.elapsed,15,'年'],['连续十年基本生活充足',state.metrics.foodYears,10,'年'],['当前存粮八十石',state.grain,80,'石']]"
+    },
+    {
+      "id": "community",
+      "title": "一村归心",
+      "category": "安居与生计",
+      "desc": "几次真正伸出去的手，让这个姓氏有了不同的分量。",
+      "epilogue": "乡里有事，总有人先来敲这扇门。这家人没有命令过谁，却被许多人当成可以依靠的邻人。",
+      "criteria": null,
+      "criteriaSource": "()=>[['实际经营十二年',state.elapsed,12,'年'],['实际援助邻里至少三次',state.metrics.aid,3,'次'],['乡里声望达到七十',state.reputation,70,'']]"
+    },
+    {
+      "id": "migration",
+      "title": "异乡生根",
+      "category": "迁徙与远行",
+      "desc": "不是忘了来处，而是在新的地方把家续了下去。",
+      "epilogue": "最初来时，这里的街名都陌生。后来有人出生、有人老去，孩子终于自然地把这片地方叫作家。",
+      "criteria": null,
+      "criteriaSource": "()=>[['实际完成一次迁居',state.metrics.migrations,1,'次'],['最近一次迁居后生活八年',state.metrics.migrations?state.elapsed-state.metrics.lastMove:0,8,'年'],['连续五年生活充足',state.metrics.stable,5,'年']]"
+    },
+    {
+      "id": "return",
+      "title": "归来有灯",
+      "category": "亲族与传承",
+      "desc": "走过远路的人卸下行装，家里仍有自己的位置。",
+      "epilogue": "刀与行囊被收进箱底。这个人不再赶着出门，开始听清院子里孩子的声音。留下来，也是人生的一种选择。",
+      "criteria": null,
+      "criteriaSource": "()=>[['有一位曾护卫三年并返家生活的在世族人',living().some(m=>m.hadHomeAfterGuard&&['rest','farm','home'].includes(m.job))?1:0,1,'人'],['实际经营八年',state.elapsed,8,'年'],['完成一次真实交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "promise",
+      "title": "迟来的家书",
+      "category": "信物与秘史",
+      "desc": "前人的一句答应，终于由后来的人认真完成。",
+      "epilogue": "信到的时候，最初等信的人已经不在。但他的后人知道，世上还有一家人，愿意替过去的一句话走这么远。",
+      "criteria": null,
+      "criteriaSource": "()=>[['完成家书并履行旧约',state.flags.promiseKept?1:0,1,'项'],['实际经营六年',state.elapsed,6,'年'],['连续三年生活充足',state.metrics.stable,3,'年']]"
+    },
+    {
+      "id": "ruler",
+      "title": "木尺新纹",
+      "category": "信物与秘史",
+      "desc": "同一把木尺，量过前人的屋，也量过后人的路。",
+      "epilogue": "尺背的刻痕被辨认出来，图纸上又添了新的批注。以后有人拿起它，会知道本事不是突然落在自己手里的。",
+      "criteria": null,
+      "criteriaSource": "()=>[['由本局寻访修复旧图',state.flags.rulerRestored?1:0,1,'项'],['本局手艺谋生累计八人年',jobTotal('craft'),8,'人年'],['完成一次真实族长交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "reunion",
+      "title": "家谱再续",
+      "category": "亲族与传承",
+      "desc": "没有谁应该因为一段旧事，从家族的记忆里消失。",
+      "epilogue": "折起的那页被展开了。家谱不再只记住留下来的人，也认真记住曾经离开、后来又被想起的人。",
+      "criteria": null,
+      "criteriaSource": "()=>[['本局查明旧谱并重修记载',state.flags.bookRestored?1:0,1,'项'],['实际经营六年',state.elapsed,6,'年'],['完成一次真实交接',handovers(),1,'次']]"
+    },
+    {
+      "id": "last",
+      "title": "家谱落笔",
+      "category": "复兴与灾变",
+      "desc": "直到最后一位家人也离开，这一局才自然写到结尾。",
+      "epilogue": "屋里的灯最终熄了。但那些被认真安排过、被彼此记住过的日子，并不会因此变成没有发生。",
+      "auto": true,
+      "criteria": null,
+      "criteriaSource": "()=>[['全部在世成员归零',living().length===0?1:0,1,'项']]"
+    }
+  ]
+}

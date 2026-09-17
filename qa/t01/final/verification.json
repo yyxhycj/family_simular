@@ -1,0 +1,12 @@
+{
+  "source_hash_mismatches": [],
+  "reference_hash_mismatches": [],
+  "reference_files_checked": 99,
+  "lsp_files_checked": 5,
+  "lsp_errors": [],
+  "diff_check_exit_code": 0,
+  "base_sha": "9532e4435bab5aea1e38f289e950208342becefb",
+  "engine_acceptance": "NOT_PASSED",
+  "video": null,
+  "T01_acceptance": "PENDING_ENGINE_UI_AND_PERSISTENCE"
+}

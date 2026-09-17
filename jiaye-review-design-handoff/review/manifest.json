@@ -1,0 +1,9 @@
+{
+  "reviewed_commit": "546ff6cf7e4225632fe9871ba70188e6aa730e82",
+  "scope": "static review plus extracted-function isolated Lua probes; no UrhoX run",
+  "files": {
+    "probes/source_probes.lua": "d5f0959537cad2e0894a5e06abb1afa6eef8bb9ac2d3d1945580f792e56599d7",
+    "probes/results.tsv": "6f6c4ed23b4d231f05a43313a7b4daeb8cf16c23746c79d9745ab72d0efe9f37",
+    "家业-代码与V5方案对齐审查.md": "27434ace36f03ea19be1a7a1db700307724cf6eb29a2e7a7a5ae3739a5d161e0"
+  }
+}

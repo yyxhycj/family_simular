@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t03_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:62: 开始时必须把草案随机源写入可保存运行状态\\nstack traceback:\\n\\t[string \"<python>\"]:62: in function <[string \"<python>\"]:32>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

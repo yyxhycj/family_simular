@@ -1,0 +1,134 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>01-评审整改对照 · 家业交付</title><link rel="stylesheet" href="../assets/handbook.css"></head><body><header class="site"><a class="brand" href="../START_HERE.html">家业<small>评审 · 设计 · 实施 / R1</small></a><div class="actions"><a class="button" href="../design/VIEW.html">查看设计稿</a><a class="button" href="01-评审整改对照.md">Markdown 原文</a></div></header><div class="shell"><div class="doc-nav"><a href="../docs/00-先读-最新确认与版本优先级.html">00-先读-最新确认与版本优先级</a><a href="../docs/01-评审整改对照.html">01-评审整改对照</a><a href="../docs/02-手机逐屏与数值绑定.html">02-手机逐屏与数值绑定</a><a href="../docs/03-分步实施与验收.html">03-分步实施与验收</a><a href="../docs/04-AI开发执行提示词.html">04-AI开发执行提示词</a><a href="../docs/05-验收用例设计.html">05-验收用例设计</a><a href="../docs/06-设计稿使用与已知差异.html">06-设计稿使用与已知差异</a></div><div class="doc-grid"><nav class="toc" aria-label="本章目录"><a class="level2" href="#sec-2">审查范围</a><a class="level2" href="#sec-3">整改索引</a><a class="level2" href="#sec-4">首先处理的风险</a><a class="level2" href="#sec-5">原探针的使用方式</a><a class="level2" href="#sec-6">交付证据</a></nav><article class="document"><h1 id="sec-1">代码评审与最新设计的整改对照</h1>
+<h2 id="sec-2">审查范围</h2>
+<p>原评审对象：<code>yyxhycj/family_simular</code>，历史提交 <code>546ff6cf7e4225632fe9871ba70188e6aa730e82</code>。原件及探针原样保留在 <code>review/</code>。本次只整合，没有重新读取远端最新代码，也不判定这些缺陷现在是否已经修好。</p>
+<p>“18项”包括行为缺陷、设计差异和一项范围澄清，不是18个同等严重度的程序崩溃。“8项探针复现”表示原报告找到了问题，不是8个功能验收通过；其源码使用隔离摘录，不等价于直接测试当前工程。</p>
+<h2 id="sec-3">整改索引</h2>
+<p>下表 RV-Axx 对应原报告 Axx，避免与设计稿 UI-A01 混淆。修复前先在目标提交复核。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>原问题</th>
+<th>最新整改结果应是什么</th>
+<th>实施步骤</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RV-A01</td>
+<td>实时家谱/预算未接通</td>
+<td>默认摘要和可选编辑共用同一草案；成员、资产、信物名称、点数与预估联动；不恢复一条超长首页</td>
+<td>T02、T04、T05</td>
+</tr>
+<tr>
+<td>RV-A02</td>
+<td>开始按钮未禁用，覆盖确认不足</td>
+<td>所有开始入口共享验证，错误就地显示；有旧局时确认后再次校验，失败不覆盖</td>
+<td>T02、T04、T10</td>
+</tr>
+<tr>
+<td>RV-A03</td>
+<td>人物编辑缺项、选中态不更新</td>
+<td>基础、亲属、潜力、本领、初始安排可编辑；临时副本预览；取消不污染草案</td>
+<td>T05</td>
+</tr>
+<tr>
+<td>RV-A04</td>
+<td>撤销本页随机覆盖别页</td>
+<td>字段级事务；分离整户/姓名/本页随机；当前页手动编辑后旧撤销失效</td>
+<td>T02、T03、T05</td>
+</tr>
+<tr>
+<td>RV-A05</td>
+<td>主页先展示终章指标</td>
+<td>当前资源→待决家事→家谱/重要成员→年度后续；终章在家史或次要提醒</td>
+<td>T06、T09</td>
+</tr>
+<tr>
+<td>RV-A06</td>
+<td>整体字号缩小，人物详情退化</td>
+<td>按最新竖屏层级实现，取消全局缩字体补布局；详情有章节定位、选择反馈和保存</td>
+<td>T05、T09</td>
+</tr>
+<tr>
+<td>RV-A07</td>
+<td>传记不积累、120条外的日志被删</td>
+<td>可查询历史完整保留；列表分页；操作/参与者/结果有稳定ID关联</td>
+<td>T01、T06</td>
+</tr>
+<tr>
+<td>RV-A08</td>
+<td>任期列表和成长节点不足</td>
+<td>家史可看历任族长并跳转人物；启蒙/出师/成年重要节点有清楚通知和决定</td>
+<td>T06、T08</td>
+</tr>
+<tr>
+<td>RV-A09</td>
+<td>七件信物被通用计时器压平</td>
+<td>每件有自己的发现、参与者、成本、选项、后续和恢复；公共调度不代替内容</td>
+<td>T07</td>
+</tr>
+<tr>
+<td>RV-A10</td>
+<td>重启后新开局可能覆盖收藏</td>
+<td>启动恢复 Profile；换一家只动草案，新局保留收藏；清空档案另行确认</td>
+<td>T01、T10</td>
+</tr>
+<tr>
+<td>RV-A11</td>
+<td>导入与存档缺校验和错误反馈</td>
+<td>隔离校验、版本迁移预演、用户确认、原子替换；写失败不提示成功</td>
+<td>T10</td>
+</tr>
+<tr>
+<td>RV-A12</td>
+<td>两个继任入口可造成阻断</td>
+<td>统一交接命令，当前族长/任期/待决事件一起收束</td>
+<td>T01、T06</td>
+</tr>
+<tr>
+<td>RV-A13</td>
+<td>挨饿算安稳，连续粮年未归零</td>
+<td>年度事实中明确是否满足钱粮；连续计数只基于实际满足，不基于清零余额</td>
+<td>T02、T06、T08</td>
+</tr>
+<tr>
+<td>RV-A14</td>
+<td>同辈夫妻误算两代</td>
+<td>统一婚入/收养/生亲代际语义，终章使用正式代际事实</td>
+<td>T06、T08</td>
+</tr>
+<tr>
+<td>RV-A15</td>
+<td>已故族长继续保管物件</td>
+<td>全部死亡结算后回收保管权；物件进入家中待托付或合法在世保管人</td>
+<td>T06、T07</td>
+</tr>
+<tr>
+<td>RV-A16</td>
+<td>双付费来源只获得一个效果</td>
+<td>配置项独立叠加；互斥必须明示；查每户/每人/每年的作用范围</td>
+<td>T02</td>
+</tr>
+<tr>
+<td>RV-A17</td>
+<td>资产购买价格改动和入口减少</td>
+<td>先登记差异，保留或调整需明确依据；展示、购买、预估共用规则；购粮等提示有真实入口</td>
+<td>T02、T06</td>
+</tr>
+<tr>
+<td>RV-A18</td>
+<td>未来内容被混同为回退</td>
+<td>不将个人财产/多世界/100+全部未完成列为本轮回退；单独列后续目标</td>
+<td>T00、T11</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-4">首先处理的风险</h2>
+<p>先修进度与不可继续的问题：继任、Profile、撤销隔离、历史保存。接着校正年度/代际/效果叠加，再在正确数据上做新开局摘要；最后迁移逐屏操作、信物故事与终章。不要先扩一百个事件，令错误统计传播到所有内容。</p>
+<h2 id="sec-5">原探针的使用方式</h2>
+<p><code>review/probes/source_probes.lua</code> 与 <code>review/probes/results.tsv</code> 原样保留。历史运行命令为 <code>texlua probes/source_probes.lua</code>（在 review 目录）；需要相应解释器。</p>
+<p>正式回归应直接加载当前 Lua 模块，以原8个场景写“正确行为”断言。原探针的“ISSUE_REPRODUCED”不是绿色发布标准。本包没有重新执行这些探针，也没有把静态截图当成 UrhoX 实测。</p>
+<h2 id="sec-6">交付证据</h2>
+<p>每项记录目标提交、复核结果、修改函数、UI入口、正常与反例测试、必要时的录像和存档夹具。无法复核的项目记“待复核”，不能自动记已修或仍存在。新视觉通过后也要回归原始规则，不能用视觉重写覆盖行为错误。</p>
+<div class="foot">整合包R1 · 当前用户确认优先于旧版原型。新规格不是已实现证明；图中示例不构成数值定案。</div></article></div></div></body></html>

@@ -1,0 +1,343 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "seeded_generation",
+        "distinct": 48,
+        "maxPopulation": 6,
+        "samples": 48
+      },
+      {
+        "id": "name_isolation",
+        "family": "司马",
+        "points": 66
+      },
+      {
+        "pointLinesSafe": true,
+        "limits": "100/101",
+        "id": "edit_validation",
+        "rejected": 3,
+        "pageIsolation": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "netGrain": 5,
+        "netMoney": -1,
+        "income": 29
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "foodNeed": 7,
+          "members": [
+            {
+              "name": "林成",
+              "memberId": 1,
+              "job": "手艺谋生",
+              "grain": 0,
+              "money": 21
+            },
+            {
+              "name": "许青",
+              "memberId": 2,
+              "job": "耕作谋生",
+              "grain": 8,
+              "money": 8
+            },
+            {
+              "name": "林芸",
+              "memberId": 3,
+              "job": "随师学医",
+              "grain": 0,
+              "money": -9
+            },
+            {
+              "name": "林安",
+              "memberId": 4,
+              "job": "读书求学",
+              "grain": 0,
+              "money": -7
+            }
+          ],
+          "beforeMoney": 80,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "livingExpense": 14,
+          "grainSold": 0,
+          "training": 16,
+          "landGrain": 4,
+          "grain": 29,
+          "netGrain": 5,
+          "industryIncome": 0,
+          "netMoney": -1,
+          "moneySatisfied": true,
+          "money": 79,
+          "boughtGrain": 0,
+          "saleIncome": 0,
+          "income": 29,
+          "foodCost": 0,
+          "beforeGrain": 24
+        }
+      },
+      {
+        "id": "shortage",
+        "foodYears": 0,
+        "shortfall": 3,
+        "stable": 0
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:70: 取消编辑修改了草案\\nstack traceback:\\n\\t[string \"<python>\"]:70: in function <[string \"<python>\"]:24>\\n\\t[C]: in function \\'assert\\'')"
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 95,
+      "snapshot": {
+        "placeId": "county",
+        "tieId": "partner",
+        "periodId": "strain",
+        "habitId": "education",
+        "generatorVersion": 1,
+        "land": 2,
+        "originId": "merchant",
+        "selectedRelicIds": [
+          "book",
+          "ruler"
+        ],
+        "leaderId": 1,
+        "nameSeed": 1294984472,
+        "members": [
+          {
+            "jobId": "study",
+            "parents": {},
+            "talent": 2,
+            "givenName": "棠绮",
+            "age": 25,
+            "sex": "女",
+            "nameSource": "family",
+            "id": 1,
+            "name": "苏棠绮",
+            "focus": "learn",
+            "surname": "苏",
+            "experienceId": "none",
+            "trait": "好奇"
+          },
+          {
+            "jobId": "train",
+            "parents": {},
+            "talent": 1,
+            "givenName": "青",
+            "age": 23,
+            "sex": "女",
+            "nameSource": "family",
+            "id": 2,
+            "name": "苏青",
+            "focus": "general",
+            "surname": "苏",
+            "experienceId": "basic",
+            "trait": "爽朗"
+          },
+          {
+            "jobId": "play",
+            "parents": [
+              1
+            ],
+            "talent": 1,
+            "givenName": "昭芸",
+            "age": 6,
+            "sex": "女",
+            "nameSource": "family",
+            "id": 3,
+            "name": "苏昭芸",
+            "focus": "skill",
+            "surname": "苏",
+            "experienceId": "none",
+            "trait": "细致"
+          },
+          {
+            "jobId": "play",
+            "parents": [
+              1
+            ],
+            "talent": 2,
+            "givenName": "川修",
+            "age": 3,
+            "sex": "男",
+            "nameSource": "family",
+            "id": 4,
+            "name": "苏川修",
+            "focus": "martial",
+            "surname": "苏",
+            "experienceId": "none",
+            "trait": "爽朗"
+          },
+          {
+            "jobId": "play",
+            "parents": [
+              1
+            ],
+            "talent": 1,
+            "givenName": "棠",
+            "age": 2,
+            "sex": "女",
+            "nameSource": "family",
+            "id": 5,
+            "name": "苏棠",
+            "focus": "learn",
+            "surname": "苏",
+            "experienceId": "none",
+            "trait": "细致"
+          }
+        ],
+        "calendar": 120,
+        "worldId": "mortal",
+        "grain": 20,
+        "nextId": 6,
+        "workshop": false,
+        "homeId": "rented",
+        "money": 30,
+        "shop": false,
+        "rngSeed": 1294984472,
+        "family": "苏"
+      },
+      "ledger": {
+        "grainSold": 1,
+        "grain": 20,
+        "training": 11,
+        "landGrain": 8,
+        "foodCost": 0,
+        "netGrain": 0,
+        "boughtGrain": 0,
+        "money": 0,
+        "moneySatisfied": true,
+        "members": [
+          {
+            "money": -6,
+            "job": "读书求学",
+            "memberId": 1,
+            "grain": 0,
+            "name": "苏棠绮"
+          },
+          {
+            "money": -5,
+            "job": "习武",
+            "memberId": 2,
+            "grain": 0,
+            "name": "苏青"
+          },
+          {
+            "money": 0,
+            "job": "随家人生活",
+            "memberId": 3,
+            "grain": 0,
+            "name": "苏昭芸"
+          },
+          {
+            "money": 0,
+            "job": "随家人生活",
+            "memberId": 4,
+            "grain": 0,
+            "name": "苏川修"
+          },
+          {
+            "money": 0,
+            "job": "随家人生活",
+            "memberId": 5,
+            "grain": 0,
+            "name": "苏棠"
+          }
+        ],
+        "netMoney": -30,
+        "foodShortfall": 0,
+        "saleIncome": 3,
+        "foodSatisfied": true,
+        "foodNeed": 7,
+        "beforeMoney": 30,
+        "livingExpense": 22,
+        "industryIncome": 0,
+        "income": 0,
+        "beforeGrain": 20
+      },
+      "readOnlyViews": 5,
+      "duplicateConfirmationIgnored": true,
+      "priorSaveRetainedUntilConfirmation": true
+    },
+    "restart": {
+      "ledger": {
+        "foodShortfall": 0,
+        "grain": 20,
+        "grainSold": 1,
+        "foodNeed": 7,
+        "foodSatisfied": true,
+        "netMoney": -30,
+        "landGrain": 8,
+        "foodCost": 0,
+        "money": 0,
+        "saleIncome": 3,
+        "training": 11,
+        "members": [
+          {
+            "job": "读书求学",
+            "grain": 0,
+            "money": -6,
+            "memberId": 1,
+            "name": "苏棠绮"
+          },
+          {
+            "job": "习武",
+            "grain": 0,
+            "money": -5,
+            "memberId": 2,
+            "name": "苏青"
+          },
+          {
+            "job": "随家人生活",
+            "grain": 0,
+            "money": 0,
+            "memberId": 3,
+            "name": "苏昭芸"
+          },
+          {
+            "job": "随家人生活",
+            "grain": 0,
+            "money": 0,
+            "memberId": 4,
+            "name": "苏川修"
+          },
+          {
+            "job": "随家人生活",
+            "grain": 0,
+            "money": 0,
+            "memberId": 5,
+            "name": "苏棠"
+          }
+        ],
+        "livingExpense": 22,
+        "beforeGrain": 20,
+        "boughtGrain": 0,
+        "netGrain": 0,
+        "beforeMoney": 30,
+        "income": 0,
+        "industryIncome": 0,
+        "moneySatisfied": true
+      },
+      "points": 95,
+      "family": "苏",
+      "year": 1
+    }
+  }
+]

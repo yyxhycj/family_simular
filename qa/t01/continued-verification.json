@@ -1,0 +1,47 @@
+{
+  "captured_at": "2026-09-16T11:37:20.894891+00:00",
+  "baseline_sha": "9532e4435bab5aea1e38f289e950208342becefb",
+  "merge_sha": "48a899fac6cf51f881263f56972e4a35696a01dd",
+  "repair_sha": "ca5b5f2385c54a641393c565db3ebc9d4a35b30e",
+  "maker_remote_sha": "ca26af6cb6fb9dc9c18ca747f8f1de78edc9bb86",
+  "same_tree_before_merge": true,
+  "source_hashes_match_module_acceptance": true,
+  "handoff_files_unchanged": true,
+  "repair_committed_paths": [
+    "scripts/Jiaye/App.lua",
+    "scripts/Jiaye/Simulation.lua",
+    "scripts/Jiaye/State.lua"
+  ],
+  "maker_build": "PASS",
+  "preview_refresh_http": 200,
+  "actual_game_interaction": "PASS_CHROME_MAKER_URHOX",
+  "engine_persistence": "PASS_NATIVE_FILE_CJSON_PREVIEW_RESTART",
+  "video": "chrome/verification.json",
+  "real_device": false,
+  "T01_acceptance": "PASS_SCOPED_MODULE_AND_CHROME_ENGINE",
+  "github_remote_pushed_this_turn": false,
+  "watcher": {
+    "lastSuccessAt": "2026-09-16T11:37:15.786Z",
+    "lastWrittenLogs": 0,
+    "consecutiveFailures": 0,
+    "lastError": null
+  },
+  "previous_pending_snapshot": "chrome/before-chrome-verification.json",
+  "final_implementation_sha": "c2f24fd2dfeae9d889a6424992c57c121f5c75d7",
+  "formal_entry_restored_sha": "ca26af6cb6fb9dc9c18ca747f8f1de78edc9bb86",
+  "entry": "main.lua",
+  "modules": {
+    "passed": 6,
+    "failed": 0,
+    "directory": "chrome-final-modules",
+    "final_source_hashes_verified": true
+  },
+  "engine_evidence": "chrome/verification.json",
+  "original_save_restored": true,
+  "remaining": [
+    "Real phone touch/safe area/keyboard and native app lifecycle",
+    "T10 migration, full structural validation and power-loss atomicity",
+    "Two early preview restart causes not established; complete repeat passed",
+    "T02 through T11 not implemented"
+  ]
+}

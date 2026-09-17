@@ -1,0 +1,68 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>06-设计稿使用与已知差异 · 家业交付</title><link rel="stylesheet" href="../assets/handbook.css"></head><body><header class="site"><a class="brand" href="../START_HERE.html">家业<small>评审 · 设计 · 实施 / R1</small></a><div class="actions"><a class="button" href="../design/VIEW.html">查看设计稿</a><a class="button" href="06-设计稿使用与已知差异.md">Markdown 原文</a></div></header><div class="shell"><div class="doc-nav"><a href="../docs/00-先读-最新确认与版本优先级.html">00-先读-最新确认与版本优先级</a><a href="../docs/01-评审整改对照.html">01-评审整改对照</a><a href="../docs/02-手机逐屏与数值绑定.html">02-手机逐屏与数值绑定</a><a href="../docs/03-分步实施与验收.html">03-分步实施与验收</a><a href="../docs/04-AI开发执行提示词.html">04-AI开发执行提示词</a><a href="../docs/05-验收用例设计.html">05-验收用例设计</a><a href="../docs/06-设计稿使用与已知差异.html">06-设计稿使用与已知差异</a></div><div class="doc-grid"><nav class="toc" aria-label="本章目录"><a class="level2" href="#sec-2">1. 本包中真实存在的设计材料</a><a class="level2" href="#sec-3">2. 明确不能照抄的内容</a><a class="level2" href="#sec-4">3. 图片浏览器的边界</a><a class="level2" href="#sec-5">4. V5保留而不冒充新版</a></nav><article class="document"><h1 id="sec-1">设计稿使用说明：哪些可以照着做，哪些不能照抄</h1>
+<h2 id="sec-2">1. 本包中真实存在的设计材料</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>定位</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>design/concepts/01-latest-mobile-storyboard.png</code></td>
+<td>最近一次10屏综合概念稿：启动、随机、概览、账本、编辑、人物、事件、主页、导航与不同家庭示例</td>
+<td>静态生成式概念图；不是10个可运行页面</td>
+</tr>
+<tr>
+<td><code>design/screens/A01-opening-390.png</code></td>
+<td>随机开局独立稿</td>
+<td>静态，780×1688，参考390×844逻辑坐标</td>
+</tr>
+<tr>
+<td><code>design/screens/C01-home-390.png</code></td>
+<td>资源、家事与可操作家谱结构</td>
+<td>静态，同上</td>
+</tr>
+<tr>
+<td><code>design/screens/C03-member-390.png</code></td>
+<td>人物概况与安排详情结构</td>
+<td>静态，同上</td>
+</tr>
+<tr>
+<td><code>design/screens/D02-event-390.png</code></td>
+<td>故事、执行人、成本与确认</td>
+<td>静态，同上</td>
+</tr>
+<tr>
+<td><code>design/boards/A-random-opening.png</code></td>
+<td>随机开局的多状态板</td>
+<td>静态；不是固定家庭候选菜单</td>
+</tr>
+<tr>
+<td><code>design/reference/user-ui-reference.png</code></td>
+<td>用户提供的同类产品界面</td>
+<td>外部参考，非本项目原创素材</td>
+</tr>
+<tr>
+<td><code>design/archive/00-earlier-storyboard.png</code></td>
+<td>较早8屏概念稿</td>
+<td>归档，部分固定林家展示已被后续随机要求覆盖</td>
+</tr>
+</tbody>
+</table></div>
+<p>四张独立稿是在本对话中附带的画面，作为结构和尺寸参考；综合海报展示后续美术/模块方向。两者不一致处优先按docs/00与docs/02实现数据和交互。存在多张图不代表已经做了这些页面的全部前端。</p>
+<h2 id="sec-3">2. 明确不能照抄的内容</h2>
+<p>**固定家族。**谢氏、林氏、贺氏等只是某一次随机结果，界面、事件、族谱、结局统一引用本局数据。综合稿中的“多种家庭示例”表达随机结果变化，不是把游戏改为几户固定模板列表。</p>
+<p>**图片中的数值。**97/100、80两、24石、+3两、+18两等都是示例或旧夹具快照。不能拿图片独立定价；正式来源是当前已批准价格/经济配置，并用同源函数计算。发现示例总计不一致时修正画面，不篡改引擎凑数。</p>
+<p>**概念文字与新物件。**生成式海报可能有错字、不一致年号/职业/性别称呼、虚构的青铜罗盘等。未经注册的信物不能进入基础解锁池；基础七物的事件与作用先照正式内容。文案回到实际成员ID、物件ID、世界ID生成并校验。</p>
+<p>**健康只有“良好”。**形容词可以辅助，确切数值仍须可访问。能力条与资质分开。不要让背景文字替代关键数字。</p>
+<p>**插画场景。**庭院/村落可做装饰或带文字的功能入口；不因此新增需要资源建设的地图、角色走位或战斗。参考产品的修仙境界/功法等不进入凡世。</p>
+<p>**头像、美术版权。**同类产品截图只用于研究布局与信息分层；不要裁出角色、标识、边框直接作为发布素材。综合概念图不是分层可编辑资产库，也不是可直接发布的完整美术包。包内没有字体文件。</p>
+<p>**系统状态栏。**截图中的9:41、电池、底部横条为设备示意；实际平台尊重系统状态栏与安全区，避免重复占位。</p>
+<h2 id="sec-4">3. 图片浏览器的边界</h2>
+<p><code>design/VIEW.html</code> 可切换设计图、缩放和打开原图；没有游戏交互。其360/390/430按钮只是静态图的展示宽度，不证明适配已通过。需要真实布局对照时进入现有V5互动原型，但它尚未接入本轮真随机紧凑开局。</p>
+<h2 id="sec-5">4. V5保留而不冒充新版</h2>
+<p><code>baseline/v5/prototype/</code> 原样保留。可以操作旧规则、配置与游戏；其中固定样例、五步默认入口、旧版视觉只作为行为基线。没有新的V6游戏HTML可交付，本包没有把图片包进iframe就声称最新版玩法已经可操作。</p>
+<p>原方案中的27步骤、原88条验收设计及原检查报告也在baseline；它们保留原日期与范围。新的默认入口、名字随机、信息分层等以本包补充为准。旧“V5是唯一基线”的优先级被本包的最新确认覆盖。</p>
+<div class="foot">整合包R1 · 当前用户确认优先于旧版原型。新规格不是已实现证明；图中示例不构成数值定案。</div></article></div></div></body></html>

@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t03_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:52: 不同种子必须产生实质差异，且覆盖可生成的人口与姓氏范围：128/12/4/5\\nstack traceback:\\n\\t[string \"<python>\"]:52: in function <[string \"<python>\"]:32>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

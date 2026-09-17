@@ -1,0 +1,250 @@
+[
+  {
+    "actual": {
+      "cycleRejected": true,
+      "gates": [
+        {
+          "accepted": true,
+          "points": 97
+        },
+        {
+          "accepted": true,
+          "points": 100
+        },
+        {
+          "accepted": false,
+          "points": 101
+        }
+      ],
+      "lockedRejected": true,
+      "multiPoints": 91
+    },
+    "expected": "97/100 accepted; 101/cycle/locked rejected; multi-select accepted; exact openingSnapshot",
+    "id": "G01",
+    "status": "PASS",
+    "title": "97/100 可开、101/循环/锁定拒绝；三信物共享预算；草案原样入局"
+  },
+  {
+    "actual": {
+      "foodYears": 1,
+      "grain": 29,
+      "money": 79,
+      "stable": true,
+      "stableYears": 1,
+      "year": 1
+    },
+    "expected": "draft/RNG unchanged; stored opening matches; yearIndex=1",
+    "id": "G02",
+    "status": "PASS",
+    "title": "切页/计分/开始不重掷；存取往返；正常年度推进"
+  },
+  {
+    "actual": {
+      "count": 120,
+      "oldest": "entry-32"
+    },
+    "expected": "151 entries, oldest entry-1",
+    "id": "P01",
+    "status": "FAIL",
+    "title": "151 条后首条日志可恢复"
+  },
+  {
+    "actual": {
+      "money": 80
+    },
+    "expected": "money=180",
+    "id": "P02",
+    "status": "FAIL",
+    "title": "撤销世道不覆盖家底"
+  },
+  {
+    "actual": {
+      "health": 48,
+      "logs": [
+        {
+          "text": "大晟历 73 年结算完成。",
+          "year": 73
+        },
+        {
+          "text": "口粮不足，全家体魄各减 12 点，度过了艰难的一年。",
+          "year": 72
+        }
+      ],
+      "money": 0,
+      "stable": 5
+    },
+    "expected": "stable=0",
+    "id": "P03",
+    "status": "FAIL",
+    "title": "饥荒不算安稳"
+  },
+  {
+    "actual": {
+      "foodYears": 7
+    },
+    "expected": "foodYears=0",
+    "id": "P04",
+    "status": "FAIL",
+    "title": "饥荒归零连续粮年"
+  },
+  {
+    "actual": {
+      "occupationalGenerations": 2,
+      "recomputed": 1,
+      "spouseGeneration": 2
+    },
+    "expected": "one occupational generation",
+    "id": "P05",
+    "status": "FAIL",
+    "title": "真实婚入的同辈夫妻只算一代教书"
+  },
+  {
+    "actual": {
+      "alive": false,
+      "custodianId": 1
+    },
+    "expected": "house custody or living member",
+    "id": "P06",
+    "status": "FAIL",
+    "title": "死亡保管人回收到家中或在世族人"
+  },
+  {
+    "actual": {
+      "invalid": false,
+      "nextYear": true,
+      "normal": true,
+      "repeated": false,
+      "terms": [
+        {
+          "effective": true,
+          "endYear": 1,
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        },
+        {
+          "effective": false,
+          "memberId": 2,
+          "reason": "前任离世",
+          "startYear": 1
+        }
+      ]
+    },
+    "expected": "invalid=false, valid=true, repeat=false, nextYear=true",
+    "id": "G03",
+    "status": "PASS",
+    "title": "事件入口继任可继续，非法和重复任命拒绝"
+  },
+  {
+    "actual": {
+      "advance": false,
+      "manual": true,
+      "pending": [
+        {
+          "blocking": true,
+          "instanceId": "event-73-1",
+          "status": "pending",
+          "title": "族长之位空缺",
+          "type": "leader"
+        }
+      ],
+      "reason": "此人已是族长。",
+      "resolve": false,
+      "terms": [
+        {
+          "effective": true,
+          "endYear": 1,
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        },
+        {
+          "effective": false,
+          "memberId": 2,
+          "reason": "主动交接",
+          "startYear": 1
+        }
+      ]
+    },
+    "expected": "one handover, no pending leader event, advance succeeds",
+    "id": "P07",
+    "status": "FAIL",
+    "title": "人物入口继任同步关闭事件并可继续"
+  },
+  {
+    "actual": {
+      "points": 97,
+      "reputation": 25
+    },
+    "expected": "25+12=37 (current declared contributions)",
+    "id": "P08",
+    "status": "FAIL",
+    "title": "两项已付费声望独立叠加"
+  },
+  {
+    "actual": {
+      "after": false,
+      "before": true,
+      "total": 97
+    },
+    "expected": "plan unlocked before and after restart/new run",
+    "id": "F01",
+    "status": "FAIL",
+    "title": "重启直接新开保留已解锁营造图"
+  },
+  {
+    "actual": {
+      "historyCount": 4,
+      "money": 85,
+      "resell": false,
+      "restore": false,
+      "sold": true,
+      "status": "cancelled"
+    },
+    "expected": "cancelled event, no plan reward, no double sale, history retained",
+    "id": "G04",
+    "status": "PASS",
+    "title": "出售信物取消待决奖励、保留历史、重复不付"
+  },
+  {
+    "actual": {
+      "badStructureAccepted": true,
+      "exportNotice": {
+        "message": "备份已写入 jiaye_export.json，可从当前项目的本地存档空间取回。",
+        "variant": "success"
+      },
+      "malformedRejected": true,
+      "oldPayloadUnchanged": true,
+      "openFailureReported": true,
+      "shortWriteAccepted": true
+    },
+    "expected": "reject invalid schema; report save/export/short-write failures; keep previous payload",
+    "id": "F02",
+    "status": "FAIL",
+    "title": "坏结构/写失败不假报成功"
+  },
+  {
+    "actual": {
+      "actualTotal": 100,
+      "fresh100": false,
+      "previewBound": false,
+      "stale97": true
+    },
+    "expected": "100/100 visible in existing component tree",
+    "id": "F03",
+    "status": "FAIL",
+    "title": "钱数回调后预算组件立即一致"
+  },
+  {
+    "actual": {
+      "money111Accepted": true,
+      "money111Points": 100,
+      "selfSpouseAccepted": true,
+      "unearnedOfficeAccepted": true
+    },
+    "expected": "all rejected; off-step resource rejected or accurately priced",
+    "id": "F04",
+    "status": "FAIL",
+    "title": "未经应试/自婚/100.1 点输入拒绝"
+  }
+]

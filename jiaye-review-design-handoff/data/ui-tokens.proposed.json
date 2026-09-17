@@ -1,0 +1,38 @@
+{
+  "status": "implementation_targets_not_engine_validation",
+  "base_logical_viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "check_widths": [
+    360,
+    390,
+    430
+  ],
+  "colors": {
+    "paper": "#f5f3ed",
+    "card": "#fffefa",
+    "ink": "#263c33",
+    "secondary": "#616b63",
+    "line": "#dddeda",
+    "primary": "#37634d",
+    "warning": "#a44e38"
+  },
+  "typography": {
+    "body": 16,
+    "supporting": 13,
+    "input": 16,
+    "title": 26,
+    "story_line_height": 1.85
+  },
+  "touch": {
+    "minimum_target": 44,
+    "primary_height": 48
+  },
+  "notes": [
+    "逻辑单位映射到UrhoX需实测；不是直接物理像素。",
+    "不得全局缩字号塞内容。",
+    "系统安全区与字体放大按平台处理。",
+    "不附带或分发字体文件。"
+  ]
+}

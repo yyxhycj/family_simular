@@ -1,0 +1,97 @@
+{
+  "status": "NOT_PASSED",
+  "script_executed": null,
+  "script_execution_evidence": "No T01_ENGINE_FILE_PASS or T01_ENGINE_FILE_FAIL marker; isolated savedata directory is empty.",
+  "video": null,
+  "real_device": false,
+  "source": "Project .cli/install-urhox-runtime.py official runtime download",
+  "url": "https://urhox-demo-platform.spark.xd.com/runtime/macos/latest/UrhoXRuntime.zip",
+  "runtime_sha256": "e07e63cdeadd6fed03fc722f7e2c905fab102638efb193f3a10ee68d6d8b0fde",
+  "test_script_sha256": "42d4d5c374e957c7cd1804646ae596bf9dbf58bcf0a06867bffac9375614fb00",
+  "attempts": [
+    {
+      "script": "check.lua",
+      "options": [
+        "-headless",
+        "-tool_mode",
+        "-nosound",
+        "-validate",
+        "-validate-timeout=20"
+      ],
+      "exit_code": 139
+    },
+    {
+      "script": "/private/tmp/jiaye-t01-engine/check.lua",
+      "options": [
+        "-local_preview",
+        "-headless",
+        "-tool_mode",
+        "-nosound",
+        "-validate",
+        "-validate-timeout=20"
+      ],
+      "exit_code": 139
+    }
+  ],
+  "working_directory": "/private/tmp/jiaye-t01-engine",
+  "resource_paths": [
+    "/private/tmp/jiaye-t01-engine",
+    "/Users/yan/code/learning/word_family/scripts"
+  ],
+  "resource_packages": [
+    "/private/tmp/jiaye-t01-runtime/Autoload/CoreData.pak",
+    "/private/tmp/jiaye-t01-runtime/Autoload/Data.pak",
+    "/private/tmp/jiaye-t01-runtime/Autoload/Res.pak"
+  ],
+  "crashes": [
+    {
+      "timestamp": "2026-09-16 18:24:18.3978 +0800",
+      "architecture": "ARM-64",
+      "exception": {
+        "codes": "0x0000000000000001, 0x0000000000000098",
+        "rawCodes": [
+          1,
+          152
+        ],
+        "type": "EXC_BAD_ACCESS",
+        "signal": "SIGSEGV",
+        "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000098"
+      },
+      "termination": "Segmentation fault: 11",
+      "frames": [
+        "Urho3D::LoadingUI::Show()",
+        "Urho3D::BootstrapManager::Start(Urho3D::String const&, std::__1::function<void (bool, Urho3D::String const&)>)",
+        "UrhoXRuntime::StartGame()",
+        "UrhoXRuntime::Start()",
+        "Urho3D::Application::Run()",
+        "RunApplication()",
+        "start"
+      ]
+    },
+    {
+      "timestamp": "2026-09-16 18:25:09.4514 +0800",
+      "architecture": "ARM-64",
+      "exception": {
+        "codes": "0x0000000000000001, 0x0000000000000098",
+        "rawCodes": [
+          1,
+          152
+        ],
+        "type": "EXC_BAD_ACCESS",
+        "signal": "SIGSEGV",
+        "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000098"
+      },
+      "termination": "Segmentation fault: 11",
+      "frames": [
+        "Urho3D::LoadingUI::Show()",
+        "Urho3D::BootstrapManager::Start(Urho3D::String const&, std::__1::function<void (bool, Urho3D::String const&)>)",
+        "UrhoXRuntime::StartGame()",
+        "UrhoXRuntime::Start()",
+        "Urho3D::Application::Run()",
+        "RunApplication()",
+        "start"
+      ]
+    }
+  ],
+  "notes": "This only establishes failure of these local runner invocations at bootstrap. It does not establish that T01 Lua code failed, nor validate a remote Maker build. No remote build/commit/push was performed."
+}

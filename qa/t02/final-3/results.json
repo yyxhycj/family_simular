@@ -1,0 +1,30 @@
+[
+  {
+    "id": "t02_contract",
+    "status": "PASS",
+    "evidence": [
+      {
+        "rejected": 101,
+        "invalidDraftPreserved": true,
+        "id": "budget",
+        "atLimit": 100
+      },
+      {
+        "income": 29,
+        "id": "preview_and_stacking",
+        "tradeIncome": 36,
+        "reputation": 37,
+        "netMoney": -1
+      },
+      {
+        "id": "runtime_price",
+        "landCost": 30
+      },
+      {
+        "crossPagePreserved": true,
+        "id": "page_scope",
+        "staleUndoDiscarded": true
+      }
+    ]
+  }
+]

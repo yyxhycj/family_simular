@@ -1,0 +1,275 @@
+{
+  "date": "2026-09-11T06:31:56.954075+00:00",
+  "scope": "Frozen V5 only; selected smoke cases, not full acceptance",
+  "environment": {
+    "method": "set_content; in-memory localStorage substitute",
+    "real_device": false,
+    "file_persistence_verified": false,
+    "browser": "144.0.7559.96"
+  },
+  "checks": [
+    {
+      "name": "默认总分为97",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "四个分配页额度共享",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "初始解锁三个，带入一件",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "七件信物、十三实际终章、144条历史设计",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "开局320px无页面级横溢出",
+      "passed": true,
+      "level": "layout",
+      "detail": ""
+    },
+    {
+      "name": "开局360px无页面级横溢出",
+      "passed": true,
+      "level": "layout",
+      "detail": ""
+    },
+    {
+      "name": "开局390px无页面级横溢出",
+      "passed": true,
+      "level": "layout",
+      "detail": ""
+    },
+    {
+      "name": "开局430px无页面级横溢出",
+      "passed": true,
+      "level": "layout",
+      "detail": ""
+    },
+    {
+      "name": "开局768px无页面级横溢出",
+      "passed": true,
+      "level": "layout",
+      "detail": ""
+    },
+    {
+      "name": "开局1280px无页面级横溢出",
+      "passed": true,
+      "level": "layout",
+      "detail": ""
+    },
+    {
+      "name": "选择时期与年份联动时世",
+      "passed": true,
+      "level": "ui",
+      "detail": "real UI card click + select"
+    },
+    {
+      "name": "家谱反映新年份及来历",
+      "passed": true,
+      "level": "ui",
+      "detail": ""
+    },
+    {
+      "name": "超分移动开始按钮禁用",
+      "passed": true,
+      "level": "ui",
+      "detail": ""
+    },
+    {
+      "name": "超分双入口不能建立家族",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "100点合法",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "101点被拒绝",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "冲突时期年份被校验拒绝",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "100个页级随机候选合法且不超总分",
+      "passed": true,
+      "level": "engine",
+      "detail": {
+        "ok": true,
+        "samples": 100
+      }
+    },
+    {
+      "name": "第1页随机隔离与撤销",
+      "passed": true,
+      "level": "engine",
+      "detail": {
+        "isolated": true,
+        "restored": true
+      }
+    },
+    {
+      "name": "第2页随机隔离与撤销",
+      "passed": true,
+      "level": "engine",
+      "detail": {
+        "isolated": true,
+        "restored": true
+      }
+    },
+    {
+      "name": "第3页随机隔离与撤销",
+      "passed": true,
+      "level": "engine",
+      "detail": {
+        "isolated": true,
+        "restored": true
+      }
+    },
+    {
+      "name": "第4页随机隔离与撤销",
+      "passed": true,
+      "level": "engine",
+      "detail": {
+        "isolated": true,
+        "restored": true
+      }
+    },
+    {
+      "name": "从移动开始按钮建立正常家族",
+      "passed": true,
+      "level": "ui",
+      "detail": ""
+    },
+    {
+      "name": "手机五主导航可见",
+      "passed": true,
+      "level": "ui",
+      "detail": ""
+    },
+    {
+      "name": "人物详情具备三章节和保存",
+      "passed": true,
+      "level": "ui",
+      "detail": ""
+    },
+    {
+      "name": "成员安排保存",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "重复旧事件提交不再扣款",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "一年度推进实际年数加一",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "老木尺后续按期出现",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "完成寻访解锁营造图但不加开局点数",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "解锁资格不自动新增实体物件",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "主动换任保留成员与同一局",
+      "passed": true,
+      "level": "engine",
+      "detail": {
+        "same": true,
+        "leader": 3,
+        "ended": null,
+        "handovers": 1
+      }
+    },
+    {
+      "name": "同年切换不追加有效传承",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "出售取消后续且不解锁奖励",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "满足发展条件不会自动结束",
+      "passed": true,
+      "level": "engine",
+      "detail": "constructed state fixture"
+    },
+    {
+      "name": "确认主终章后进入只读",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "已终局不能推进年度",
+      "passed": true,
+      "level": "engine",
+      "detail": ""
+    },
+    {
+      "name": "本轮未发生未捕获页面异常",
+      "passed": true,
+      "level": "runtime",
+      "detail": []
+    }
+  ],
+  "browser_errors": [],
+  "screenshots": [
+    "assets/previews/opening-390.png",
+    "assets/previews/overbudget-390.png",
+    "assets/previews/setup-members-390.png",
+    "assets/previews/home-390.png",
+    "assets/previews/member-390.png",
+    "assets/previews/relics-390.png",
+    "assets/previews/collection-390.png"
+  ],
+  "summary": {
+    "passed": 38,
+    "failed": 0,
+    "executed_checks": 38
+  }
+}

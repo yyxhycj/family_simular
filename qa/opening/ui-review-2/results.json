@@ -1,0 +1,248 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "distinct": 48,
+        "id": "seeded_generation",
+        "samples": 48
+      },
+      {
+        "family": "司马",
+        "id": "name_isolation",
+        "points": 66
+      },
+      {
+        "pointLinesSafe": true,
+        "id": "edit_validation",
+        "rejected": 3
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netGrain": 5,
+        "netMoney": -1,
+        "income": 29,
+        "id": "preview"
+      },
+      {
+        "ledger": {
+          "landGrain": 4,
+          "boughtGrain": 0,
+          "training": 16,
+          "grain": 29,
+          "foodNeed": 7,
+          "saleIncome": 0,
+          "members": [
+            {
+              "name": "林成",
+              "memberId": 1,
+              "grain": 0,
+              "job": "手艺谋生",
+              "money": 21
+            },
+            {
+              "name": "许青",
+              "memberId": 2,
+              "grain": 8,
+              "job": "耕作谋生",
+              "money": 8
+            },
+            {
+              "name": "林芸",
+              "memberId": 3,
+              "grain": 0,
+              "job": "随师学医",
+              "money": -9
+            },
+            {
+              "name": "林安",
+              "memberId": 4,
+              "grain": 0,
+              "job": "读书求学",
+              "money": -7
+            }
+          ],
+          "income": 29,
+          "grainSold": 0,
+          "livingExpense": 14,
+          "industryIncome": 0,
+          "moneySatisfied": true,
+          "beforeGrain": 24,
+          "foodSatisfied": true,
+          "netGrain": 5,
+          "netMoney": -1,
+          "money": 79,
+          "beforeMoney": 80,
+          "foodCost": 0,
+          "foodShortfall": 0
+        },
+        "reputation": 26,
+        "id": "advance"
+      },
+      {
+        "shortfall": 3,
+        "stable": 0,
+        "foodYears": 0,
+        "id": "shortage"
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "FAIL",
+    "error": "LuaError('.../code/learning/word_family/scripts/Jiaye/OpeningView.lua:140: attempt to call a nil value (field \\'ButtonGroup\\')\\nstack traceback:\\n\\t.../code/learning/word_family/scripts/Jiaye/OpeningView.lua:140: in upvalue \\'editor\\'\\n\\t.../code/learning/word_family/scripts/Jiaye/OpeningView.lua:247: in function \\'Jiaye.OpeningView.Build\\'\\n\\t(...tail calls...)\\n\\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:811: in function \\'Jiaye.App.Render\\'\\n\\t/Users/yan/code/learning/word_family/scripts/Jiaye/App.lua:186: in function \\'Jiaye.App.BeginOpeningEdit\\'\\n\\t[string \"<python>\"]:15: in function <[string \"<python>\"]:8>')"
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "duplicateConfirmationIgnored": true,
+      "priorSaveRetainedUntilConfirmation": true,
+      "points": 81,
+      "readOnlyViews": 5,
+      "ledger": {
+        "income": 28,
+        "moneySatisfied": true,
+        "training": 5,
+        "foodSatisfied": true,
+        "members": [
+          {
+            "memberId": 1,
+            "money": 28,
+            "job": "行医问诊",
+            "name": "林芸",
+            "grain": 0
+          },
+          {
+            "memberId": 2,
+            "money": -5,
+            "job": "习武",
+            "name": "姜远远",
+            "grain": 0
+          }
+        ],
+        "netMoney": 0,
+        "beforeGrain": 0,
+        "saleIncome": 0,
+        "boughtGrain": 4,
+        "grain": 0,
+        "landGrain": 0,
+        "netGrain": 0,
+        "foodNeed": 4,
+        "livingExpense": 11,
+        "foodShortfall": 4,
+        "money": 50,
+        "foodCost": 12,
+        "industryIncome": 0,
+        "grainSold": 0,
+        "beforeMoney": 50
+      },
+      "snapshot": {
+        "periodId": "strain",
+        "money": 50,
+        "nameSeed": 1200489937,
+        "workshop": false,
+        "members": [
+          {
+            "spouseId": 2,
+            "jobId": "doctor",
+            "age": 58,
+            "talent": 1,
+            "id": 1,
+            "sex": "女",
+            "surname": "林",
+            "experienceId": "medical",
+            "trait": "细致",
+            "focus": "learn",
+            "givenName": "芸",
+            "parents": {},
+            "name": "林芸",
+            "nameSource": "family"
+          },
+          {
+            "spouseId": 1,
+            "jobId": "train",
+            "age": 50,
+            "talent": 4,
+            "id": 2,
+            "sex": "男",
+            "surname": "姜",
+            "experienceId": "trade",
+            "trait": "细致",
+            "focus": "learn",
+            "givenName": "远远",
+            "parents": {},
+            "name": "姜远远",
+            "nameSource": "external"
+          }
+        ],
+        "leaderId": 1,
+        "homeId": "rented",
+        "habitId": "frugal",
+        "family": "林",
+        "originId": "scholar",
+        "grain": 0,
+        "land": 0,
+        "calendar": 120,
+        "generatorVersion": 1,
+        "shop": false,
+        "tieId": "neighbor",
+        "rngSeed": 1200489937,
+        "worldId": "mortal",
+        "nextId": 3,
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "placeId": "mountain"
+      }
+    },
+    "restart": {
+      "points": 81,
+      "family": "林",
+      "ledger": {
+        "money": 50,
+        "foodShortfall": 4,
+        "netMoney": 0,
+        "boughtGrain": 4,
+        "income": 28,
+        "livingExpense": 11,
+        "members": [
+          {
+            "money": 28,
+            "grain": 0,
+            "job": "行医问诊",
+            "name": "林芸",
+            "memberId": 1
+          },
+          {
+            "money": -5,
+            "grain": 0,
+            "job": "习武",
+            "name": "姜远远",
+            "memberId": 2
+          }
+        ],
+        "beforeGrain": 0,
+        "grain": 0,
+        "saleIncome": 0,
+        "foodCost": 12,
+        "moneySatisfied": true,
+        "foodSatisfied": true,
+        "landGrain": 0,
+        "training": 5,
+        "netGrain": 0,
+        "beforeMoney": 50,
+        "grainSold": 0,
+        "foodNeed": 4,
+        "industryIncome": 0
+      },
+      "year": 1
+    }
+  }
+]

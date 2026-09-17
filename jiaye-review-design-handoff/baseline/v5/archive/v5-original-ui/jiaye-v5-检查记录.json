@@ -1,0 +1,58 @@
+{
+  "checks": [
+    {
+      "name": "HTML文件非空",
+      "passed": true,
+      "detail": 284070
+    },
+    {
+      "name": "保留100点规则",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "独立V5存储键",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "存在移动端界面脚本",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "没有禁用缩放",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "所有原有JS脚本保留",
+      "passed": true,
+      "detail": "除存储键外未改动原有游戏脚本"
+    },
+    {
+      "name": "JS语法检查0",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "JS语法检查1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "手机预览壳JS语法",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "screenshots": [],
+  "browser_errors": [],
+  "environment": {
+    "browser": "Chromium 144.0.7559.96",
+    "method": "file:// 本地文件 + 桌面浏览器窄屏模拟",
+    "real_device": false
+  },
+  "incomplete": "Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at file:///mnt/data/jiaye-demo-v5.html\nCall log:\n  - navigating to \"file:///mnt/data/jiaye-demo-v5.html\", waiting until \"load\"\n",
+  "traceback": "Traceback (most recent call last):\n  File \"/mnt/data/jiaye-v5-work/check_mobile.py\", line 55, in <module>\n    page.goto((root/'jiaye-demo-v5.html').as_uri(),wait_until='load');page.wait_for_timeout(800)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/pyvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py\", line 9050, in goto\n    self._sync(\n    ~~~~~~~~~~^\n        self._impl_obj.goto(\n        ^^^^^^^^^^^^^^^^^^^^\n            url=url, timeout=timeout, waitUntil=wait_until, referer=referer\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        )\n        ^\n    )\n    ^\n  File \"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n           ~~~~~~~~~~~^^\n  File \"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_page.py\", line 552, in goto\n    return await self._main_frame.goto(**locals_to_params(locals()))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py\", line 153, in goto\n    await self._channel.send(\n        \"goto\", self._navigation_timeout, locals_to_params(locals())\n    )\n  File \"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py\", line 69, in send\n    return await self._connection.wrap_api_call(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<3 lines>...\n    )\n    ^\n  File \"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py\", line 559, in wrap_api_call\n    raise rewrite_error(error, f\"{parsed_st['apiName']}: {error}\") from None\nplaywright._impl._errors.Error: Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at file:///mnt/data/jiaye-demo-v5.html\nCall log:\n  - navigating to \"file:///mnt/data/jiaye-demo-v5.html\", waiting until \"load\"\n\n"
+}

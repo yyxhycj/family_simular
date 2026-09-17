@@ -1,0 +1,894 @@
+{
+  "status": "V5 prototype snapshot; provisional balance; not a new production ruleset",
+  "source": "prototype/jiaye-demo-v5.html",
+  "source_sha256": "6ad1c282a764aea6c68878500489c283436bd705d2c5f480bfcd882b8dc4b7b4",
+  "LIMIT": 100,
+  "STORE_KEY": "jiaye_mortal_demo_v5_0",
+  "ERA": [
+    {
+      "id": "rebuild",
+      "name": "百废初兴",
+      "cost": 8,
+      "desc": "乱后初定，田地重新有人耕。谋生与学艺都不容易，也都有机会。",
+      "effect": "生活与生产采用基础收支。",
+      "wage": 1,
+      "food": 2,
+      "expense": 1
+    },
+    {
+      "id": "peace",
+      "name": "承平岁月",
+      "cost": 12,
+      "desc": "道路通畅，乡里安稳。一家人可以从容地为以后作打算。",
+      "effect": "生产收入 +5%；粮价 2 两／石。",
+      "wage": 1.05,
+      "food": 2,
+      "expense": 1
+    },
+    {
+      "id": "strain",
+      "name": "繁华之下",
+      "cost": 4,
+      "desc": "城里仍然热闹，物价却慢慢涨了。过日子要多留一份心。",
+      "effect": "日常开支 +10%；粮价 3 两／石。",
+      "wage": 1,
+      "food": 3,
+      "expense": 1.1
+    },
+    {
+      "id": "unrest",
+      "name": "风雨欲来",
+      "cost": 0,
+      "desc": "远处有流民经过，商路时通时断。先安顿下来，再想明天。",
+      "effect": "生产收入 −15%；粮价 4 两／石。",
+      "wage": 0.85,
+      "food": 4,
+      "expense": 1.05
+    }
+  ],
+  "PLACES": [
+    {
+      "id": "village",
+      "name": "河畔乡村",
+      "short": "青石村",
+      "cost": 0,
+      "desc": "住得朴素，离田地近。耕作的族人每年多收 2 石粮。",
+      "farm": 2,
+      "living": 1
+    },
+    {
+      "id": "mountain",
+      "name": "山间小镇",
+      "short": "青岚镇",
+      "cost": 2,
+      "desc": "木材和药草易得。手艺、行医收入 +10%，生活开支不变。",
+      "craft": 1.1,
+      "doctor": 1.1,
+      "living": 1
+    },
+    {
+      "id": "border",
+      "name": "边地驿镇",
+      "short": "北望驿",
+      "cost": 3,
+      "desc": "往来的人多，护卫收入 +20%；日常开支 +5%。",
+      "guard": 1.2,
+      "living": 1.05
+    },
+    {
+      "id": "county",
+      "name": "县城近郊",
+      "short": "临川县",
+      "cost": 7,
+      "desc": "求学方便，读书每年额外学识 +1；日常开支 +15%。",
+      "study": 1,
+      "living": 1.15
+    },
+    {
+      "id": "port",
+      "name": "江口商埠",
+      "short": "江口埠",
+      "cost": 10,
+      "desc": "船来船往，经商收入 +20%；日常开支 +15%。",
+      "trade": 1.2,
+      "living": 1.15
+    }
+  ],
+  "ORIGINS": [
+    {
+      "id": "plain",
+      "name": "布衣农户",
+      "cost": 0,
+      "desc": "没有显赫的来处，认真过日子就是立家的本钱。",
+      "effect": "务农族人每年额外收粮 1 石。"
+    },
+    {
+      "id": "artisan",
+      "name": "手艺人家",
+      "cost": 8,
+      "desc": "前人靠双手吃饭，也留下一份做事认真的习惯。",
+      "effect": "学手艺、手艺谋生每年额外手艺 +1。"
+    },
+    {
+      "id": "merchant",
+      "name": "行商后裔",
+      "cost": 12,
+      "desc": "从小听过不少远行的故事，也知道信用的分量。",
+      "effect": "经商收入 +10%；不附送商铺或现银。"
+    },
+    {
+      "id": "scholar",
+      "name": "书香旧族",
+      "cost": 16,
+      "desc": "家里或许不再宽裕，却始终有人愿意教孩子认字。",
+      "effect": "读书每年额外学识 +2；不附送个人学识。"
+    },
+    {
+      "id": "military",
+      "name": "军户后人",
+      "cost": 10,
+      "desc": "前人曾守过边关，知道安稳的日子来之不易。",
+      "effect": "习武每年额外武艺 +2；护卫收入 +10%。"
+    },
+    {
+      "id": "gentry",
+      "name": "旧日名门",
+      "cost": 26,
+      "desc": "人们还记得这个姓氏。余下的家业，要靠这一代去经营。",
+      "effect": "初始声望 +25；每年声望 +1。不附送宅院与家财。"
+    }
+  ],
+  "HABITS": [
+    {
+      "id": "none",
+      "name": "各自舒展",
+      "cost": 0,
+      "desc": "没有额外规矩，按各自的安排过日子。"
+    },
+    {
+      "id": "frugal",
+      "name": "节用惜物",
+      "cost": 5,
+      "desc": "家庭日常银两开支 −10%。"
+    },
+    {
+      "id": "education",
+      "name": "不废灯火",
+      "cost": 5,
+      "desc": "读书每年额外学识 +1。"
+    },
+    {
+      "id": "care",
+      "name": "彼此照应",
+      "cost": 5,
+      "desc": "休养每年额外恢复 2 点体魄。"
+    }
+  ],
+  "TIES": [
+    {
+      "id": "none",
+      "name": "初来乍到",
+      "cost": 0,
+      "desc": "没有额外关系，从这一代慢慢结识。"
+    },
+    {
+      "id": "teacher",
+      "name": "一位师友",
+      "cost": 6,
+      "desc": "读书每年额外学识 +1；教书收入 +2 两。"
+    },
+    {
+      "id": "healer",
+      "name": "医馆旧识",
+      "cost": 6,
+      "desc": "学医每年额外医术 +1；行医收入 +2 两。"
+    },
+    {
+      "id": "partner",
+      "name": "商路故交",
+      "cost": 6,
+      "desc": "每名经商族人每年额外收入 3 两。"
+    },
+    {
+      "id": "neighbor",
+      "name": "乡里相熟",
+      "cost": 6,
+      "desc": "初始声望 +12；接济邻里时额外声望 +2。"
+    }
+  ],
+  "TALENTS": [
+    {
+      "name": "慢热",
+      "cost": 0,
+      "gain": -1
+    },
+    {
+      "name": "平常",
+      "cost": 1,
+      "gain": 0
+    },
+    {
+      "name": "灵秀",
+      "cost": 3,
+      "gain": 1
+    },
+    {
+      "name": "出众",
+      "cost": 7,
+      "gain": 3
+    },
+    {
+      "name": "罕见",
+      "cost": 14,
+      "gain": 5
+    }
+  ],
+  "FOCUSES": {
+    "general": "尚无偏向",
+    "learn": "读书悟性",
+    "skill": "实作巧思",
+    "medicine": "识药细心",
+    "trade": "交际经营",
+    "martial": "筋骨身手"
+  },
+  "EXPERIENCES": [
+    {
+      "id": "none",
+      "name": "尚未专精",
+      "cost": 0,
+      "desc": "学识 10、手艺 10；从基础开始。",
+      "values": {
+        "learn": 10,
+        "skill": 10,
+        "medicine": 0,
+        "trade": 10,
+        "martial": 10
+      }
+    },
+    {
+      "id": "basic",
+      "name": "略通一二",
+      "cost": 3,
+      "desc": "学识、手艺各 25；其他本领 10。",
+      "values": {
+        "learn": 25,
+        "skill": 25,
+        "medicine": 10,
+        "trade": 10,
+        "martial": 10
+      }
+    },
+    {
+      "id": "craft",
+      "name": "熟练手艺",
+      "cost": 8,
+      "desc": "手艺 50，可直接靠手艺谋生。",
+      "values": {
+        "learn": 15,
+        "skill": 50,
+        "medicine": 0,
+        "trade": 15,
+        "martial": 10
+      }
+    },
+    {
+      "id": "scholar",
+      "name": "读过诗书",
+      "cost": 9,
+      "desc": "学识 60，可教书，也可继续准备应试。",
+      "values": {
+        "learn": 60,
+        "skill": 10,
+        "medicine": 0,
+        "trade": 10,
+        "martial": 10
+      }
+    },
+    {
+      "id": "medical",
+      "name": "行医经验",
+      "cost": 8,
+      "desc": "医术 45，可独立行医。",
+      "values": {
+        "learn": 30,
+        "skill": 10,
+        "medicine": 45,
+        "trade": 10,
+        "martial": 10
+      }
+    },
+    {
+      "id": "trade",
+      "name": "经商经验",
+      "cost": 8,
+      "desc": "经营 50；每年收入额外受经验影响。",
+      "values": {
+        "learn": 20,
+        "skill": 10,
+        "medicine": 0,
+        "trade": 50,
+        "martial": 10
+      }
+    },
+    {
+      "id": "martial",
+      "name": "练过拳脚",
+      "cost": 8,
+      "desc": "武艺 50，可成为护卫。",
+      "values": {
+        "learn": 10,
+        "skill": 15,
+        "medicine": 0,
+        "trade": 10,
+        "martial": 50
+      }
+    }
+  ],
+  "HOMES": [
+    {
+      "id": "rented",
+      "name": "租下两间房",
+      "cost": 0,
+      "upkeep": 4,
+      "desc": "每年租金 4 两，没有额外产出。"
+    },
+    {
+      "id": "simple",
+      "name": "自家土屋",
+      "cost": 6,
+      "upkeep": 0,
+      "desc": "不付租金，先有一处安身之地。"
+    },
+    {
+      "id": "courtyard",
+      "name": "一方小院",
+      "cost": 14,
+      "upkeep": 0,
+      "desc": "不付租金；休养每年额外恢复 1 点体魄。"
+    },
+    {
+      "id": "estate",
+      "name": "旧宅深院",
+      "cost": 28,
+      "upkeep": 0,
+      "desc": "不付租金；休养每年额外恢复 2 点体魄，初始声望 +8。"
+    }
+  ],
+  "RELICS": [
+    {
+      "id": "book",
+      "name": "一本旧族谱",
+      "cost": 6,
+      "mark": "谱",
+      "type": "亲族与往事",
+      "desc": "有一页被小心折起。上面的名字，家里已经没有人提起。",
+      "effect": "开启「族谱里空着的一行」故事。家谱功能不依赖此物。",
+      "clue": "起初便留在家里。",
+      "base": true,
+      "next": "newbook"
+    },
+    {
+      "id": "ruler",
+      "name": "一把老木尺",
+      "cost": 6,
+      "mark": "尺",
+      "type": "手艺与师承",
+      "desc": "尺背刻着一个陌生的匠号，刻度却仍然分毫不差。",
+      "effect": "学手艺每年额外手艺 +1；开启一段旧作寻访。",
+      "clue": "起初便留在家里。",
+      "base": true,
+      "next": "plan"
+    },
+    {
+      "id": "letter",
+      "name": "一封未拆的家书",
+      "cost": 4,
+      "mark": "信",
+      "type": "故人与承诺",
+      "desc": "信口的蜡已经裂了。有人曾说，等日子安稳了，再把它送到。",
+      "effect": "开启「一封迟到的信」故事，寻找收信人的后人。",
+      "clue": "起初便留在家里。",
+      "base": true,
+      "next": "jade"
+    },
+    {
+      "id": "plan",
+      "name": "修复的营造图",
+      "cost": 10,
+      "mark": "图",
+      "type": "匠艺与新家",
+      "desc": "旧尺找回了它的来处，纸上也添了这一代的笔迹。",
+      "effect": "有手艺族人在世时，家族每年额外收入 5 两；有独立营造事件。",
+      "clue": "完成老木尺的寻访，并选择把旧图修好。"
+    },
+    {
+      "id": "newbook",
+      "name": "补完的族谱",
+      "cost": 9,
+      "mark": "续",
+      "type": "亲族与传承",
+      "desc": "从前空着的一行，终于写回了名字。旁边留着一块新的空白。",
+      "effect": "真实族长交接时声望 +3；可邀请一位失联成年旁支归家。",
+      "clue": "查明旧族谱的遗漏，并选择重修记载。"
+    },
+    {
+      "id": "jade",
+      "name": "故人的半枚玉佩",
+      "cost": 8,
+      "mark": "玉",
+      "type": "寻亲与往来",
+      "desc": "另一半不在这里。送来玉佩的人说，有缘总会再见。",
+      "effect": "开启寻访另一半玉佩的事件；不直接提供收入。",
+      "clue": "把未拆家书送到后人手中，亲自完成一次旧约。"
+    },
+    {
+      "id": "notes",
+      "name": "批注医案",
+      "cost": 10,
+      "mark": "医",
+      "type": "医道与传习",
+      "desc": "不是神奇的秘方，而是一页页认真记下来的诊治经验。",
+      "effect": "学医每年额外医术 +2；可选择刊印或留给家人。",
+      "clue": "本局行医累计 6 人年，并有医术达到 55 的在世族人。"
+    }
+  ],
+  "JOBS": {
+    "play": {
+      "name": "随家人生活",
+      "short": "在家慢慢长大",
+      "min": 0,
+      "max": 11,
+      "money": 0,
+      "desc": "没有收入，也不花培养费用。"
+    },
+    "study": {
+      "name": "读书求学",
+      "short": "启蒙、深造或准备应试",
+      "min": 5,
+      "money": -6,
+      "stat": "learn",
+      "gain": 5,
+      "desc": "每年花费 6 两；基础学识 +5，资质与环境另有影响。"
+    },
+    "farm": {
+      "name": "耕作谋生",
+      "short": "照看田地，也替邻里帮工",
+      "min": 18,
+      "money": 8,
+      "grain": 6,
+      "desc": "每年收入 8 两、收粮 6 石；地点与时代另有影响。"
+    },
+    "apprentice": {
+      "name": "学一门手艺",
+      "short": "跟随师傅做活",
+      "min": 12,
+      "money": -4,
+      "stat": "skill",
+      "gain": 7,
+      "desc": "每年花费 4 两；基础手艺 +7。出师后由你决定去向。"
+    },
+    "craft": {
+      "name": "手艺谋生",
+      "short": "做木工、织造与日常修缮",
+      "min": 18,
+      "money": 22,
+      "req": [
+        "skill",
+        35
+      ],
+      "stat": "skill",
+      "gain": 2,
+      "desc": "每年基础收入 22 两；手艺 +2。需手艺 35。"
+    },
+    "trade": {
+      "name": "外出经商",
+      "short": "在村镇与商路之间往来",
+      "min": 18,
+      "money": 24,
+      "stat": "trade",
+      "gain": 3,
+      "desc": "每年基础收入 24 两；经营 +3，经验会影响收益。"
+    },
+    "teach": {
+      "name": "教书",
+      "short": "在私塾教人识字",
+      "min": 18,
+      "money": 20,
+      "req": [
+        "learn",
+        50
+      ],
+      "stat": "learn",
+      "gain": 2,
+      "desc": "每年基础收入 20 两；学识 +2。需学识 50。"
+    },
+    "medical": {
+      "name": "随师学医",
+      "short": "识药、问诊，积累经验",
+      "min": 12,
+      "money": -8,
+      "stat": "medicine",
+      "gain": 7,
+      "desc": "每年花费 8 两；基础医术 +7。"
+    },
+    "doctor": {
+      "name": "行医问诊",
+      "short": "为乡邻看诊，整理医案",
+      "min": 18,
+      "money": 26,
+      "req": [
+        "medicine",
+        40
+      ],
+      "stat": "medicine",
+      "gain": 3,
+      "desc": "每年基础收入 26 两；医术 +3。需医术 40。"
+    },
+    "train": {
+      "name": "习武",
+      "short": "练身手，也学克制",
+      "min": 12,
+      "money": -5,
+      "stat": "martial",
+      "gain": 7,
+      "desc": "每年花费 5 两；基础武艺 +7。"
+    },
+    "guard": {
+      "name": "担任护卫",
+      "short": "护送货物，照应旅人",
+      "min": 18,
+      "money": 22,
+      "req": [
+        "martial",
+        35
+      ],
+      "stat": "martial",
+      "gain": 3,
+      "desc": "每年基础收入 22 两；武艺 +3。需武艺 35。"
+    },
+    "official": {
+      "name": "地方任职",
+      "short": "接手文书与地方事务",
+      "min": 18,
+      "money": 32,
+      "exam": true,
+      "stat": "learn",
+      "gain": 1,
+      "desc": "每年基础收入 32 两；家族声望 +1。需本局应试通过。"
+    },
+    "home": {
+      "name": "料理家事",
+      "short": "照料老人孩子，打理日常",
+      "min": 18,
+      "money": 0,
+      "desc": "不领取收入；全家日常开支少 3 两，每位族人体魄 +1。"
+    },
+    "rest": {
+      "name": "休养",
+      "short": "放下事务，调养身体",
+      "min": 0,
+      "money": 0,
+      "desc": "没有收入；基础体魄 +5，衰老仍然继续。"
+    }
+  },
+  "OPENING_PERIODS": [
+    {
+      "id": "rebuild",
+      "name": "乱后重建",
+      "era": "rebuild",
+      "from": 1,
+      "to": 36,
+      "years": [
+        12,
+        24,
+        36
+      ],
+      "defaultYear": 24
+    },
+    {
+      "id": "peace",
+      "name": "安定盛年",
+      "era": "peace",
+      "from": 37,
+      "to": 84,
+      "years": [
+        48,
+        60,
+        72
+      ],
+      "defaultYear": 72
+    },
+    {
+      "id": "strain",
+      "name": "盛世渐晚",
+      "era": "strain",
+      "from": 85,
+      "to": 120,
+      "years": [
+        96,
+        108,
+        120
+      ],
+      "defaultYear": 108
+    },
+    {
+      "id": "unrest",
+      "name": "变局将至",
+      "era": "unrest",
+      "from": 121,
+      "to": 160,
+      "years": [
+        132,
+        144,
+        156
+      ],
+      "defaultYear": 144
+    }
+  ],
+  "STEP_NAMES": [
+    [
+      "世道与来处",
+      "时代、地区、来历"
+    ],
+    [
+      "家中这些人",
+      "人数、资质、本领"
+    ],
+    [
+      "安身的家底",
+      "资产、家风、人情"
+    ],
+    [
+      "随身的旧物",
+      "信物与解锁"
+    ],
+    [
+      "落笔之前",
+      "确认这一家的开头"
+    ]
+  ],
+  "defaultDraft": {
+    "family": "林",
+    "world": "mortal",
+    "calendar": 72,
+    "seed": 72831,
+    "era": "peace",
+    "place": "village",
+    "origin": "artisan",
+    "habit": "none",
+    "tie": "none",
+    "money": 80,
+    "grain": 24,
+    "land": 1,
+    "home": "simple",
+    "workshop": false,
+    "shop": false,
+    "relics": [
+      "ruler"
+    ],
+    "leader": 1,
+    "nextId": 5,
+    "members": [
+      {
+        "id": 1,
+        "name": "林成",
+        "sex": "男",
+        "age": 42,
+        "parents": [],
+        "spouse": 2,
+        "talent": 2,
+        "focus": "skill",
+        "experience": "craft",
+        "trait": "踏实",
+        "job": "craft"
+      },
+      {
+        "id": 2,
+        "name": "许青",
+        "sex": "女",
+        "age": 40,
+        "parents": [],
+        "spouse": 1,
+        "talent": 2,
+        "focus": "general",
+        "experience": "basic",
+        "trait": "细致",
+        "job": "farm"
+      },
+      {
+        "id": 3,
+        "name": "林芸",
+        "sex": "女",
+        "age": 18,
+        "parents": [
+          1,
+          2
+        ],
+        "spouse": null,
+        "talent": 3,
+        "focus": "medicine",
+        "experience": "none",
+        "trait": "仁厚",
+        "job": "medical"
+      },
+      {
+        "id": 4,
+        "name": "林安",
+        "sex": "男",
+        "age": 10,
+        "parents": [
+          1,
+          2
+        ],
+        "spouse": null,
+        "talent": 3,
+        "focus": "learn",
+        "experience": "none",
+        "trait": "好奇",
+        "job": "study"
+      }
+    ],
+    "openingId": "peace"
+  },
+  "pointGroups": [
+    {
+      "id": "world",
+      "name": "世道与来处",
+      "step": 0,
+      "color": "#967461",
+      "entries": [
+        [
+          "承平岁月",
+          12
+        ],
+        [
+          "河畔乡村",
+          0
+        ],
+        [
+          "手艺人家",
+          8
+        ]
+      ],
+      "value": 20
+    },
+    {
+      "id": "population",
+      "name": "人数与年龄",
+      "step": 1,
+      "color": "#788470",
+      "value": 28,
+      "entries": [
+        [
+          "林成",
+          8
+        ],
+        [
+          "许青",
+          8
+        ],
+        [
+          "林芸",
+          8
+        ],
+        [
+          "林安",
+          4
+        ]
+      ]
+    },
+    {
+      "id": "talent",
+      "name": "个人资质",
+      "step": 1,
+      "color": "#a79872",
+      "value": 8,
+      "entries": [
+        [
+          "林成 · 平常",
+          1
+        ],
+        [
+          "许青 · 平常",
+          1
+        ],
+        [
+          "林芸 · 灵秀",
+          3
+        ],
+        [
+          "林安 · 灵秀",
+          3
+        ]
+      ]
+    },
+    {
+      "id": "experience",
+      "name": "已有本领",
+      "step": 1,
+      "color": "#909d91",
+      "value": 11,
+      "entries": [
+        [
+          "林成 · 熟练手艺",
+          8
+        ],
+        [
+          "许青 · 略通一二",
+          3
+        ],
+        [
+          "林芸 · 尚未专精",
+          0
+        ],
+        [
+          "林安 · 尚未专精",
+          0
+        ]
+      ]
+    },
+    {
+      "id": "assets",
+      "name": "安身家底",
+      "step": 2,
+      "color": "#b08b70",
+      "entries": [
+        [
+          "现银 80 两",
+          8
+        ],
+        [
+          "存粮 24 石",
+          6
+        ],
+        [
+          "田地 1 亩",
+          4
+        ],
+        [
+          "自家土屋",
+          6
+        ],
+        [
+          "木工作坊",
+          0
+        ],
+        [
+          "小商铺",
+          0
+        ]
+      ],
+      "value": 24
+    },
+    {
+      "id": "ties",
+      "name": "家风与人情",
+      "step": 2,
+      "color": "#aaa893",
+      "entries": [
+        [
+          "各自舒展",
+          0
+        ],
+        [
+          "初来乍到",
+          0
+        ]
+      ],
+      "value": 0
+    },
+    {
+      "id": "relics",
+      "name": "家传信物",
+      "step": 3,
+      "color": "#8c5948",
+      "entries": [
+        [
+          "一把老木尺",
+          6
+        ]
+      ],
+      "value": 6
+    }
+  ]
+}

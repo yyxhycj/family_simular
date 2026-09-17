@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t02_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:15: 总分超过 100，不能开始。\\nstack traceback:\\n\\t[string \"<python>\"]:57: in function <[string \"<python>\"]:24>\\n\\t[string \"<python>\"]:15: in upvalue \\'NewRun\\'\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

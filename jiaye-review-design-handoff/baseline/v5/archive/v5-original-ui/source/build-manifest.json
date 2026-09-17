@@ -1,0 +1,13 @@
+{
+  "source": "/mnt/data/jiaye-demo-v4.html",
+  "source_sha256": "2e93f864d91b1a0f8aad1604d83dd1b09a5e434d9810d64a0adefd7753a0bd04",
+  "html": "/mnt/data/jiaye-demo-v5.html",
+  "bytes": 339177,
+  "ui_only": true,
+  "source_simulation_preserved": true,
+  "mobile_widths": [
+    360,
+    390,
+    430
+  ]
+}
