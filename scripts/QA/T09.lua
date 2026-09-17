@@ -23,6 +23,11 @@ local function HasFact(run, kind)
     return nil
 end
 
+local function HasRelic(draft, relicId)
+    for _, id in ipairs(draft.selectedRelicIds or {}) do if id == relicId then return true end end
+    return false
+end
+
 local function CheckEconomyAndHistory(lines)
     local profile = State.NewProfile()
     local run = FindGeneratedRun(profile)
@@ -35,6 +40,9 @@ local function CheckEconomyAndHistory(lines)
     assert(run.money == beforeMoney - quote.price and run.grain == beforeGrain + 2, "购粮结果未按同源报价入账。")
     local grainFact = HasFact(run, "grain_purchase")
     assert(grainFact and grainFact.amount == 2 and grainFact.price == quote.price, "购粮事实记录缺失。")
+    beforeMoney, beforeGrain = run.money, run.grain
+    ok, message = Simulation.BuyGrain(run, 0)
+    assert(not ok and run.money == beforeMoney and run.grain == beforeGrain, "非法购粮改变了资源。")
 
     beforeMoney = run.money
     ok, message = Simulation.BuyAsset(run, "land")
@@ -44,6 +52,33 @@ local function CheckEconomyAndHistory(lines)
     assert(assetFact and assetFact.assetId == "land" and assetFact.price == 30, "置办家业事实记录缺失。")
     table.insert(lines, "公市购粮、运行时置办、事实记录与资源变化同源")
     return run, profile
+end
+
+local function CheckEventResolution(lines)
+    local profile = State.NewProfile()
+    for seed = 1, 4096 do
+        local draft = Opening.Generate(profile, seed, "mortal")
+        if draft and draft.money >= 30 and HasRelic(draft, "ruler") then
+            local run, issues = State.NewRun(draft, profile)
+            assert(run, table.concat(issues or {}, "；"))
+            local ruler = nil
+            for _, instance in ipairs(run.relicInstances) do if instance.definitionId == "ruler" then ruler = instance end end
+            assert(ruler, "真实开局没有带入老木尺实例。")
+            local ok, message = Simulation.StartRelicInvestigation(run, ruler.instanceId, "fast")
+            assert(ok, message)
+            ok, message = Simulation.AdvanceYear(run, profile)
+            assert(ok, message)
+            local event = nil
+            for _, item in ipairs(Simulation.PendingEvents(run)) do if item.type == "relic_resolution" then event = item end end
+            assert(event, "真实调查到期后没有生成待决事件。")
+            ok, message = Simulation.ResolveEvent(run, event.instanceId, "defer", profile)
+            assert(ok, message)
+            assert(event.status == "resolved" and ruler.stage == "clue_saved", "事件结果未同步写入物件状态。")
+            table.insert(lines, "真实信物调查生成待决事件，处理结果同步到物件状态与家史")
+            return
+        end
+    end
+    error("未找到带老木尺的真实生成家庭。")
 end
 
 local function CheckRealViews(run, profile, lines)
@@ -65,6 +100,7 @@ function Start()
     UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
     local lines = { "T09 真实引擎验收通过" }
     local run, profile = CheckEconomyAndHistory(lines)
+    CheckEventResolution(lines)
     CheckRealViews(run, profile, lines)
     UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", alignItems = "center", children = {
         UI.Panel { width = 430, maxWidth = "100%", gap = 12, padding = 16, children = (function()

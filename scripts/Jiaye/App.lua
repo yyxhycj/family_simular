@@ -950,7 +950,7 @@ function App:BuildPeopleTab()
             local state = member.id == self.run.leaderId and "族长" or (member.alive and "在世" or "已故")
             local pendingText = pendingByMember[member.id] and (" · 待办 " .. tostring(pendingByMember[member.id])) or ""
             table.insert(cards, Card({
-                UI.Row { justifyContent = "space-between", children = { Label(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 17, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted }), Label(state, { fontSize = 12, fontColor = member.alive and C.green or C.muted }) } },
+                Label(member.name .. " · " .. tostring(member.age) .. " 岁 · " .. state, { fontSize = 17, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted, whiteSpace = "normal", lineHeight = 1.35 }),
                 Label("第 " .. tostring(State.Generation(self.run.members, member.id)) .. " 代 · " .. (member.alive and Data.Jobs[member.jobId].name or "生平已封存") .. pendingText, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }),
                 Label(MemberRelationText(self.run, member), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
                 Button(self.run.ending and "查看生平" or (member.alive and "查看与安排" or "阅读生平"), function() self:OpenRunMember(member.id) end, { height = 44, fontSize = 13 }),
