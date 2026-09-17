@@ -21,3 +21,4 @@ urhox-libs/
 
 # 本地诊断输出，不参与 Maker 远端提交。
 logs/*.log
+qa/t10/

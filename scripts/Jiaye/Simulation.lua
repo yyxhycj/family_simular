@@ -489,6 +489,13 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
     local event = nil
     for _, item in ipairs(run.events) do if item.instanceId == eventId then event = item end end
     if not event or event.status ~= "pending" then return false, "这件事已处理或不存在。" end
+    if event.type == "legacy_pending" then
+        event.status = "resolved"
+        State.AddFact(run, "migration", "确认了迁入家谱中的旧版家事：“" .. tostring(event.title or "未命名家事") .. "”。", {}, {
+            action = "acknowledge_legacy_event", legacyType = event.legacyType, legacyDetail = State.Copy(event.legacyDetail or {}),
+        })
+        return true, "旧版待决家事已写入现有家史。"
+    end
     if event.type == "growth" then
         local member = State.FindMember(run.members, event.memberId)
         if not member then

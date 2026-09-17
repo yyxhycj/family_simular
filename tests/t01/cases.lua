@@ -51,6 +51,11 @@ cases.history = {
 local function succession()
     local run, profile, draft = fresh()
     run.members = { run.members[1], run.members[2] }; run.members[1].age = 89; run.members[2].age = 30
+    for index = #run.facts, 1, -1 do
+        local keep = true
+        for _, memberId in ipairs(run.facts[index].memberIds or {}) do if memberId > 2 then keep = false end end
+        if not keep then table.remove(run.facts, index) end
+    end
     for _, person in ipairs(run.members) do person.spouseId = nil; person.birthPlan = false end
     run.rngState = 1
     assert(Sim.AdvanceYear(run, profile)); assert(not run.members[1].alive and run.members[2].alive)
@@ -69,8 +74,13 @@ cases.succession = {
             run.members[2].age = 17; assert(not Sim.ResolveLeaderEvent(run, event.instanceId, 2)); run.members[2].age = 31
             assert(same(run, before), "invalid appointment mutated state")
             assert(State.Save(profile, draft, run)); local app = resume()
-            if entrance == "event" then click(app:BuildPendingEvent(app.run.events[1]), "任命 许青")
-            else app:OpenRunMember(2); click(UI.modal, "任命为族长") end
+            if entrance == "event" then
+                click(app:BuildPendingEvent(app.run.events[1]), "任命 许青")
+                click(UI.modal, "确认任命")
+            else
+                app:OpenRunMember(2); click(UI.modal, "任命为族长")
+                click(UI.modal, "确认交接")
+            end
             run = app.run
             assert(run.leaderId == 2 and #run.leaderTerms == 2 and run.leaderTerms[1].endYear == 1)
             assert(#Sim.PendingEvents(run) == 0 and run.events[1].memberId == 2)

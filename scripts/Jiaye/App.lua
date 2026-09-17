@@ -190,6 +190,48 @@ function App:Export()
     self:Notify(message, raw and "success" or "error")
 end
 
+function App:OpenImport()
+    if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
+    self.importRaw = ""
+    local modal = UI.Modal { title = "导入家业备份", size = "fullscreen", closeOnOverlay = true }
+    modal:AddContent(Label("粘贴由《家业》导出的完整 JSON。系统会先隔离解析、校验版本、结构和所有人物/物件引用；确认前不会改动当前进度。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
+    modal:AddContent(UI.TextField {
+        value = "", placeholder = "粘贴 JSON 备份内容", maxLength = 15000000,
+        onChange = function(_, value) self.importRaw = value end,
+    })
+    modal:SetFooter(UI.Panel { flexDirection = "column", gap = 8, children = {
+        Button("校验并预演", function()
+            local candidate, message, status = State.PreflightImport(self.importRaw)
+            if not candidate then self:Notify(message, "error"); return end
+            modal:Close(); self:ConfirmImport(candidate, message, status)
+        end, { height = 48 }),
+        Button("取消", function() modal:Close() end, { height = 44, backgroundColor = C.pale, textColor = C.green }),
+    } })
+    modal:Open()
+end
+
+function App:ConfirmImport(candidate, previewMessage, status)
+    local modal = UI.Modal { title = "确认替换当前进度", size = "lg", closeOnOverlay = false }
+    modal:AddContent(Label(previewMessage, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
+    modal:AddContent(Label("确认后写入新的可回读存档；当前进度在写入失败时保持原样。重复确认同一份备份只保留一份结果。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.5, fontColor = C.muted }))
+    modal:SetFooter(UI.Panel { flexDirection = "column", gap = 8, children = {
+        Button("确认导入", function()
+            local ok, message, result = State.CommitImport(candidate)
+            if not ok then self:Notify(message, "error"); return end
+            local loaded, loadMessage = State.Load()
+            if not loaded then self:Notify("导入写入后无法读取，请保留备份并重试。", "error"); return end
+            self.profile, self.draft, self.run = loaded.profile, loaded.draft, loaded.run
+            self.previousDraft = nil; self.editBackup = nil; self.houseUndo = nil; self.undo = {}; self.historyPage = 1
+            self.peopleQuery = ""; self.peopleQueryDraft = ""; self.historySection = "annals"; self.storageBlocked = false
+            self.unsaved = false; self.saveMessage = ""; self.openingGenerationFailed = false
+            self.screen = self.run and "game" or "opening"
+            modal:Close(); self:Render(); self:Notify(result == "duplicate" and message or (message .. " " .. loadMessage), "success")
+        end, { height = 48 }),
+        Button("保留当前进度", function() modal:Close() end, { height = 44, backgroundColor = C.pale, textColor = C.green }),
+    } })
+    modal:Open()
+end
+
 function App:SetDraftField(page, key, value)
     self.draft[key] = value; self.undo[page] = nil; self.houseUndo = nil
     self.openingFeedback = ""; self:Render()
@@ -574,6 +616,7 @@ function App:BuildCover()
     end
     table.insert(actions, Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 20 }))
     table.insert(actions, Button("读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+    table.insert(actions, Button("导入备份", function() self:OpenImport() end, { height = 44, backgroundColor = C.pale, textColor = C.green }))
     return UI.Panel { width = "100%", height = "100%", backgroundColor = C.dark, justifyContent = "center", padding = 26, children = {
         UI.Panel { gap = 16, children = actions },
     } }
@@ -591,6 +634,13 @@ function App:BuildGameNav()
 end
 
 function App:BuildPendingEvent(event)
+    if event.type == "legacy_pending" then
+        return Card({
+            Label(event.title or "旧版待决家事", { fontSize = 19, fontWeight = "bold" }),
+            Label("这条家事由 V5 存档迁入。原始内容已保存在迁移记录中；确认后会写入现有家史，不会重复结算旧版费用或奖励。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.55 }),
+            Button("确认并写入家史", function() self:ConfirmEventChoice(event, "确认迁入旧版家事", "处理结果：原始内容保留，当前家谱只追加一条迁移事实。", "acknowledge") end, { height = 44 }),
+        }, { borderColor = C.green })
+    end
     if event.type == "relic_resolution" then
         local instance = nil; for _, item in ipairs(self.run.relicInstances) do if item.instanceId == event.relicInstanceId then instance = item end end
         local relic = instance and Data.Relic(instance.definitionId)
@@ -1253,6 +1303,7 @@ function App:BuildHistoryTab()
         Card({ Label("家史", { fontSize = 21, fontWeight = "bold" }), Label("家史全量保留，按新到旧分页。", { fontSize = 13, fontColor = C.muted }),
             UI.Row { gap = 8, children = {
                 Button("导出本局", function() self:Export() end, { flex = 1 }),
+                Button("导入备份", function() self:OpenImport() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
                 Button("新立家谱", function() self:PrepareNewRun() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
             } },
         }),

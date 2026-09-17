@@ -3,6 +3,8 @@ local Data = require "Jiaye.Data"
 
 local State = {}
 
+State.SAVE_SCHEMA_VERSION = 2
+
 function State.Copy(value)
     if type(value) ~= "table" then return value end
     local copy = {}
@@ -354,6 +356,267 @@ function State.RecordAnnualLedger(run, ledger, yearStart)
     return record
 end
 
+local function IsInteger(value)
+    return type(value) == "number" and value == math.floor(value) and value ~= math.huge and value ~= -math.huge
+end
+
+local function IsNonNegativeInteger(value)
+    return IsInteger(value) and value >= 0
+end
+
+local function ImportReceipt(raw)
+    local checksum = 0
+    for index = 1, #raw do checksum = (checksum * 131 + string.byte(raw, index)) % 2147483647 end
+    return "import-" .. tostring(#raw) .. "-" .. tostring(checksum)
+end
+
+local function LegacyNameSource(family, name)
+    if type(family) == "string" and type(name) == "string" and name:sub(1, #family) == family then return "family" end
+    return "custom"
+end
+
+local function MapLegacyMember(member, family, runtime)
+    if type(member) ~= "table" then return nil, "旧档成员结构无效。" end
+    local mapped = {
+        id = member.id, name = member.name, nameSource = member.nameSource or LegacyNameSource(family, member.name), sex = member.sex,
+        age = member.age, parents = State.Copy(member.parents or {}), spouseId = member.spouseId or member.spouse,
+        talent = member.talent, focus = member.focus, experienceId = member.experienceId or member.experience,
+        trait = member.trait, jobId = member.jobId or member.job,
+    }
+    if runtime then
+        local experience = Data.Experience(mapped.experienceId)
+        local sourceStats = type(member.stats) == "table" and member.stats or member
+        mapped.alive = member.alive ~= false
+        mapped.health = member.health
+        mapped.stats = {
+            learn = sourceStats.learn or (experience and experience.values.learn), skill = sourceStats.skill or (experience and experience.values.skill),
+            medicine = sourceStats.medicine or (experience and experience.values.medicine), trade = sourceStats.trade or (experience and experience.values.trade),
+            martial = sourceStats.martial or (experience and experience.values.martial),
+        }
+        mapped.jobYears = State.Copy(member.jobYears or {})
+        mapped.birthPlan = member.birthPlan ~= false
+        mapped.lastBirthYear = member.lastBirthYear or member.lastBirth or -5
+        mapped.hadHomeAfterGuard = member.hadHomeAfterGuard == true
+        mapped.generation = member.generation or member.gen
+        mapped.examPassed = member.examPassed == true
+        mapped.deathYear = member.deathYear
+        mapped.factIds = State.Copy(member.factIds or {})
+        mapped.biography = {}
+        for _, entry in ipairs(member.biography or member.bio or {}) do
+            if type(entry) == "table" then table.insert(mapped.biography, tostring(entry.text or "旧版人生记录"))
+            elseif type(entry) == "string" then table.insert(mapped.biography, entry) end
+        end
+        if #mapped.biography == 0 then table.insert(mapped.biography, "由 V5 存档迁入，原有安排与经历已保留。") end
+    end
+    return mapped
+end
+
+local function MapLegacyDraft(legacy, profile)
+    if type(legacy) ~= "table" then return nil, "旧版草案缺失。" end
+    local draft = {
+        family = legacy.family, worldId = legacy.worldId or legacy.world, periodId = legacy.periodId or legacy.era,
+        calendar = legacy.calendar, originId = legacy.originId or legacy.origin, placeId = legacy.placeId or legacy.place,
+        habitId = legacy.habitId or legacy.habit, tieId = legacy.tieId or legacy.tie,
+        money = legacy.money, grain = legacy.grain, land = legacy.land, homeId = legacy.homeId or legacy.home,
+        workshop = legacy.workshop, shop = legacy.shop, selectedRelicIds = State.Copy(legacy.selectedRelicIds or legacy.relics or {}),
+        leaderId = legacy.leaderId or legacy.leader, rngSeed = legacy.rngSeed or legacy.seed, nextId = legacy.nextId,
+        members = {},
+    }
+    for _, member in ipairs(legacy.members or {}) do
+        local mapped, message = MapLegacyMember(member, draft.family, false)
+        if not mapped then return nil, message end
+        table.insert(draft.members, mapped)
+    end
+    local issues = State.ValidateDraft(draft, profile, true)
+    if #issues > 0 then return nil, "旧版草案无法迁移：" .. tostring(issues[1]) end
+    return draft
+end
+
+local function MapLegacyProfile(legacy)
+    if type(legacy) ~= "table" or type(legacy.unlocked) ~= "table" or type(legacy.records) ~= "table" or type(legacy.endings) ~= "table" then
+        return nil, "旧版收藏或终章记录结构无效。"
+    end
+    local profile = { schemaVersion = 1, unlockedRelicIds = {}, endingRecords = State.Copy(legacy.endings), relicUnlockRecords = State.Copy(legacy.records) }
+    for _, relicId in ipairs(legacy.unlocked) do
+        if not Data.Relic(relicId) then return nil, "旧版包含未知信物：" .. tostring(relicId) end
+        profile.unlockedRelicIds[relicId] = true
+    end
+    return profile
+end
+
+local function MapLegacyRun(legacy, draft, profile)
+    if type(legacy) ~= "table" or legacy.version ~= 3 or type(legacy.members) ~= "table" or type(legacy.logs) ~= "table" or type(legacy.events) ~= "table" or type(legacy.relics) ~= "table" then
+        return nil, "旧版家谱结构或版本无效。"
+    end
+    local openingSnapshot, message = MapLegacyDraft(legacy.config or draft, profile)
+    if not openingSnapshot then return nil, message end
+    local run = {
+        runId = legacy.runId or "v5-run-" .. tostring(legacy.seed or 0), schemaVersion = 1, rulesVersion = Data.RULES_VERSION,
+        openingSnapshot = openingSnapshot, worldId = openingSnapshot.worldId, yearIndex = legacy.elapsed, calendar = legacy.calendar,
+        eraId = legacy.era, eraSinceYear = legacy.eraSince or 0, placeId = legacy.place, originId = openingSnapshot.originId,
+        habitId = openingSnapshot.habitId, tieId = openingSnapshot.tieId, members = {}, leaderId = legacy.leader,
+        leaderTerms = {}, money = legacy.money, grain = legacy.grain, land = legacy.land, homeId = legacy.home,
+        workshop = legacy.workshop == true, shop = legacy.shop == true, reputation = legacy.reputation or 0,
+        relicInstances = {}, events = {}, logs = {}, facts = {}, annualLedgers = {}, ending = nil, revision = legacy.revision or 0,
+        rngState = ((legacy.rng or legacy.seed or 1) % 2147483646) + 1, processedCommands = {}, flags = State.Copy(legacy.flags or {}),
+        metrics = State.Copy(legacy.metrics or {}), migratedFrom = "v5-schema-3",
+    }
+    run.metrics.stable = run.metrics.stable or 0; run.metrics.foodYears = run.metrics.foodYears or 0
+    run.metrics.aid = run.metrics.aid or 0; run.metrics.migrations = run.metrics.migrations or 0; run.metrics.lastMove = run.metrics.lastMove or 0
+    for _, member in ipairs(legacy.members) do
+        local mapped, issue = MapLegacyMember(member, openingSnapshot.family, true)
+        if not mapped then return nil, issue end
+        table.insert(run.members, mapped)
+    end
+    local relicByDefinition = {}
+    for index, relic in ipairs(legacy.relics) do
+        if type(relic) ~= "table" or not Data.Relic(relic.id) then return nil, "旧版物件引用无效。" end
+        local stage = relic.phase == 1 and (relic.route == "slow" and "slow" or "fast") or (relic.phase == 2 and "completed" or "idle")
+        local instance = {
+            instanceId = "legacy-relic-" .. tostring(index), definitionId = relic.id, status = relic.status == "sold" and "sold" or (relic.phase == 1 and "investigating" or "held"),
+            stage = stage, source = "V5 存档迁入", custodianId = relic.custodian, executorId = relic.actor,
+            route = relic.route == "slow" and "slow" or (relic.route and "fast" or nil), dueYear = relic.due,
+            rewardState = relic.phase == 2 and "granted" or "none", legacyHistory = State.Copy(relic.history or {}),
+        }
+        table.insert(run.relicInstances, instance)
+        relicByDefinition[relic.id] = instance
+    end
+    for index = #legacy.logs, 1, -1 do
+        local entry = legacy.logs[index]
+        if type(entry) ~= "table" then return nil, "旧版年鉴条目无效。" end
+        local text = tostring(entry.title or "旧版家史")
+        if type(entry.body) == "string" and entry.body ~= "" then text = text .. "：" .. entry.body end
+        table.insert(run.logs, 1, { id = "legacy-history-" .. tostring(index), year = openingSnapshot.calendar + (entry.year or 0), text = text, legacyEffects = State.Copy(entry.effects or {}) })
+    end
+    for index, term in ipairs(legacy.leaders or {}) do
+        if type(term) ~= "table" then return nil, "旧版任期记录无效。" end
+        table.insert(run.leaderTerms, { memberId = term.id, startYear = term.start or 0, endYear = term["end"], effective = (term["end"] or 0) > (term.start or 0), reason = term.reason or "V5 任期记录" })
+    end
+    if #run.leaderTerms == 0 then table.insert(run.leaderTerms, { memberId = run.leaderId, startYear = 0, endYear = nil, effective = false, reason = "V5 开局任命" }) end
+    for index, event in ipairs(legacy.events) do
+        if type(event) ~= "table" then return nil, "旧版待决事件无效。" end
+        local relic = relicByDefinition[event.relic]
+        local mapped = {
+            instanceId = "legacy-event-" .. tostring(index), type = "legacy_pending", status = "pending", title = event.title or "旧版待决家事",
+            legacyType = event.type, legacyDetail = State.Copy(event), blocking = false,
+        }
+        if event.type == "leader" then
+            mapped.type = "leader"; mapped.title = "族长之位空缺"
+        elseif event.type == "relicFinish" and relic then
+            mapped.type = "relic_resolution"; mapped.relicInstanceId = relic.instanceId; mapped.executorId = relic.executorId
+            mapped.title = Data.Relic(relic.definitionId).name .. "有了新的线索"; relic.status = "awaiting_resolution"; relic.stage = "awaiting_resolution"
+        elseif relic and relic.status == "investigating" and relic.dueYear and relic.dueYear <= run.yearIndex then
+            relic.status = "awaiting_resolution"; relic.stage = "awaiting_resolution"; mapped.type = "relic_resolution"; mapped.relicInstanceId = relic.instanceId; mapped.executorId = relic.executorId
+            mapped.title = Data.Relic(relic.definitionId).name .. "有了新的线索"
+        end
+        table.insert(run.events, mapped)
+    end
+    if legacy.ended then
+        local ending = Data.Ending(legacy.ended.id)
+        if not ending then return nil, "旧版终章引用无效。" end
+        run.ending = { id = ending.id, title = ending.title, type = ending.type, automatic = ending.automatic == true, year = run.calendar, yearIndex = run.yearIndex, leaderId = run.leaderId, summary = ending.desc, migratedFrom = "v5" }
+        for _, event in ipairs(run.events) do if event.status == "pending" then event.status = "cancelled" end end
+    end
+    return run
+end
+
+local function ValidateProfile(profile)
+    if type(profile) ~= "table" or profile.schemaVersion ~= 1 or type(profile.unlockedRelicIds) ~= "table" or type(profile.endingRecords) ~= "table" then return false, "收藏或终章记录结构无效。" end
+    for relicId, unlocked in pairs(profile.unlockedRelicIds) do if unlocked and not Data.Relic(relicId) then return false, "收藏包含未知信物。" end end
+    for _, record in ipairs(profile.endingRecords) do if type(record) ~= "table" or not Data.Ending(record.id) then return false, "终章记录包含未知引用。" end end
+    return true
+end
+
+local function ValidateRun(run)
+    if type(run) ~= "table" or run.schemaVersion ~= 1 or not IsNonNegativeInteger(run.yearIndex) or not IsInteger(run.calendar)
+        or not Data.Period(run.eraId) or not Data.Place(run.placeId) or not Data.Origin(run.originId) or not Data.Habit(run.habitId) or not Data.Tie(run.tieId)
+        or not Data.Home(run.homeId) or type(run.members) ~= "table" or type(run.logs) ~= "table" or type(run.events) ~= "table"
+        or type(run.leaderTerms) ~= "table" or type(run.relicInstances) ~= "table" or type(run.facts) ~= "table" or type(run.annualLedgers) ~= "table"
+        or not IsInteger(run.rngState) or run.rngState < 1 or run.rngState >= 2147483647 then
+        return false, "家谱结构、版本或基础引用无效。"
+    end
+    local memberIds, relicIds = {}, {}
+    for _, member in ipairs(run.members) do
+        if type(member) ~= "table" or not IsNonNegativeInteger(member.id) or member.id < 1 or memberIds[member.id]
+            or not State.ValidName(member.name) or (member.sex ~= "男" and member.sex ~= "女") or not IsNonNegativeInteger(member.age)
+            or not Data.Talents[member.talent] or not Data.FocusNames[member.focus] or not Data.Experience(member.experienceId) or not Data.Jobs[member.jobId]
+            or type(member.stats) ~= "table" or type(member.jobYears) ~= "table" or type(member.biography) ~= "table" then
+            return false, "家谱成员结构或引用无效。"
+        end
+        memberIds[member.id] = true
+    end
+    if not memberIds[run.leaderId] then return false, "族长引用无效。" end
+    for _, member in ipairs(run.members) do
+        for _, parentId in ipairs(member.parents or {}) do if not memberIds[parentId] then return false, "亲缘引用无效。" end end
+        if member.spouseId and not memberIds[member.spouseId] then return false, "婚配引用无效。" end
+    end
+    for _, relic in ipairs(run.relicInstances) do
+        if type(relic) ~= "table" or type(relic.instanceId) ~= "string" or relicIds[relic.instanceId] or not Data.Relic(relic.definitionId)
+            or (relic.custodianId and not memberIds[relic.custodianId]) or (relic.executorId and not memberIds[relic.executorId]) then
+            return false, "本局物件结构或引用无效。"
+        end
+        relicIds[relic.instanceId] = true
+    end
+    for _, term in ipairs(run.leaderTerms) do if type(term) ~= "table" or not memberIds[term.memberId] then return false, "任期引用无效。" end end
+    for _, event in ipairs(run.events) do
+        if type(event) ~= "table" or type(event.instanceId) ~= "string" or (event.memberId and not memberIds[event.memberId])
+            or (event.executorId and not memberIds[event.executorId]) or (event.relicInstanceId and not relicIds[event.relicInstanceId]) then
+            return false, "待决事件引用无效。"
+        end
+    end
+    for _, fact in ipairs(run.facts) do
+        if type(fact) ~= "table" or type(fact.memberIds) ~= "table" then return false, "事实记录结构无效。" end
+        for _, memberId in ipairs(fact.memberIds) do if not memberIds[memberId] then return false, "事实记录参与人无效。" end end
+    end
+    if run.ending and (type(run.ending) ~= "table" or not Data.Ending(run.ending.id)) then return false, "终章引用无效。" end
+    return true
+end
+
+function State.ValidateSavePayload(value)
+    if type(value) ~= "table" or (value.saveSchemaVersion ~= nil and value.saveSchemaVersion ~= 1 and value.saveSchemaVersion ~= State.SAVE_SCHEMA_VERSION) then
+        return false, "存档版本无效。"
+    end
+    local profile, draft, run = value.profile, value.draft, value.run
+    local profileOk, profileMessage = ValidateProfile(profile)
+    if not profileOk then return false, profileMessage end
+    local issues = State.ValidateDraft(draft, profile, true)
+    if #issues > 0 then return false, "开局草案结构或引用无效：" .. tostring(issues[1]) end
+    if run then
+        local runOk, runMessage = ValidateRun(run)
+        if not runOk then return false, runMessage end
+    end
+    return true
+end
+
+local function NormalizeCurrentPayload(value)
+    local candidate = State.Copy(value)
+    candidate.saveSchemaVersion = State.SAVE_SCHEMA_VERSION
+    candidate.profile = candidate.profile or State.NewProfile()
+    candidate.profile.schemaVersion = candidate.profile.schemaVersion or 1
+    candidate.profile.unlockedRelicIds = candidate.profile.unlockedRelicIds or { book = true, ruler = true, letter = true }
+    candidate.profile.endingRecords = candidate.profile.endingRecords or {}
+    if candidate.run then
+        local run = candidate.run
+        run.schemaVersion = run.schemaVersion or 1
+        run.rulesVersion = run.rulesVersion or Data.RULES_VERSION
+        run.openingSnapshot = run.openingSnapshot or State.Copy(candidate.draft)
+        run.facts = run.facts or {}
+        run.annualLedgers = run.annualLedgers or {}
+        run.processedCommands = run.processedCommands or {}
+        run.revision = run.revision or 0
+        run.metrics = run.metrics or {}
+        run.metrics.stable = run.metrics.stable or 0; run.metrics.foodYears = run.metrics.foodYears or 0
+        run.metrics.aid = run.metrics.aid or 0; run.metrics.migrations = run.metrics.migrations or 0; run.metrics.lastMove = run.metrics.lastMove or 0
+        for _, member in ipairs(run.members or {}) do
+            member.factIds = member.factIds or {}
+            member.biography = member.biography or {}
+            member.stats = member.stats or State.Copy((Data.Experience(member.experienceId) or Data.Experience("none")).values)
+            member.jobYears = member.jobYears or {}
+        end
+    end
+    return candidate
+end
+
 -- 两个交替存档位：只写非最新的一份，失败时保留上次可读进度。
 ---@type string[]
 local SAVE_PATHS = { "jiaye_save.json", "jiaye_save.backup.json" }
@@ -377,16 +640,9 @@ local function ReadSlot(path)
     if not raw then return nil, "unreadable" end
     local ok, value = pcall(cjson.decode, raw)
     if not ok or type(value) ~= "table" then return nil, "invalid" end
-    local profile, draft, run = value.profile, value.draft, value.run
-    -- 这里只识别当前格式的必要容器；完整旧版迁移、引用校验留在 T10。
-    if type(profile) ~= "table" or profile.schemaVersion ~= 1
-        or type(profile.unlockedRelicIds) ~= "table" or type(profile.endingRecords) ~= "table"
-        or type(draft) ~= "table" or type(draft.members) ~= "table" or type(draft.selectedRelicIds) ~= "table"
-        or (run ~= nil and (type(run) ~= "table" or run.schemaVersion ~= 1
-            or type(run.members) ~= "table" or type(run.logs) ~= "table" or type(run.events) ~= "table"
-            or type(run.leaderTerms) ~= "table" or type(run.relicInstances) ~= "table")) then
-        return nil, "invalid"
-    end
+    value = NormalizeCurrentPayload(value)
+    local valid = State.ValidateSavePayload(value)
+    if not valid then return nil, "invalid" end
     local revision = value.saveRevision or 0 -- 兼容现有未编号存档。
     if type(revision) ~= "number" or revision < 0 or revision ~= math.floor(revision) or revision == math.huge then return nil, "invalid" end
     value.saveRevision = revision
@@ -413,10 +669,17 @@ local function WriteVerified(path, raw)
     return ok and written == true and ReadFile(path) == raw
 end
 
-function State.Save(profile, draft, run)
+function State.Save(profile, draft, run, metadata)
     local previous, index, problem, unreadable = LatestSave()
-    if unreadable or (problem and not previous) then return false, "旧存档无法安全读取，已停止覆盖；请保留原文件并导出当前进度。" end
-    local payload = { profile = profile, draft = draft, run = run, saveRevision = (previous and previous.saveRevision or 0) + 1 }
+    local allowRecoveryOverwrite = type(metadata) == "table" and metadata.allowRecoveryOverwrite == true
+    if (unreadable or (problem and not previous)) and not allowRecoveryOverwrite then return false, "旧存档无法安全读取，已停止覆盖；请保留原文件并导出当前进度。" end
+    local payload = {
+        saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = profile, draft = draft, run = run,
+        saveRevision = (previous and previous.saveRevision or 0) + 1,
+    }
+    if type(metadata) == "table" and type(metadata.importReceipt) == "string" then payload.importReceipt = metadata.importReceipt end
+    local valid, validationMessage = State.ValidateSavePayload(payload)
+    if not valid then return false, "当前进度无法保存：" .. validationMessage end
     local encoded, raw = pcall(cjson.encode, payload)
     if not encoded then return false, "存档编码失败，当前进度仍在内存中。" end
     local targetPath = index == 1 and SAVE_PATHS[2] or SAVE_PATHS[1]
@@ -436,18 +699,59 @@ function State.Load()
     return nil, problem and "本地存档不可读，已停止开新局以保护旧进度；请保留原文件。" or "尚无本地存档。", problem and "invalid" or "missing"
 end
 
-function State.Import(raw)
+function State.PreflightImport(raw)
+    if type(raw) ~= "string" or raw == "" then return nil, "请粘贴完整的备份 JSON。", "invalid" end
+    if #raw > 15000000 then return nil, "备份文件超过 15MB，已停止解析。", "invalid" end
     local ok, value = pcall(cjson.decode, raw)
-    if not ok or type(value) ~= "table" or type(value.profile) ~= "table" or type(value.draft) ~= "table" then
-        return nil, "备份格式无效，未覆盖当前进度。"
+    if not ok or type(value) ~= "table" then return nil, "备份 JSON 无法解析，当前进度未改动。", "invalid" end
+    local candidate, source
+    if type(value.profile) == "table" and value.profile.schemaVersion == 1 then
+        candidate = NormalizeCurrentPayload(value); source = "当前格式"
+    elseif value.schema == 3 then
+        local profile, profileMessage = MapLegacyProfile(value.profile)
+        if not profile then return nil, profileMessage, "invalid" end
+        local draft, draftMessage = MapLegacyDraft(value.draft, profile)
+        if not draft then return nil, draftMessage, "invalid" end
+        local run, runMessage = nil, nil
+        if value.game ~= nil then run, runMessage = MapLegacyRun(value.game, draft, profile) end
+        if runMessage then return nil, runMessage, "invalid" end
+        candidate = { saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = profile, draft = draft, run = run, migratedFrom = "v5-schema-3" }
+        source = "V5 存档"
+    else
+        return nil, "备份版本无法识别，当前进度未改动。", "invalid"
     end
-    value.profile.unlockedRelicIds = value.profile.unlockedRelicIds or { book = true, ruler = true, letter = true }
-    value.profile.endingRecords = value.profile.endingRecords or {}
-    return value, "备份结构有效，可安全载入。"
+    candidate.saveSchemaVersion = State.SAVE_SCHEMA_VERSION
+    candidate.saveRevision = nil
+    candidate.importReceipt = ImportReceipt(raw)
+    local valid, message = State.ValidateSavePayload(candidate)
+    if not valid then return nil, "备份校验失败：" .. message, "invalid" end
+    local pending = candidate.run and #candidate.run.events or 0
+    local years = candidate.run and candidate.run.yearIndex or 0
+    return candidate, source .. "已通过结构、版本与引用校验：经营 " .. tostring(years) .. " 年，待决家事 " .. tostring(pending) .. " 件。确认后才会替换当前进度。", "ready"
+end
+
+function State.Import(raw)
+    return State.PreflightImport(raw)
+end
+
+function State.CommitImport(candidate)
+    if type(candidate) ~= "table" then return false, "没有可确认的导入内容。", "invalid" end
+    local valid, validationMessage = State.ValidateSavePayload(candidate)
+    if not valid then return false, "导入内容已失效：" .. validationMessage, "invalid" end
+    local latest = LatestSave()
+    if latest and latest.importReceipt and latest.importReceipt == candidate.importReceipt then
+        return true, "这份备份已经导入，当前进度保持不变。", "duplicate"
+    end
+    local ok, message = State.Save(candidate.profile, candidate.draft, candidate.run, { importReceipt = candidate.importReceipt, allowRecoveryOverwrite = true })
+    if not ok then return false, message, "failed" end
+    return true, "备份已原子写入并回读核对。", "committed"
 end
 
 function State.Export(profile, draft, run)
-    local ok, raw = pcall(cjson.encode, { profile = profile, draft = draft, run = run })
+    local payload = { saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = profile, draft = draft, run = run }
+    local valid, validationMessage = State.ValidateSavePayload(payload)
+    if not valid then return nil, "当前进度无法导出：" .. validationMessage end
+    local ok, raw = pcall(cjson.encode, payload)
     if not ok then return nil, "备份编码失败，未导出。" end
     if not WriteVerified("jiaye_export.json", raw) then return nil, "备份写入或回读失败，未确认导出成功。" end
     return raw, "备份已写入 jiaye_export.json 并回读核对。"

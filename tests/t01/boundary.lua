@@ -18,7 +18,7 @@ local function widget(kind, props)
     props.Destroy = function(self) self.destroyed = true end
     return props
 end
-for _, kind in ipairs({ "Panel", "Row", "Dropdown", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Box", "Modal" }) do
+for _, kind in ipairs({ "Panel", "Row", "SimpleGrid", "Dropdown", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Box", "Modal" }) do
     UI[kind] = function(props) return widget(kind, props) end
 end
 UI.Box = function(width, height) return widget("Box", { width = width, height = height }) end
