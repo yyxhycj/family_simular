@@ -1,0 +1,2208 @@
+{
+  "evidenceLayer": "真实引擎 runtime 日志；只提取外层 JSON msg 中精确包含 OPENING_QA { 的事件",
+  "sources": [
+    {
+      "path": "qa/opening/chrome/03-runtime.jsonl",
+      "openingQaEvents": 29
+    },
+    {
+      "path": "qa/opening/chrome/04-runtime-restart.jsonl",
+      "openingQaEvents": 30
+    }
+  ],
+  "events": [
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:1",
+      "t": 1789615724,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "width": 360,
+          "height": 800
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:2",
+      "t": 1789615770,
+      "summary": {
+        "screen": "opening",
+        "view": "ledger",
+        "page": "world",
+        "frame": {
+          "width": 360,
+          "height": 800
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:3",
+      "t": 1789615780,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "width": 360,
+          "height": 800
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:4",
+      "t": 1789615781,
+      "summary": {
+        "screen": "game",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "width": 360,
+          "height": 800
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:5",
+      "t": 1789615988,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 800,
+          "width": 360
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:6",
+      "t": 1789616029,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 844,
+          "width": 390
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:7",
+      "t": 1789616048,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "顾衡明",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:8",
+      "t": 1789616075,
+      "summary": {
+        "screen": "opening",
+        "view": "people",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "顾衡明",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:9",
+      "t": 1789616262,
+      "summary": {
+        "screen": "opening",
+        "view": "member",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "顾衡明",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:10",
+      "t": 1789616269,
+      "summary": {
+        "screen": "opening",
+        "view": "people",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "顾衡明欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:11",
+      "t": 1789616270,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "顾衡明欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:12",
+      "t": 1789616279,
+      "summary": {
+        "screen": "opening",
+        "view": "people",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "顾衡明欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:13",
+      "t": 1789616287,
+      "summary": {
+        "screen": "opening",
+        "view": "member",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "顾衡明欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:14",
+      "t": 1789616295,
+      "summary": {
+        "screen": "opening",
+        "view": "people",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:15",
+      "t": 1789616296,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:16",
+      "t": 1789616296,
+      "summary": {
+        "screen": "opening",
+        "view": "name",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "顾",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "顾允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "顾成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "顾川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "顾川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:17",
+      "t": 1789616305,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:18",
+      "t": 1789616312,
+      "summary": {
+        "screen": "opening",
+        "view": "people",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:19",
+      "t": 1789616313,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:20",
+      "t": 1789616314,
+      "summary": {
+        "screen": "opening",
+        "view": "editor",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 98,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "village",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:21",
+      "t": 1789616337,
+      "summary": {
+        "screen": "opening",
+        "view": "editor",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 100,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "mountain",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:22",
+      "t": 1789616337,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 100,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "mountain",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:23",
+      "t": 1789616386,
+      "summary": {
+        "screen": "opening",
+        "view": "editor",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 100,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "mountain",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:24",
+      "t": 1789616387,
+      "summary": {
+        "screen": "opening",
+        "view": "editor",
+        "page": "estate",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 100,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "mountain",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:25",
+      "t": 1789616412,
+      "summary": {
+        "screen": "opening",
+        "view": "editor",
+        "page": "estate",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 114,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "mountain",
+          "money": 20,
+          "grain": 0,
+          "workshop": true,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:26",
+      "t": 1789616413,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "estate",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 100,
+        "draft": {
+          "rngSeed": 1416712955,
+          "family": "司马",
+          "placeId": "mountain",
+          "money": 20,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "欧阳自定",
+            "nameSource": "custom"
+          },
+          {
+            "id": 2,
+            "name": "闻芸宁",
+            "nameSource": "external"
+          },
+          {
+            "id": 3,
+            "name": "司马允",
+            "nameSource": "family"
+          },
+          {
+            "id": 4,
+            "name": "司马成",
+            "nameSource": "family"
+          },
+          {
+            "id": 5,
+            "name": "司马川",
+            "nameSource": "family"
+          },
+          {
+            "id": 6,
+            "name": "司马川",
+            "nameSource": "family"
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:27",
+      "t": 1789616415,
+      "summary": {
+        "screen": "opening",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 102,
+        "draft": {
+          "rngSeed": 72831,
+          "family": "林",
+          "placeId": "village",
+          "money": 130,
+          "grain": 24,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "林成",
+            "nameSource": null
+          },
+          {
+            "id": 2,
+            "name": "许青",
+            "nameSource": null
+          },
+          {
+            "id": 3,
+            "name": "林芸",
+            "nameSource": null
+          },
+          {
+            "id": 4,
+            "name": "林安",
+            "nameSource": null
+          }
+        ],
+        "run": {
+          "yearIndex": null,
+          "money": null,
+          "grain": null,
+          "rngState": null
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:28",
+      "t": 1789616422,
+      "summary": {
+        "screen": "game",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/03-runtime.jsonl:29",
+      "t": 1789616435,
+      "summary": {
+        "screen": "game",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": 1,
+          "money": 65,
+          "grain": 8,
+          "rngState": 718517862
+        },
+        "savedRun": {
+          "yearIndex": 1,
+          "money": 65,
+          "grain": 8,
+          "rngState": 718517862
+        }
+      },
+      "alsoPresentInRestartCapture": true
+    },
+    {
+      "id": "qa/opening/chrome/04-runtime-restart.jsonl:33",
+      "t": 1789616507,
+      "summary": {
+        "screen": "game",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 844,
+          "width": 390
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": 1,
+          "money": 65,
+          "grain": 8,
+          "rngState": 718517862
+        },
+        "savedRun": {
+          "yearIndex": 1,
+          "money": 65,
+          "grain": 8,
+          "rngState": 718517862
+        }
+      },
+      "alsoPresentInRestartCapture": false
+    }
+  ],
+  "assertions": [
+    {
+      "name": "开局草案、运行快照和隔离存档一致",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:4"
+      ],
+      "detail": {
+        "run": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      }
+    },
+    {
+      "name": "预览和计分视图不改草案",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:1",
+        "qa/opening/chrome/03-runtime.jsonl:2",
+        "qa/opening/chrome/03-runtime.jsonl:3"
+      ],
+      "detail": {
+        "points": [
+          96,
+          96,
+          96
+        ]
+      }
+    },
+    {
+      "name": "同一 seed 的 360 和 390 逻辑草案一致",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:5",
+        "qa/opening/chrome/03-runtime.jsonl:6"
+      ],
+      "detail": {
+        "frames": [
+          {
+            "height": 800,
+            "width": 360
+          },
+          {
+            "height": 844,
+            "width": 390
+          }
+        ]
+      }
+    },
+    {
+      "name": "430 尺寸为独立 seed722 场景",
+      "status": "observed_difference",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:6",
+        "qa/opening/chrome/03-runtime.jsonl:7"
+      ],
+      "detail": {
+        "390RngSeed": 1760880653,
+        "430RngSeed": 1416712955,
+        "reason": "验收操作切换 seed；不能作为跨尺寸草案差异"
+      }
+    },
+    {
+      "name": "改家族名只改变姓名字段，不改数值和成员关系",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:16",
+        "qa/opening/chrome/03-runtime.jsonl:17"
+      ],
+      "detail": {
+        "family": [
+          "顾",
+          "司马"
+        ],
+        "points": [
+          98,
+          98
+        ]
+      }
+    },
+    {
+      "name": "超分 workshop 取消后恢复原草案",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:24",
+        "qa/opening/chrome/03-runtime.jsonl:25",
+        "qa/opening/chrome/03-runtime.jsonl:26"
+      ],
+      "detail": {
+        "points": [
+          100,
+          114,
+          100
+        ]
+      }
+    },
+    {
+      "name": "超分草案未改已存局",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:26",
+        "qa/opening/chrome/03-runtime.jsonl:27"
+      ],
+      "detail": {
+        "candidate": {
+          "points": 102,
+          "money": 130
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      }
+    },
+    {
+      "name": "隔离读取恢复已存开局",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:27",
+        "qa/opening/chrome/03-runtime.jsonl:28"
+      ],
+      "detail": {
+        "screen": "game",
+        "view": "summary",
+        "page": "world",
+        "frame": {
+          "height": 932,
+          "width": 430
+        },
+        "points": 96,
+        "draft": {
+          "rngSeed": 1760880653,
+          "family": "程",
+          "placeId": "village",
+          "money": 50,
+          "grain": 0,
+          "workshop": false,
+          "worldId": "mortal"
+        },
+        "members": [
+          {
+            "id": 1,
+            "name": "程晚昭",
+            "nameSource": "family"
+          },
+          {
+            "id": 2,
+            "name": "宋成安",
+            "nameSource": "external"
+          }
+        ],
+        "run": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        },
+        "savedRun": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        }
+      }
+    },
+    {
+      "name": "首年结算写回运行态和存档",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:28",
+        "qa/opening/chrome/03-runtime.jsonl:29"
+      ],
+      "detail": {
+        "before": {
+          "yearIndex": 0,
+          "money": 50,
+          "grain": 0,
+          "rngState": 1760880653
+        },
+        "after": {
+          "yearIndex": 1,
+          "money": 65,
+          "grain": 8,
+          "rngState": 718517862
+        },
+        "lastLedger": {
+          "boughtGrain": 0,
+          "foodCost": 0,
+          "beforeMoney": 50,
+          "grainSold": 0,
+          "beforeGrain": 0,
+          "moneySatisfied": true,
+          "grain": 8,
+          "industryIncome": 0,
+          "saleIncome": 0,
+          "netGrain": 8,
+          "foodNeed": 4,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "livingExpense": 8,
+          "money": 65,
+          "members": [
+            {
+              "memberId": 1,
+              "name": "程晚昭",
+              "money": 0,
+              "job": "随家人生活",
+              "grain": 0
+            },
+            {
+              "memberId": 2,
+              "name": "宋成安",
+              "money": 23,
+              "job": "外出经商",
+              "grain": 0
+            }
+          ],
+          "training": 0,
+          "netMoney": 15,
+          "income": 23,
+          "landGrain": 12
+        }
+      }
+    },
+    {
+      "name": "首年真实账本与生产 Economy.Preview 一致",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:28",
+        "qa/opening/chrome/03-runtime.jsonl:29"
+      ],
+      "detail": {
+        "preview": {
+          "foodCost": 0,
+          "landGrain": 12,
+          "boughtGrain": 0,
+          "netGrain": 8,
+          "foodSatisfied": true,
+          "beforeMoney": 50,
+          "money": 65,
+          "income": 23,
+          "industryIncome": 0,
+          "beforeGrain": 0,
+          "foodShortfall": 0,
+          "saleIncome": 0,
+          "moneySatisfied": true,
+          "foodNeed": 4,
+          "netMoney": 15,
+          "grain": 8,
+          "livingExpense": 8,
+          "training": 0,
+          "members": [
+            {
+              "memberId": 1,
+              "job": "随家人生活",
+              "grain": 0,
+              "money": 0,
+              "name": "程晚昭"
+            },
+            {
+              "memberId": 2,
+              "job": "外出经商",
+              "grain": 0,
+              "money": 23,
+              "name": "宋成安"
+            }
+          ],
+          "grainSold": 0
+        },
+        "actualLastLedger": {
+          "boughtGrain": 0,
+          "foodCost": 0,
+          "beforeMoney": 50,
+          "grainSold": 0,
+          "beforeGrain": 0,
+          "moneySatisfied": true,
+          "grain": 8,
+          "industryIncome": 0,
+          "saleIncome": 0,
+          "netGrain": 8,
+          "foodNeed": 4,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "livingExpense": 8,
+          "money": 65,
+          "members": [
+            {
+              "memberId": 1,
+              "name": "程晚昭",
+              "money": 0,
+              "job": "随家人生活",
+              "grain": 0
+            },
+            {
+              "memberId": 2,
+              "name": "宋成安",
+              "money": 23,
+              "job": "外出经商",
+              "grain": 0
+            }
+          ],
+          "training": 0,
+          "netMoney": 15,
+          "income": 23,
+          "landGrain": 12
+        }
+      }
+    },
+    {
+      "name": "重载引擎后隔离读取恢复首年结算状态",
+      "status": "observed",
+      "events": [
+        "qa/opening/chrome/03-runtime.jsonl:29",
+        "qa/opening/chrome/04-runtime-restart.jsonl:33"
+      ],
+      "detail": {
+        "beforeRestart": {
+          "yearIndex": 1,
+          "money": 65,
+          "grain": 8,
+          "rngState": 718517862
+        },
+        "afterRestart": {
+          "yearIndex": 1,
+          "money": 65,
+          "grain": 8,
+          "rngState": 718517862
+        }
+      }
+    }
+  ],
+  "pending": []
+}
