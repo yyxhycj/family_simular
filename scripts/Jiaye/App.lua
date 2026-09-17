@@ -1292,7 +1292,7 @@ function App:BuildHistoryTab()
     if self.historySection == "terms" then
         sectionContent = { Card({ Label("历任族长", { fontSize = 18, fontWeight = "bold" }), Label("任期和人物经历引用同一份事实记录。", { fontSize = 13, fontColor = C.muted }), UI.Panel { gap = 8, children = termCards } }) }
     elseif self.historySection == "endings" then
-        sectionContent = { UI.Panel { gap = 12, children = endingOverview }, Card({ Label("十三条原型终章", { fontSize = 18, fontWeight = "bold" }), Label("发展终章十二条；家谱落笔由全员离世自动写入。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), UI.Panel { gap = 8, children = endingCards } }) }
+        sectionContent = { UI.Panel { gap = 12, children = endingOverview }, Card({ Label("十四条终章", { fontSize = 18, fontWeight = "bold" }), Label("发展终章十二条；全员离世或年末钱粮同归零时自动写入。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), UI.Panel { gap = 8, children = endingCards } }) }
     else
         sectionContent = {
             Card({ Label("事实记录 · " .. tostring(#factCards) .. " 条", { fontSize = 18, fontWeight = "bold" }), Label("来源、参与人与人物生平共用同一份记录；点参与人可直接回看。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), UI.Panel { gap = 8, children = factCards } }),
