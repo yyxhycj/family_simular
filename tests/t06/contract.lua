@@ -48,7 +48,7 @@ local function run()
     assert(Simulation.AdvanceYear(run, profile), "第二年未能推进")
     assert(same(run.annualLedgers[2], frozenLedger), "旧年度账本在后续结算中被改写")
 
-    local hungry, hungryProfile = fresh()
+    local hungry, hungryProfile, hungryDraft = fresh()
     hungry.members = { hungry.members[1] }
     local survivor = hungry.members[1]
     survivor.age, survivor.health, survivor.jobId, survivor.spouseId, survivor.birthPlan = 30, 60, "play", nil, false
@@ -60,6 +60,11 @@ local function run()
         "钱粮同时耗尽后没有写入可回看的家道终局")
     local closedHungry = State.Copy(hungry)
     assert(not Simulation.SetJob(hungry, survivor.id, "farm") and same(hungry, closedHungry), "家道终局后仍可改写运行家谱")
+    local collapseApp = App.New(); collapseApp.profile, collapseApp.draft, collapseApp.run, collapseApp.screen, collapseApp.gameTab = hungryProfile, hungryDraft, hungry, "game", "family"
+    collapseApp:Render()
+    assert(contains(UI.root, "本局已落笔 · 家道散尽") and contains(UI.root, "年度结算后公库与存粮同时归零时自动写入"), "家道终局没有在家族页显示准确状态")
+    collapseApp.gameTab, collapseApp.historySection = "history", "annals"; collapseApp:Render()
+    assert(contains(UI.root, "年末：公库与存粮同时归零。"), "家道终局没有在年鉴显示钱粮归零")
 
     local lineage, lineageProfile = fresh()
     lineage.money = 200
@@ -131,7 +136,7 @@ local function run()
     assert(find(UI.root, "历任族长") and find(UI.root, "查看此人生平"), "家史缺少历任族长入口")
     assert(dead and not dead.alive and factFor(handover, dead.id, "death"), "已故成员不可回看其离世事实")
     return {
-        annualLedgerFrozen = true, hungerResets = true, collapseReadOnly = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },
+        annualLedgerFrozen = true, hungerResets = true, collapseReadOnly = true, collapseUI = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },
         custodyRecovered = true, factsPersisted = true, historyEntrances = true,
     }
 end

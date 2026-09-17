@@ -113,6 +113,10 @@ local function verify()
     assert(State.Save(collapseProfile, collapseDraft, collapseRun))
     local collapsed = assert(State.Load())
     assert(collapsed.run.ending.id == "collapse" and collapsed.profile.endingRecords[1].factId == collapseRun.ending.factId)
+    local collapseApp = App.New()
+    assert(collapseApp.run and collapseApp.run.ending and collapseApp.run.ending.id == "collapse")
+    collapseApp.gameTab = "family"; collapseApp:Render()
+    collapseApp.gameTab = "history"; collapseApp.historySection = "annals"; collapseApp:Render()
     return { family = draft.family, members = #draft.members, years = run.yearIndex, ending = run.ending.id, facts = #run.facts, ledgers = #run.annualLedgers,
         collapseEnding = collapsed.run.ending.id, collapseRevision = collapsed.saveRevision }
 end
