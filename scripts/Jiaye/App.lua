@@ -719,10 +719,11 @@ function App:BuildEstateTab()
             fontSize = 12,
         }))
     end
+    local prices = Data.RuntimeAssetCosts
     local purchaseActions = UI.Row { gap = 7, children = {
-        Button("购田 30 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "land") end) end, { flex = 1, height = 38 }),
-        Button("作坊 80 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "workshop") end) end, { flex = 1, height = 38 }),
-        Button("商铺 120 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "shop") end) end, { flex = 1, height = 38 }),
+        Button("购田 " .. tostring(prices.land) .. " 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "land") end) end, { flex = 1, height = 38 }),
+        Button("作坊 " .. tostring(prices.workshop) .. " 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "workshop") end) end, { flex = 1, height = 38 }),
+        Button("商铺 " .. tostring(prices.shop) .. " 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "shop") end) end, { flex = 1, height = 38 }),
     } }
     local estateCard = Card({
         Label("家业与公库", { fontSize = 21, fontWeight = "bold" }),

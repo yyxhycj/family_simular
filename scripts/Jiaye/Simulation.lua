@@ -220,8 +220,7 @@ end
 function Simulation.BuyAsset(run, assetId)
     local closed, message = IsClosed(run)
     if closed then return false, message end
-    local prices = { land = 30, workshop = 80, shop = 120 }
-    local price = prices[assetId]
+    local price = Data.RuntimeAssetCosts[assetId]
     if not price then return false, "未知置办项目。" end
     if run.money < price then return false, "公库不足，需要 " .. tostring(price) .. " 两。" end
     if assetId == "workshop" and run.workshop then return false, "家中已有作坊。" end

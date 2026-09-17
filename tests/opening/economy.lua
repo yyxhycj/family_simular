@@ -1,6 +1,7 @@
 local Economy = require "Jiaye.Economy"
 local Simulation = require "Jiaye.Simulation"
 local State = require "Jiaye.State"
+local Data = require "Jiaye.Data"
 
 local function Same(left, right)
     if type(left) ~= type(right) then return false end
@@ -54,6 +55,42 @@ return function()
         assert(ledger.foodShortfall == 3 and ledger.boughtGrain == 0 and ledger.foodCost == 0)
         assert(run.metrics.foodYears == 0 and run.metrics.stable == 0)
         table.insert(results, { id = "shortage", shortfall = ledger.foodShortfall, foodYears = run.metrics.foodYears, stable = run.metrics.stable })
+    end
+
+    do
+        local draft = State.NewDraft()
+        draft.originId, draft.tieId = "gentry", "neighbor"
+        draft.money, draft.grain, draft.land, draft.homeId = 0, 0, 0, "rented"
+        local run, issues = State.NewRun(draft, State.NewProfile())
+        assert(run, table.concat(issues or {}, " "))
+        assert(run.reputation == 37, "旧日名门与乡里相熟的初始声望必须独立叠加")
+
+        local tradeDraft = State.NewDraft()
+        tradeDraft.originId, tradeDraft.tieId, tradeDraft.placeId = "merchant", "partner", "port"
+        tradeDraft.money, tradeDraft.grain, tradeDraft.land = 0, 0, 0
+        tradeDraft.members[1].jobId = "trade"
+        local tradeRun, tradeIssues = State.NewRun(tradeDraft, State.NewProfile())
+        assert(tradeRun, table.concat(tradeIssues or {}, " "))
+        local ledger = Economy.Preview(tradeRun)
+        local tradeRow
+        for _, row in ipairs(ledger.members) do if row.memberId == 1 then tradeRow = row end end
+        assert(tradeRow and tradeRow.money == 36, "商埠、行商后裔和商路故交必须按顺序叠加经商收入")
+        table.insert(results, { id = "stacking", reputation = run.reputation, tradeIncome = tradeRow.money })
+    end
+
+    do
+        local run = NewRun()
+        local beforeMoney, beforeLand = run.money, run.land
+        assert(Simulation.BuyAsset(run, "land"))
+        assert(run.money == beforeMoney - Data.RuntimeAssetCosts.land and run.land == beforeLand + 1,
+            "运行期置办必须读取统一的既有价格表")
+
+        local invalid = State.NewDraft()
+        invalid.money = invalid.money + 1
+        local before = State.Copy(invalid)
+        local started, issues = State.NewRun(invalid, State.NewProfile())
+        assert(not started and #issues > 0 and Same(invalid, before), "非步进家底必须被拒绝且草案不得被静默改写")
+        table.insert(results, { id = "price_and_reject", landCost = Data.RuntimeAssetCosts.land, invalidDraftPreserved = true })
     end
 
     return results

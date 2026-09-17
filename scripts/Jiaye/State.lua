@@ -157,6 +157,10 @@ local function List(value)
     return type(value) == "table" and value or {}
 end
 
+local function ValidOpeningAmount(value, unit)
+    return type(value) == "number" and value >= 0 and value == math.floor(value) and value % unit == 0
+end
+
 function State.ValidateDraft(draft, profile, allowOverBudget)
     if type(draft) ~= "table" then return { "草案结构无效。" } end
     profile = type(profile) == "table" and profile or {}
@@ -224,13 +228,20 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
     local leader = State.FindMember(members, draft.leaderId)
     if not leader or type(leader.age) ~= "number" or leader.age < 18 then table.insert(issues, "需要指定一位成年首任族长。") end
     local relicSeen = {}
+    if type(draft.selectedRelicIds) ~= "table" then table.insert(issues, "信物选择数据无效。") end
     for _, relicId in ipairs(List(draft.selectedRelicIds)) do
         if relicSeen[relicId] then table.insert(issues, "同一件信物不能重复带入。") end
         relicSeen[relicId] = true
         if not Data.Relic(relicId) then table.insert(issues, "信物不存在。") end
         if not unlockedRelicIds[relicId] then table.insert(issues, "尚未解锁信物：" .. tostring(relicId)) end
     end
-    if type(draft.money) ~= "number" or type(draft.grain) ~= "number" or type(draft.land) ~= "number" or draft.money < 0 or draft.grain < 0 or draft.land < 0 then table.insert(issues, "家底不能为负。") end
+    local prices = Data.OpeningCosts
+    if not ValidOpeningAmount(draft.money, prices.moneyUnit)
+        or not ValidOpeningAmount(draft.grain, prices.grainUnit)
+        or not ValidOpeningAmount(draft.land, 1) then
+        table.insert(issues, "家底须为非负整数；现银按 " .. tostring(prices.moneyUnit) .. " 两、存粮按 " .. tostring(prices.grainUnit) .. " 石调整。")
+    end
+    if type(draft.workshop) ~= "boolean" or type(draft.shop) ~= "boolean" then table.insert(issues, "产业选择数据无效。") end
     if not allowOverBudget and State.TotalPoints(draft) > Data.LIMIT then table.insert(issues, "总分超过 100，不能开始。") end
     return issues
 end
