@@ -31,7 +31,6 @@ local ROUTE_GUIDANCE = {
 
 local function Label(text, props)
     props = props or {}; props.text = text; props.fontColor = props.fontColor or C.ink
-    if props.fontSize then props.fontSize = math.max(10, math.floor(props.fontSize * 0.85)) end
     return UI.Label(props)
 end
 
@@ -39,7 +38,6 @@ local function Button(text, onClick, props)
     props = props or {}; props.text = text; props.onClick = onClick; props.height = props.height or 40
     props.backgroundColor = props.backgroundColor or C.green; props.textColor = props.textColor or { 255, 255, 255, 255 }
     props.borderRadius = props.borderRadius or 8
-    if props.fontSize then props.fontSize = math.max(10, math.floor(props.fontSize * 0.9)) end
     return UI.Button(props)
 end
 

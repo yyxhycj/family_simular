@@ -60,7 +60,10 @@ local function relicSummary(app)
     local result = {}
     for _, id in ipairs(app.draft.selectedRelicIds) do local relic = Data.Relic(id); if relic then table.insert(result, relic.name .. " · " .. relic.cost .. " 点") end end
     if #result == 0 then return "未带信物 · 可以空手开篇" end
-    return result[1]
+    local shown = {}
+    for index = 1, math.min(2, #result) do table.insert(shown, result[index]) end
+    if #result > #shown then table.insert(shown, "其余 " .. tostring(#result - #shown) .. " 件") end
+    return table.concat(shown, "；")
 end
 
 function View.Summary(app)
@@ -79,8 +82,10 @@ function View.Summary(app)
     end
     table.insert(children, panel({ row(metrics), text(Data.Home(d.homeId).name .. " · " .. (d.workshop and "有作坊" or "无作坊") .. " · " .. (d.shop and "有商铺" or "无商铺"), 14) },true))
     local leader = State.FindMember(d.members, d.leaderId)
+    local leaderJob = leader and Data.Jobs[leader.jobId]
     table.insert(children,panel({ text("家中 " .. #d.members .. " 人 · " .. adults .. " 成人 / " .. (#d.members-adults) .. " 孩子", 16, C.muted),
-        button((leader and leader.name or "未指定族长") .. " · 查看族人  ›", function() app:OpenOpeningDetail("people") end, true, { height = 44 }) },true))
+        text("首任族长 · " .. (leader and leader.name or "未指定") .. " · " .. (leaderJob and leaderJob.name or "安排待校验"), 15),
+        button("查看全体 " .. #d.members .. " 人  ›", function() app:OpenOpeningDetail("people") end, true, { height = 44 }) },true))
     table.insert(children,panel({ text("信物 " .. tostring(#d.selectedRelicIds) .. " 件 · " .. relicSummary(app), 14, C.muted),
         button("查看信物与收藏  ›", function() app:OpenOpeningDetail("relics") end, true, { height = 44 }) }, true))
     table.insert(children,button(ledger and ("首年净变化  " .. signed(ledger.netMoney) .. " 两  /  " .. signed(ledger.netGrain) .. " 石  ›") or "首年账本 · 请先修正草案",
