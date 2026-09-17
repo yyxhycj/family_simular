@@ -25,3 +25,5 @@ qa/t10/
 qa/t11/
 qa/collapse*/
 qa/design/
+qa/age-rules/
+qa/t06/age-rules-*/
