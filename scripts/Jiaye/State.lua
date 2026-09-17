@@ -275,7 +275,12 @@ function State.NewRun(draft, profile)
         table.insert(members, member)
     end
     local relicInstances = {}
-    for index, relicId in ipairs(draft.selectedRelicIds) do table.insert(relicInstances, { instanceId = "relic-" .. tostring(index), definitionId = relicId, status = "held", custodianId = draft.leaderId, stage = "idle" }) end
+    for index, relicId in ipairs(draft.selectedRelicIds) do
+        table.insert(relicInstances, {
+            instanceId = "relic-" .. tostring(index), definitionId = relicId, status = "held", stage = "idle",
+            source = "开局带入", custodianId = draft.leaderId, executorId = nil, rewardState = "none",
+        })
+    end
     local reputation = (origin.id == "gentry" and 25 or 0) + (draft.tieId == "neighbor" and 12 or 0)
     if draft.homeId == "estate" then reputation = reputation + 8 end
     local run = {

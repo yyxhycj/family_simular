@@ -52,14 +52,52 @@ local function NextMemberId(run)
     return nextId
 end
 
-local function AddRelicInstance(run, definitionId, custodianId)
+local function AddRelicInstance(run, definitionId, custodianId, source, executorId)
     if HasRelic(run, definitionId) then return nil end
     local instance = {
         instanceId = "relic-" .. tostring(#run.relicInstances + 1) .. "-" .. definitionId,
-        definitionId = definitionId, status = "held", custodianId = custodianId or run.leaderId, stage = "idle",
+        definitionId = definitionId, status = "held", stage = "idle", source = source or "家中所得",
+        custodianId = custodianId or run.leaderId, executorId = executorId, rewardState = "none",
     }
     table.insert(run.relicInstances, instance)
     return instance
+end
+
+local function LivingAdult(run, memberId)
+    local member = State.FindMember(run.members, memberId)
+    if member and member.alive and member.age >= 18 then return member end
+    return nil
+end
+
+local function FindDefaultExecutor(run, instance)
+    local current = LivingAdult(run, instance.executorId)
+    if current then return current end
+    local custodian = LivingAdult(run, instance.custodianId)
+    if custodian then return custodian end
+    local leader = LivingAdult(run, run.leaderId)
+    if leader then return leader end
+    for _, member in ipairs(run.members) do if member.alive and member.age >= 18 then return member end end
+    return nil
+end
+
+local function RelicMemberIds(instance)
+    local ids = {}
+    if instance.executorId then table.insert(ids, instance.executorId) end
+    if instance.custodianId and instance.custodianId ~= instance.executorId then table.insert(ids, instance.custodianId) end
+    return ids
+end
+
+local function AddRelicFact(run, instance, text, detail)
+    local fact = State.AddFact(run, "relic", text, RelicMemberIds(instance), detail or {})
+    return fact
+end
+
+local function AwaitNewExecutor(run, instance, remainingYears, reason)
+    instance.status = "held"
+    instance.stage = "awaiting_executor"
+    instance.remainingYears = math.max(1, remainingYears or 1)
+    instance.dueYear = nil
+    State.AddLog(run, Data.Relic(instance.definitionId).name .. "的" .. (reason or "办理") .. "因执行人不在，等待重新托付。")
 end
 
 local function EffectiveHandovers(run)
@@ -87,9 +125,17 @@ end
 
 local function QueueDueRelicEvents(run)
     for _, instance in ipairs(run.relicInstances) do
-        if instance.status == "investigating" and instance.dueYear <= run.yearIndex then
-            instance.status = "awaiting_resolution"
-            AddEvent(run, { type = "relic_resolution", relicInstanceId = instance.instanceId, title = Data.Relic(instance.definitionId).name .. "有了新的线索", blocking = true })
+        if instance.status == "investigating" then
+            local executor = LivingAdult(run, instance.executorId)
+            if not executor then
+                AwaitNewExecutor(run, instance, (instance.dueYear or run.yearIndex) - run.yearIndex, "调查")
+            elseif instance.dueYear and instance.dueYear <= run.yearIndex then
+                instance.status = "awaiting_resolution"
+                AddEvent(run, {
+                    type = "relic_resolution", relicInstanceId = instance.instanceId, executorId = executor.id,
+                    title = Data.Relic(instance.definitionId).name .. "有了新的线索", blocking = true,
+                })
+            end
         end
     end
 end
@@ -242,8 +288,9 @@ function Simulation.SellRelic(run, instanceId)
     local relic = RelicInstance(run, instanceId)
     if not relic or relic.status == "sold" then return false, "此物件已不在家中。" end
     local definition = Data.Relic(relic.definitionId)
-    relic.status = "sold"; relic.stage = "closed"; run.money = run.money + (definition.saleValue or definition.cost * 2)
+    relic.status = "sold"; relic.stage = "closed"; relic.pendingEventId = nil; run.money = run.money + (definition.saleValue or definition.cost * 2)
     for _, event in ipairs(run.events) do if event.relicInstanceId == relic.instanceId and event.status == "pending" then event.status = "cancelled" end end
+    AddRelicFact(run, relic, "出售“" .. definition.name .. "”，未完成的故事到此为止。", { action = "sell", relicInstanceId = relic.instanceId })
     State.AddLog(run, "出售“" .. definition.name .. "”，未完成的调查已经停止；解锁资格和历史仍被保留。")
     return true, "物件已出售，未完后续不会再结算。"
 end
@@ -256,8 +303,22 @@ function Simulation.TransferRelic(run, instanceId, memberId)
     if not relic or relic.status == "sold" then return false, "此物件已不在家中。" end
     if not member or not member.alive then return false, "只能托付给在世族人。" end
     relic.custodianId = member.id
+    AddRelicFact(run, relic, "“" .. Data.Relic(relic.definitionId).name .. "改由" .. member.name .. "保管。", { action = "transfer", relicInstanceId = relic.instanceId })
     State.AddLog(run, "“" .. Data.Relic(relic.definitionId).name .. "”改由" .. member.name .. "保管。")
     return true, "保管人已更换。"
+end
+
+function Simulation.AssignRelicExecutor(run, instanceId, memberId)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
+    local relic = RelicInstance(run, instanceId)
+    local member = LivingAdult(run, memberId)
+    if not relic or relic.status == "sold" then return false, "此物件不在家中。" end
+    if not member then return false, "执行人需要是在世成年人。" end
+    relic.executorId = member.id
+    AddRelicFact(run, relic, member.name .. "接下“" .. Data.Relic(relic.definitionId).name .. "”的" .. (Data.Relic(relic.definitionId).story.executor or "办理") .. "。", { action = "assign_executor", relicInstanceId = relic.instanceId })
+    State.AddLog(run, member.name .. "接下“" .. Data.Relic(relic.definitionId).name .. "”的后续。")
+    return true, "执行人已指定。"
 end
 
 function Simulation.InviteBranch(run, instanceId)
@@ -267,6 +328,9 @@ function Simulation.InviteBranch(run, instanceId)
     if not relic or relic.definitionId ~= "newbook" or relic.status == "sold" then return false, "需要家中实际持有“补完的族谱”。" end
     if run.flags.branchInvited then return false, "这支旁系已经归家。" end
     if run.money < 12 then return false, "安置成年旁支需要 12 两。" end
+    local executor = FindDefaultExecutor(run, relic)
+    if not executor then return false, "需要一位在世成年人寻亲。" end
+    relic.executorId = executor.id
     local id = NextMemberId(run)
     local leader = State.FindMember(run.members, run.leaderId)
     local member = {
@@ -277,24 +341,123 @@ function Simulation.InviteBranch(run, instanceId)
         biography = { "因补完的族谱寻回旁支，于大晟历 " .. tostring(run.calendar) .. " 年归家。" }, branch = true,
     }
     run.money = run.money - 12; run.flags.branchInvited = true; table.insert(run.members, member)
+    State.AddFact(run, "relic", executor.name .. "依照补完的族谱寻回" .. member.name .. "，旁支正式归家。", { executor.id, member.id }, { action = "invite_branch", relicInstanceId = relic.instanceId })
     State.AddLog(run, member.name .. "作为成年旁支归家，名字被正式写回族谱。")
     return true, "成年旁支已归家。"
 end
 
-function Simulation.StartRelicInvestigation(run, instanceId, route)
+function Simulation.PauseRelicInvestigation(run, instanceId)
     local closed, message = IsClosed(run)
     if closed then return false, message end
     local instance = RelicInstance(run, instanceId)
     if not instance or instance.status == "sold" then return false, "此物件不在家中。" end
+    if instance.status ~= "investigating" then return false, "当前没有可暂缓的调查。" end
+    local definition = Data.Relic(instance.definitionId)
+    instance.remainingYears = math.max(1, (instance.dueYear or run.yearIndex + 1) - run.yearIndex)
+    instance.status = "held"; instance.stage = "paused"; instance.dueYear = nil
+    AddRelicFact(run, instance, "“" .. definition.name .. "”的调查暂缓，保留余下线索。", { action = "pause", relicInstanceId = instance.instanceId })
+    State.AddLog(run, definition.name .. "的调查暂缓，可随时继续。")
+    return true, "调查已暂缓，未再扣费。"
+end
+
+function Simulation.ResumeRelicInvestigation(run, instanceId)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
+    local instance = RelicInstance(run, instanceId)
+    if not instance or instance.status == "sold" then return false, "此物件不在家中。" end
+    if instance.stage ~= "paused" and instance.stage ~= "awaiting_executor" then return false, "当前没有可恢复的调查。" end
+    local executor = LivingAdult(run, instance.executorId)
+    if not executor then return false, "需要重新指定一位在世成年人。" end
+    instance.executorId = executor.id; instance.status = "investigating"; instance.stage = "resumed"
+    instance.dueYear = run.yearIndex + math.max(1, instance.remainingYears or 1); instance.remainingYears = nil
+    AddRelicFact(run, instance, executor.name .. "继续办理“" .. Data.Relic(instance.definitionId).name .. "”的线索。", { action = "resume", relicInstanceId = instance.instanceId })
+    State.AddLog(run, executor.name .. "继续办理“" .. Data.Relic(instance.definitionId).name .. "”。")
+    return true, "调查已恢复，保留原先等待。"
+end
+
+function Simulation.StartRelicInvestigation(run, instanceId, route, memberId)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
+    if route == "pause" then return Simulation.PauseRelicInvestigation(run, instanceId) end
+    local instance = RelicInstance(run, instanceId)
+    if not instance or instance.status == "sold" then return false, "此物件不在家中。" end
     if instance.status == "investigating" then return false, "调查已经在进行。" end
     if instance.status == "awaiting_resolution" then return false, "线索已到，请先处理结果。" end
+    if instance.rewardState == "granted" or instance.stage == "completed" then return false, "这件信物的故事已经完成。" end
     local definition = Data.Relic(instance.definitionId)
-    local cost, years = route == "slow" and 4 or 8, route == "slow" and 2 or 1
-    if route == "pause" then instance.stage = "paused"; State.AddLog(run, definition.name .. "的调查暂缓，可随时继续。") return true, "调查已暂缓。" end
-    if run.money < cost then return false, "调查需要 " .. tostring(cost) .. " 两。" end
-    run.money = run.money - cost; instance.status = "investigating"; instance.stage = route; instance.dueYear = run.yearIndex + years
-    State.AddLog(run, "为“" .. definition.name .. "”安排" .. (route == "slow" and "慢查" or "查访") .. "，花费 " .. tostring(cost) .. " 两，约 " .. tostring(years) .. " 年后有消息。")
+    if not definition.basic then return false, "这件信物有自己的后续入口。" end
+    local option = definition.story and definition.story[route]
+    if not option or not option.cost or not option.years then return false, "这条调查路线不存在。" end
+    local executor = LivingAdult(run, memberId) or FindDefaultExecutor(run, instance)
+    if not executor then return false, "需要指定一位在世成年人办理。" end
+    if run.money < option.cost then return false, "“" .. definition.name .. "”的这条线索需要 " .. tostring(option.cost) .. " 两。" end
+    instance.executorId = executor.id; instance.status = "investigating"; instance.stage = route
+    instance.route = route; instance.dueYear = run.yearIndex + option.years; instance.remainingYears = nil
+    AddRelicFact(run, instance, executor.name .. "为“" .. definition.name .. "”选择“" .. option.label .. "”。", { action = "investigate", route = route, cost = option.cost, dueYear = instance.dueYear, relicInstanceId = instance.instanceId })
+    run.money = run.money - option.cost
+    State.AddLog(run, executor.name .. "为“" .. definition.name .. "”安排“" .. option.label .. "”，花费 " .. tostring(option.cost) .. " 两。")
     return true, "调查已安排，主业不会被改动。"
+end
+
+function Simulation.StartJadeSearch(run, instanceId, memberId)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
+    local instance = RelicInstance(run, instanceId)
+    if not instance or instance.definitionId ~= "jade" or instance.status == "sold" then return false, "需要家中实际持有“故人的半枚玉佩”。" end
+    if run.flags.jadeReunited then return false, "玉佩的另一半已经寻回。" end
+    for _, event in ipairs(run.events) do if event.type == "jade_search" and event.relicInstanceId == instanceId and event.status == "pending" then return false, "这条玉佩线索已经在等待决定。" end end
+    local executor = LivingAdult(run, memberId) or FindDefaultExecutor(run, instance)
+    if not executor then return false, "需要指定一位在世成年人查访。" end
+    instance.executorId = executor.id; instance.stage = "awaiting_choice"
+    local event = AddEvent(run, { type = "jade_search", relicInstanceId = instanceId, executorId = executor.id, title = "半枚玉佩的新线索", blocking = false })
+    instance.pendingEventId = event.instanceId
+    AddRelicFact(run, instance, executor.name .. "带着半枚玉佩查访故人。", { action = "jade_search", relicInstanceId = instance.instanceId })
+    return true, "玉佩的去向已有线索，是否花路费查访由你决定。"
+end
+
+function Simulation.ResumeRelicStory(run, instanceId)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
+    local instance = RelicInstance(run, instanceId)
+    if not instance or instance.status == "sold" then return false, "此物件不在家中。" end
+    if instance.definitionId == "jade" then return Simulation.StartJadeSearch(run, instanceId) end
+    if instance.definitionId == "notes" then
+        local executor = LivingAdult(run, instance.executorId)
+        if not executor then return false, "需要重新指定一位在世成年人。" end
+        instance.executorId = executor.id; instance.stage = "awaiting_choice"
+        local event = AddEvent(run, { type = "notes_choice", relicInstanceId = instance.instanceId, executorId = executor.id, title = "这册医案该如何留下", blocking = false })
+        instance.pendingEventId = event.instanceId
+        AddRelicFact(run, instance, executor.name .. "重新接下批注医案的去向决定。", { action = "resume_notes", relicInstanceId = instance.instanceId })
+        return true, "医案已重新交由" .. executor.name .. "决定去向。"
+    end
+    if instance.definitionId == "plan" then
+        local executor = LivingAdult(run, instance.executorId)
+        if executor and executor.jobId ~= "craft" then return false, "需要把营造图交给在世手艺人。" end
+        if not executor then return false, "需要一位在世手艺人才能继续营造图。" end
+        instance.executorId = executor.id; instance.stage = "work_offered"
+        local event = AddEvent(run, { type = "plan_work", relicInstanceId = instance.instanceId, executorId = executor.id, title = "旧图纸上的修缮活", blocking = false })
+        instance.pendingEventId = event.instanceId
+        return true, "新的修缮活已交给" .. executor.name .. "。"
+    end
+    return Simulation.ResumeRelicInvestigation(run, instanceId)
+end
+
+local function ActiveRelicEvent(run, event, definitionId)
+    local instance = event.relicInstanceId and RelicInstance(run, event.relicInstanceId) or (definitionId and HasRelic(run, definitionId))
+    if not instance or instance.status == "sold" then
+        event.status = "cancelled"
+        return nil, nil, "物件已出售或不在家中，后续不会结算。"
+    end
+    local assignedId = event.executorId or instance.executorId
+    local executor = assignedId and LivingAdult(run, assignedId) or nil
+    if not assignedId then executor = FindDefaultExecutor(run, instance) end
+    if not executor then
+        AwaitNewExecutor(run, instance, 1, "后续")
+        event.status = "cancelled"
+        return nil, nil, "执行人已不在，需要重新指定后再继续。"
+    end
+    instance.executorId = executor.id
+    return instance, executor, nil
 end
 
 function Simulation.ResolveEvent(run, eventId, choice, profile)
@@ -319,37 +482,51 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
         return true, choice == "defer" and "已记录暂缓安排。" or "成年节点已记入经历。"
     end
     if event.type == "medical_find" then
-        event.status = "resolved"
         if choice == "accept" then
+            if HasRelic(run, "notes") then return false, "批注医案已经在家中，不能重复收下。" end
+            event.status = "resolved"
             profile.unlockedRelicIds.notes = true
-            AddRelicInstance(run, "notes", event.memberId or run.leaderId)
-            AddEvent(run, { type = "notes_choice", title = "这册医案该如何留下", blocking = false })
+            local executor = LivingAdult(run, event.memberId) or LivingAdult(run, run.leaderId)
+            local instance = AddRelicInstance(run, "notes", event.memberId or run.leaderId, "医馆托付", executor and executor.id)
+            instance.stage = "awaiting_choice"
+            local nextEvent = AddEvent(run, { type = "notes_choice", relicInstanceId = instance.instanceId, executorId = instance.executorId, title = "这册医案该如何留下", blocking = false })
+            instance.pendingEventId = nextEvent.instanceId
+            AddRelicFact(run, instance, (executor and executor.name or "家中") .. "从医馆接下批注医案。", { action = "receive_notes", relicInstanceId = instance.instanceId })
             State.AddLog(run, "家中收下批注医案，医术得以继续传下去。")
             return true, "批注医案已收入藏阁，也解锁了下一局资格。"
         end
+        event.status = "resolved"
         State.AddLog(run, "医案暂留在医馆，家中没有收下。")
         return true, "这次机会先记在家史里。"
     end
     if event.type == "plan_work" then
+        local instance, executor, problem = ActiveRelicEvent(run, event, "plan")
+        if not instance then return false, problem end
         if choice == "accept" then
             if run.money < 10 then return false, "接下修缮前需要先备好 10 两工料。" end
-            event.status = "resolved"; run.money = run.money + 18; run.reputation = run.reputation + 5
-            State.AddLog(run, "依照营造图完成一桩修缮，净得 18 两并获 5 点声望。")
+            event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "work_completed"; run.money = run.money + 18; run.reputation = run.reputation + 5
+            AddRelicFact(run, instance, executor.name .. "依照营造图完成一桩修缮。", { action = "plan_work", relicInstanceId = instance.instanceId, money = 18, reputation = 5 })
+            State.AddLog(run, executor.name .. "依照营造图完成一桩修缮，净得 18 两并获 5 点声望。")
             return true, "修缮活已完成。"
         end
-        event.status = "resolved"
-        State.AddLog(run, "家中婉拒了这次修缮活。")
+        event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "work_deferred"
+        AddRelicFact(run, instance, executor.name .. "暂不接下营造图的修缮活。", { action = "plan_defer", relicInstanceId = instance.instanceId })
+        State.AddLog(run, executor.name .. "暂不接下营造图的修缮活。")
         return true, "已婉拒。"
     end
     if event.type == "jade_search" then
+        local instance, executor, problem = ActiveRelicEvent(run, event, "jade")
+        if not instance then return false, problem end
         if choice == "search" then
             if run.money < 8 then return false, "查访故人需要 8 两路费。" end
-            event.status = "resolved"; run.money = run.money - 8; run.flags.jadeReunited = true; run.reputation = run.reputation + 8
-            State.AddLog(run, "半枚玉佩终于找到另一半，故人的名字被重新记下。")
+            event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "reunited"; run.money = run.money - 8; run.flags.jadeReunited = true; run.reputation = run.reputation + 8
+            AddRelicFact(run, instance, executor.name .. "寻回玉佩的另一半，故人的名字被重新记下。", { action = "jade_reunion", relicInstanceId = instance.instanceId, money = -8, reputation = 8 })
+            State.AddLog(run, executor.name .. "寻回玉佩的另一半，故人的名字被重新记下。")
             return true, "重逢已写入家史，声望 +8。"
         end
-        event.status = "resolved"
-        State.AddLog(run, "玉佩的线索被小心收好，等待下次查访。")
+        event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "clue_saved"
+        AddRelicFact(run, instance, executor.name .. "把玉佩线索暂存，等待下次查访。", { action = "jade_defer", relicInstanceId = instance.instanceId })
+        State.AddLog(run, executor.name .. "把玉佩线索小心收好，等待下次查访。")
         return true, "线索暂存。"
     end
     if event.type == "school" then
@@ -387,30 +564,39 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
         return true, "已暂缓。"
     end
     if event.type == "notes_choice" then
+        local instance, executor, problem = ActiveRelicEvent(run, event, "notes")
+        if not instance then return false, problem end
         if choice == "print" then
             if run.money < 8 then return false, "刊印医案需要 8 两。" end
-            event.status = "resolved"; run.money = run.money - 8; run.reputation = run.reputation + 8
-            State.AddLog(run, "家中刊印批注医案，声望 +8。")
+            event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "printed"; run.money = run.money - 8; run.reputation = run.reputation + 8
+            AddRelicFact(run, instance, executor.name .. "刊印批注医案，留下公开的医术记录。", { action = "notes_print", relicInstanceId = instance.instanceId, money = -8, reputation = 8 })
+            State.AddLog(run, executor.name .. "刊印批注医案，声望 +8。")
             return true, "医案已刊印。"
         end
-        event.status = "resolved"
-        State.AddLog(run, "批注医案被郑重传给后人保管。")
+        event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "passed"
+        AddRelicFact(run, instance, executor.name .. "把批注医案传给后人保管。", { action = "notes_pass", relicInstanceId = instance.instanceId })
+        State.AddLog(run, executor.name .. "把批注医案郑重传给后人保管。")
         return true, "医案已传承。"
     end
     if event.type ~= "relic_resolution" then event.status = "resolved" return true, "事件已记录。" end
-    local instance = RelicInstance(run, event.relicInstanceId)
-    if not instance or instance.status == "sold" then event.status = "cancelled" return false, "物件已出售，后续不会结算。" end
+    local instance, executor, problem = ActiveRelicEvent(run, event)
+    if not instance then return false, problem end
     local relic = Data.Relic(instance.definitionId)
-    event.status = "resolved"; instance.status = "held"; instance.stage = "completed"
+    event.status = "resolved"; instance.pendingEventId = nil; instance.status = "held"; instance.stage = "completed"
     if choice == "restore" then
+        if instance.rewardState == "granted" then return false, "这件信物的奖励已经登记。" end
         if relic.unlock then
             profile.unlockedRelicIds[relic.unlock] = true
-            AddRelicInstance(run, relic.unlock, instance.custodianId)
+            AddRelicInstance(run, relic.unlock, instance.custodianId, "修复“" .. relic.name .. "”", executor.id)
         end
+        instance.rewardState = "granted"
         if relic.id == "ruler" then run.flags.rulerRestored = true elseif relic.id == "book" then run.flags.bookRestored = true elseif relic.id == "letter" then run.flags.promiseKept = true end
-        State.AddLog(run, "你修复并安置了“" .. relic.name .. "”。" .. (relic.unlock and "“" .. Data.Relic(relic.unlock).name .. "”已进入本局藏阁，也解锁了下一局资格。" or "这段家史被完整记下。"))
+        AddRelicFact(run, instance, executor.name .. "完成“" .. relic.name .. "”的“" .. relic.story.restore .. "”。", { action = "restore", relicInstanceId = instance.instanceId, unlock = relic.unlock })
+        State.AddLog(run, executor.name .. "完成“" .. relic.name .. "”的“" .. relic.story.restore .. "”。" .. (relic.unlock and "“" .. Data.Relic(relic.unlock).name .. "”已进入本局藏阁，也解锁了下一局资格。" or "这段家史被完整记下。"))
         return true, "结果已写入家史与藏阁。"
     end
+    instance.stage = "clue_saved"
+    AddRelicFact(run, instance, executor.name .. "选择“" .. (relic.story.defer or "暂存线索") .. "”。", { action = "defer", relicInstanceId = instance.instanceId })
     State.AddLog(run, "“" .. relic.name .. "”的线索被妥善保存，暂不继续修复。")
     return true, "后续被保留在家史中。"
 end
@@ -460,16 +646,17 @@ local function QueueGrowthEvents(run)
 end
 
 local function QueueRoutineEvents(run)
-    local hasChild, hasCraft = false, false
+    local hasChild, craftMember = false, nil
     for _, member in ipairs(run.members) do
         if member.alive and member.age < 18 then hasChild = true end
-        if member.alive and member.jobId == "craft" then hasCraft = true end
+        if member.alive and member.jobId == "craft" and not craftMember then craftMember = member end
     end
-    if HasRelic(run, "plan") and hasCraft and run.yearIndex % 4 == 0 and run.flags.planWorkYear ~= run.yearIndex then
+    local plan = HasRelic(run, "plan")
+    if plan and craftMember and run.yearIndex % 4 == 0 and run.flags.planWorkYear ~= run.yearIndex then
         run.flags.planWorkYear = run.yearIndex
-        AddEvent(run, { type = "plan_work", title = "旧图纸上的修缮活", blocking = false })
-    elseif HasRelic(run, "jade") and not run.flags.jadeReunited and run.yearIndex >= 3 and run.yearIndex % 3 == 0 then
-        AddEvent(run, { type = "jade_search", title = "半枚玉佩的新线索", blocking = false })
+        plan.executorId = craftMember.id; plan.stage = "work_offered"
+        local event = AddEvent(run, { type = "plan_work", relicInstanceId = plan.instanceId, executorId = craftMember.id, title = "旧图纸上的修缮活", blocking = false })
+        plan.pendingEventId = event.instanceId
     elseif hasChild and run.yearIndex % 5 == 0 then
         AddEvent(run, { type = "school", title = "孩子想多读一年书", blocking = false })
     elseif run.yearIndex % 5 == 0 then

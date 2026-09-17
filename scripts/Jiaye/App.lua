@@ -482,16 +482,17 @@ function App:BuildPendingEvent(event)
     if event.type == "relic_resolution" then
         local instance = nil; for _, item in ipairs(self.run.relicInstances) do if item.instanceId == event.relicInstanceId then instance = item end end
         local relic = instance and Data.Relic(instance.definitionId)
-        local restore = Button("修复并落笔", function()
+        local executor = instance and State.FindMember(self.run.members, event.executorId or instance.executorId)
+        local restore = Button(relic and relic.story.restore or "修复并落笔", function()
             self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "restore", self.profile) end)
         end, { flex = 1 })
-        local defer = Button("暂存线索", function()
+        local defer = Button(relic and relic.story.defer or "暂存线索", function()
             self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "defer", self.profile) end)
         end, { flex = 1, backgroundColor = C.pale, textColor = C.green })
         local actions = UI.Row { gap = 8, children = { restore, defer } }
         return Card({
             Label(event.title, { fontSize = 19, fontWeight = "bold" }),
-            Label("“" .. (relic and relic.name or "旧物") .. "”的调查到期。修复会写入家史，并按路线解锁下一局资格。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.6 }),
+            Label("“" .. (relic and relic.name or "旧物") .. "”的调查到期。执行人：" .. (executor and executor.name or "待重新指定") .. "。选择会写入家史；解锁奖励只登记一次。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.6 }),
             actions,
         }, { borderColor = C.green })
     end
@@ -812,25 +813,63 @@ function App:BuildEstateTab()
 end
 
 function App:BuildRelicsTab()
-    local cards = { Card({ Label("藏阁", { fontSize = 21, fontWeight = "bold" }), Label("这里是本局实际物件。已解锁目录只决定下一局可选择的内容。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }) }) }
+    local stageNames = {
+        idle = "尚未开始", fast = "正在快查", slow = "正在慢查", resumed = "调查已恢复", paused = "调查已暂缓",
+        awaiting_executor = "等待重新指定执行人", awaiting_resolution = "线索已到", awaiting_choice = "等待决定去向",
+        completed = "已修复", clue_saved = "线索暂存", work_offered = "已有修缮活", work_completed = "修缮已完成",
+        work_deferred = "修缮暂缓", reunited = "故人已重逢", printed = "已刊印", passed = "已传承", closed = "已出售",
+    }
+    local unlocked = {}
+    local flags = TableValue(self.run.flags)
+    for _, relic in ipairs(Data.Relics) do if self.profile.unlockedRelicIds[relic.id] then table.insert(unlocked, relic.name .. "（" .. tostring(relic.cost) .. " 点）") end end
+    local cards = {
+        Card({ Label("本局物件", { fontSize = 21, fontWeight = "bold" }), Label("物件实例、保管人和执行人都属于这一局；出售不会删掉已经写入的人生与家史。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }) }),
+        Card({ Label("已解锁的下局资格", { fontSize = 17, fontWeight = "bold" }), Label(#unlocked > 0 and table.concat(unlocked, "；") or "尚未解锁新的开局信物。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), Label("下局仍与其他选择共用 100 点预算。", { fontSize = 12, fontColor = C.muted }) }),
+    }
     for _, instance in ipairs(self.run.relicInstances) do
-        local relic = Data.Relic(instance.definitionId); local custodian = State.FindMember(self.run.members, instance.custodianId)
-        ---@type Widget
-        local actions = nil
-        actions = Label("已出售 · 历史和局外资格仍会保留。", { fontSize = 13, fontColor = C.warning })
+        local relic = Data.Relic(instance.definitionId)
+        local custodian = State.FindMember(self.run.members, instance.custodianId)
+        local executor = State.FindMember(self.run.members, instance.executorId)
+        local actionChildren = {}
         if instance.status ~= "sold" then
-            local actionChildren = {
-                Button("快查", function() self:RunAction(function() return Simulation.StartRelicInvestigation(self.run, instance.instanceId, "fast") end) end, { flex = 1, height = 36 }),
-                Button("慢查", function() self:RunAction(function() return Simulation.StartRelicInvestigation(self.run, instance.instanceId, "slow") end) end, { flex = 1, height = 36, backgroundColor = C.pale, textColor = C.green }),
-                Button("出售", function() self:RunAction(function() return Simulation.SellRelic(self.run, instance.instanceId) end) end, { flex = 1, height = 36, backgroundColor = C.warning }),
-            }
-            actions = UI.Panel { gap = 6, children = { UI.Row { gap = 6, children = actionChildren } } }
-            if relic.id == "newbook" then
-                actions:AddChild(Button("邀请成年旁支归家（12 两）", function() self:RunAction(function() return Simulation.InviteBranch(self.run, instance.instanceId) end) end, { height = 36, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }))
+            if relic.basic then
+                if instance.status == "investigating" then
+                    table.insert(actionChildren, Button("暂缓调查", function() self:RunAction(function() return Simulation.PauseRelicInvestigation(self.run, instance.instanceId) end) end, { height = 36, backgroundColor = C.pale, textColor = C.green }))
+                elseif instance.stage == "paused" or instance.stage == "awaiting_executor" then
+                    table.insert(actionChildren, Button("恢复调查", function() self:RunAction(function() return Simulation.ResumeRelicInvestigation(self.run, instance.instanceId) end) end, { height = 36 }))
+                elseif instance.stage ~= "completed" then
+                    table.insert(actionChildren, Button(relic.story.fast.label, function() self:RunAction(function() return Simulation.StartRelicInvestigation(self.run, instance.instanceId, "fast") end) end, { height = 36 }))
+                    table.insert(actionChildren, Button(relic.story.slow.label, function() self:RunAction(function() return Simulation.StartRelicInvestigation(self.run, instance.instanceId, "slow") end) end, { height = 36, backgroundColor = C.pale, textColor = C.green }))
+                end
+            elseif relic.id == "newbook" and not flags.branchInvited then
+                table.insert(actionChildren, Button("邀请成年旁支归家（12 两）", function() self:RunAction(function() return Simulation.InviteBranch(self.run, instance.instanceId) end) end, { height = 36, backgroundColor = C.pale, textColor = C.green }))
+            elseif relic.id == "jade" and not flags.jadeReunited then
+                table.insert(actionChildren, Button("发起查访（决定后花 8 两）", function() self:RunAction(function() return Simulation.StartJadeSearch(self.run, instance.instanceId) end) end, { height = 36 }))
+            elseif (relic.id == "plan" or relic.id == "notes") and instance.stage == "awaiting_executor" then
+                table.insert(actionChildren, Button("重新安排后续", function() self:RunAction(function() return Simulation.ResumeRelicStory(self.run, instance.instanceId) end) end, { height = 36 }))
             end
+            local executorButtons = {}
+            for _, member in ipairs(self.run.members) do
+                if member.alive and member.age >= 18 and member.id ~= instance.executorId then
+                    table.insert(executorButtons, Button("由" .. member.name .. "办理", function() self:RunAction(function() return Simulation.AssignRelicExecutor(self.run, instance.instanceId, member.id) end) end, { height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }))
+                end
+            end
+            if #executorButtons > 0 then table.insert(actionChildren, Label("指定执行人", { fontSize = 12, fontColor = C.muted })); table.insert(actionChildren, UI.Panel { gap = 5, children = executorButtons }) end
+            local custodianButtons = {}
+            for _, member in ipairs(self.run.members) do
+                if member.alive and member.id ~= instance.custodianId then
+                    table.insert(custodianButtons, Button("交由" .. member.name .. "保管", function() self:RunAction(function() return Simulation.TransferRelic(self.run, instance.instanceId, member.id) end) end, { height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }))
+                end
+            end
+            if #custodianButtons > 0 then table.insert(actionChildren, Label("更换保管人", { fontSize = 12, fontColor = C.muted })); table.insert(actionChildren, UI.Panel { gap = 5, children = custodianButtons }) end
+            table.insert(actionChildren, Button("出售（" .. tostring(relic.saleValue or relic.cost * 2) .. " 两）", function() self:RunAction(function() return Simulation.SellRelic(self.run, instance.instanceId) end) end, { height = 36, backgroundColor = C.warning }))
         end
-        table.insert(cards, Card({ Label(relic.name, { fontSize = 18, fontWeight = "bold" }), Label("状态：" .. instance.status .. " · 保管人：" .. (custodian and custodian.name or "家中"), { fontSize = 13, fontColor = C.muted }), actions,
-        }))
+        local state = stageNames[instance.stage] or instance.stage or "尚未开始"
+        local detail = "来源：" .. (instance.source or relic.story.source) .. "\n阶段：" .. state .. " · 保管人：" .. (custodian and custodian.name or "家中") .. " · 执行人：" .. (executor and executor.name or "待指定")
+        if instance.dueYear then detail = detail .. "\n预计：第 " .. tostring(instance.dueYear) .. " 年后有消息" end
+        if instance.remainingYears then detail = detail .. "\n暂存等待：约 " .. tostring(instance.remainingYears) .. " 年" end
+        if instance.status == "sold" then table.insert(actionChildren, Label("已出售 · 本局效果停止；既有历史和下局资格仍保留。", { fontSize = 13, fontColor = C.warning })) end
+        table.insert(cards, Card({ Label(relic.name, { fontSize = 18, fontWeight = "bold" }), Label(relic.desc, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), Label(detail, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }), UI.Panel { gap = 6, children = actionChildren } }))
     end
     if #self.run.relicInstances == 0 then table.insert(cards, Card({ Label("本局没有带入旧物。", { fontSize = 15, fontColor = C.muted }) })) end
     return UI.Panel { gap = 10, children = cards }

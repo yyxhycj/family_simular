@@ -91,13 +91,13 @@ Data.Ties = {
 }
 
 Data.Relics = {
-    { id = "book", name = "一本旧族谱", cost = 6, saleValue = 12, basic = true, unlock = "newbook", event = "book", desc = "折起的一页，等待被重新读懂。修复后补出一本族谱。" },
-    { id = "ruler", name = "一把老木尺", cost = 6, saleValue = 14, basic = true, unlock = "plan", event = "ruler", desc = "尺背有陌生的匠号。修复后寻回一张营造图。" },
-    { id = "letter", name = "一封未拆的家书", cost = 4, saleValue = 6, basic = true, unlock = "jade", event = "letter", desc = "有人曾说，等日子安稳了再送到。修复后寻回半枚玉佩。" },
-    { id = "plan", name = "修复的营造图", cost = 10, saleValue = 30, unlock = nil, event = "plan", desc = "家中有手艺人时，每年额外得 5 两；还会带来修缮活。" },
-    { id = "newbook", name = "补完的族谱", cost = 9, saleValue = 18, unlock = nil, event = "newbook", desc = "一次有效交接额外获得 3 点声望，可邀请成年旁支归家。" },
-    { id = "jade", name = "故人的半枚玉佩", cost = 8, saleValue = 28, unlock = nil, event = "jade", desc = "可继续查访失散故人，完成一次家谱重逢。" },
-    { id = "notes", name = "批注医案", cost = 10, saleValue = 24, unlock = nil, event = "notes", desc = "学医、行医每年额外医术 +2；可选择刊印或传给后人。" },
+    { id = "book", name = "一本旧族谱", cost = 6, saleValue = 12, basic = true, unlock = "newbook", event = "book", desc = "折起的一页，等待被重新读懂。核对遗漏记载后补出一本族谱。", story = { source = "开局带入", executor = "校谱人", fast = { label = "核对缺页（8 两／约 1 年）", cost = 8, years = 1 }, slow = { label = "逐页校勘（4 两／约 2 年）", cost = 4, years = 2 }, restore = "重修入谱", defer = "保留缺页" } },
+    { id = "ruler", name = "一把老木尺", cost = 6, saleValue = 14, basic = true, unlock = "plan", event = "ruler", desc = "尺背有陌生的匠号。查明匠号后寻回一张营造图。", story = { source = "开局带入", executor = "调查者", fast = { label = "查匠号（8 两／约 1 年）", cost = 8, years = 1 }, slow = { label = "慢查尺痕（4 两／约 2 年）", cost = 4, years = 2 }, restore = "修复图样", defer = "交给当地匠人" } },
+    { id = "letter", name = "一封未拆的家书", cost = 4, saleValue = 6, basic = true, unlock = "jade", event = "letter", desc = "有人曾说，等日子安稳了再送到。寻访故人后辈后完成旧约。", story = { source = "开局带入", executor = "送信人", fast = { label = "寻访故人后辈（8 两／约 1 年）", cost = 8, years = 1 }, slow = { label = "托人递送（4 两／约 2 年）", cost = 4, years = 2 }, restore = "完成旧约", defer = "把家书暂存" } },
+    { id = "plan", name = "修复的营造图", cost = 10, saleValue = 30, unlock = nil, event = "plan", desc = "家中有手艺人时，每年额外得 5 两；还会带来修缮活。", story = { source = "修复老木尺", executor = "匠作负责人", action = "接下修缮活" } },
+    { id = "newbook", name = "补完的族谱", cost = 9, saleValue = 18, unlock = nil, event = "newbook", desc = "一次有效交接额外获得 3 点声望，可邀请成年旁支归家。", story = { source = "重修旧族谱", executor = "寻亲人", action = "邀请成年旁支归家" } },
+    { id = "jade", name = "故人的半枚玉佩", cost = 8, saleValue = 28, unlock = nil, event = "jade", desc = "可继续查访失散故人，完成一次家谱重逢。", story = { source = "完成一封旧约", executor = "查访人", action = "查访另一半" } },
+    { id = "notes", name = "批注医案", cost = 10, saleValue = 24, unlock = nil, event = "notes", desc = "实际行医积累后由医馆托付；可刊印或传给后人。", story = { source = "医馆托付", executor = "行医者", action = "刊印或传承" } },
 }
 
 Data.Endings = {
