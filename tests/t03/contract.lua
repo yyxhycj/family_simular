@@ -93,9 +93,25 @@ local function Run()
     do
         local draft = assert(Opening.Generate(profile, 71, "mortal"))
         local beforeName = State.Copy(draft)
+        local external = nil
+        for _, member in ipairs(draft.members) do
+            if member.nameSource == "external" then external = member; break end
+        end
+        assert(external, "固定 seed 71 必须包含外姓成员夹具")
+        local custom = draft.members[1]
+        custom.name, custom.nameSource, custom.givenName = "欧阳长名自定", "custom", nil
+        local pointsBeforeName = State.TotalPoints(draft)
         assert(Opening.RandomFamilyName(draft))
         assert(draft.rngSeed == beforeName.rngSeed and draft.nameSeed ~= beforeName.nameSeed,
             "家族姓名骰子只能推进命名种子")
+        assert(external.name == beforeName.members[external.id].name and custom.name == "欧阳长名自定"
+            and State.TotalPoints(draft) == pointsBeforeName,
+            "姓名骰子不得改外姓、自定义姓名或开局点数")
+        assert(Opening.Rename(draft, "司马"), "复姓必须作为完整家族称谓保存")
+        assert(external.name == beforeName.members[external.id].name and custom.name == "欧阳长名自定", "复姓不得猜改外姓或自定义全名")
+        for _, member in ipairs(draft.members) do
+            if member.nameSource == "family" then assert(member.name == "司马" .. member.givenName, "本姓关联成员必须随完整复姓更新") end
+        end
 
         local beforePage = State.Copy(draft)
         local page = assert(Opening.RandomPage(draft, "estate", profile))
@@ -113,7 +129,7 @@ local function Run()
         { id = "seeded_households", samples = 128, distinct = distinct, families = familyCount, populationKinds = populationKinds, minPopulation = minPopulation, maxPopulation = maxPopulation, sixMemberSeed = 722 },
         { id = "seed_persistence", seed = 71, family = replayFixture.family, calendar = replayFixture.calendar, rngState = replayRun.rngState, memberCount = #replayFixture.members },
         { id = "change_house", runUntouched = true, undoRestored = true, failurePreserved = true },
-        { id = "command_scope", separateNameSeed = true, pageCandidatePure = true },
+        { id = "command_scope", separateNameSeed = true, externalAndCustomProtected = true, compoundFamilyName = true, pageCandidatePure = true },
     }
 end
 
