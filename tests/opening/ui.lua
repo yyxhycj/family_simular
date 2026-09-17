@@ -45,6 +45,9 @@ local function run()
     app.screen = "cover"; app.openingGenerationFailed = false; app:Render()
     assert(findText(UI.root, "立一部家谱") and findText(UI.root, "读取最近存档"), "正常封面按钮不可达")
     app.screen = "opening"; app:Render()
+    assert(findText(UI.root, "一家人的故事，从这里开始") and findText(UI.root, "首年预计净变化")
+        and findText(UI.root, "只改我在意的选项") and findKind(UI.root, "SimpleGrid"),
+        "随机开局没有渲染设计稿要求的摘要层级与成员入口")
 
     -- 新成员必须先留在临时编辑对象；取消不可占用编号或污染草案。
     local beforeAdd = State.Copy(app.draft)

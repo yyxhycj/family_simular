@@ -10,6 +10,7 @@ local function widget(kind, props)
     props.SetScroll = function(self, x, y) self.scrollX, self.scrollY = x, y end
     props.GetScroll = function(self) return self.scrollX or 0, self.scrollY or 0 end
     props.AddChild = function(self, child) table.insert(self.children, child) end
+    props.ClearChildren = function(self) self.children = {} end
     props.AddContent = props.AddChild
     props.GetChildAt = function(self, index) return self.children[index] end
     props.SetFooter = function(self, footer) self.footer = footer; self:AddChild(footer) end

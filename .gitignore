@@ -24,3 +24,4 @@ logs/*.log
 qa/t10/
 qa/t11/
 qa/collapse*/
+qa/design/

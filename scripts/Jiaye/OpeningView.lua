@@ -5,8 +5,8 @@ local State = require "Jiaye.State"
 local Opening = require "Jiaye.Opening"
 local Economy = require "Jiaye.Economy"
 local View = {}
-local C = { paper = {245,243,237,255}, card = {255,254,250,255}, ink = {38,60,51,255},
-    muted = {97,107,99,255}, line = {221,222,218,255}, green = {55,99,77,255}, pale = {232,239,221,255}, warning = {164,78,56,255} }
+local C = { paper = {248,247,239,255}, card = {255,254,248,255}, ink = {35,66,53,255},
+    muted = {95,113,102,255}, line = {207,216,196,255}, green = {53,100,77,255}, pale = {228,237,215,255}, warning = {174,83,59,255}, gold = {157,134,96,255} }
 local function text(value, size, color)
     return UI.Label { text = value, fontSize = size or 15, fontColor = color or C.ink, whiteSpace = "normal", flexShrink = 0 }
 end
@@ -19,7 +19,7 @@ local function button(label, action, secondary, extra)
 end
 local function panel(children, card)
     return UI.Panel { gap = 8, padding = card and 12 or 0, backgroundColor = card and C.card or nil,
-        borderRadius = 10, flexShrink = 0, children = children }
+        borderWidth = card and 1 or 0, borderColor = C.line, borderRadius = 10, flexShrink = 0, children = children }
 end
 local function row(children) return UI.Row { gap = 8, flexShrink = 0, children = children } end
 local function signed(n) return (n > 0 and "+" or "") .. tostring(n) end
@@ -66,35 +66,84 @@ local function relicSummary(app)
     return table.concat(shown, "；")
 end
 
+local function lastGlyph(value)
+    local glyph = "人"
+    for _, codepoint in utf8.codes(value or "") do glyph = utf8.char(codepoint) end
+    return glyph
+end
+
+local function sectionTitle(title, detail)
+    return UI.Row { justifyContent = "space-between", alignItems = "center", children = {
+        UI.Row { gap = 7, alignItems = "center", children = {
+            text("◇", 18, C.gold), text(title, 20),
+        } },
+        detail and text(detail, 14, C.muted) or UI.Panel { width = 0 },
+    } }
+end
+
+local function memberTile(app, member)
+    local job = Data.Jobs[member.jobId]
+    local leader = member.id == app.draft.leaderId
+    return button(lastGlyph(member.name) .. "\n" .. member.name .. "\n" .. tostring(member.age) .. "岁 · " .. (job and job.name or "待安排"), function()
+        app:OpenDraftMember(member.id)
+    end, true, {
+        height = 108, fontSize = 13, textAlign = "center", paddingHorizontal = 4,
+        backgroundColor = leader and C.pale or C.card, borderWidth = 1,
+        borderColor = leader and {143,163,111,255} or C.line,
+    })
+end
+
 function View.Summary(app)
     local d = app.draft
     local ledger, run = preview(app)
     local adults = 0; for _, member in ipairs(d.members) do if member.age >= 18 then adults = adults + 1 end end
     local children = {
-        row({ UI.Panel { flex = 1, minWidth = 0, children = { text(d.family .. "氏家族", 28) } },
+        text("一家人的故事，从这里开始", 16, C.muted),
+        row({ UI.Panel { flex = 1, minWidth = 0, children = { text(d.family .. "氏家族", 31) } },
             button("改名", function() app.nameEditing = d.family; show(app, "name") end, true, { width = 58 }),
             button("骰子", function() app:RandomFamilyName() end, true, { width = 58 }) }),
-        text(Data.Period(d.periodId).name .. " · " .. Data.Place(d.placeId).short .. " · 大晟历 " .. d.calendar .. " 年", 14, C.muted),
+        UI.Panel { flexDirection = "row", flexWrap = "wrap", gap = 6, children = {
+            UI.Label { text = Data.Period(d.periodId).name, fontSize = 14, fontColor = C.ink, backgroundColor = C.pale, borderColor = C.line, borderWidth = 1, borderRadius = 5, paddingHorizontal = 8, paddingVertical = 4 },
+            UI.Label { text = Data.Place(d.placeId).short, fontSize = 14, fontColor = C.ink, backgroundColor = C.card, borderColor = C.line, borderWidth = 1, borderRadius = 5, paddingHorizontal = 8, paddingVertical = 4 },
+            UI.Label { text = "大晟历 " .. d.calendar .. " 年", fontSize = 14, fontColor = C.ink, backgroundColor = C.card, borderColor = C.line, borderWidth = 1, borderRadius = 5, paddingHorizontal = 8, paddingVertical = 4 },
+        } },
+        UI.Panel { padding = 13, backgroundColor = {239,243,231,255}, borderLeftWidth = 3, borderLeftColor = C.gold, borderRadius = 7, children = {
+            text(Data.Origin(d.originId).desc, 17, C.ink),
+        } },
     }
     local metrics = {}
     for _, metric in ipairs({ {"现银", d.money .. " 两"}, {"存粮", d.grain .. " 石"}, {"田地", d.land .. " 亩"}, {"声望",run and tostring(run.reputation) or "待校验"} }) do
-        table.insert(metrics, UI.Panel { flex = 1, minWidth = 0, children = { text(metric[1],14,C.muted), text(metric[2],19) } })
+        table.insert(metrics, UI.Panel { height = 82, padding = 8, gap = 3, justifyContent = "center", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line,
+            children = { text(metric[1],13,C.muted), text(metric[2],25,C.ink) } })
     end
-    table.insert(children, panel({ row(metrics), text(Data.Home(d.homeId).name .. " · " .. (d.workshop and "有作坊" or "无作坊") .. " · " .. (d.shop and "有商铺" or "无商铺"), 14) },true))
-    table.insert(children,row({
-        button("调整世道与来历",function() app:BeginOpeningEdit("world") end,true,{flex=1}),
-        button("调整家底",function() app:BeginOpeningEdit("estate") end,true,{flex=1}),
-    }))
+    table.insert(children, UI.Panel { borderWidth = 1, borderColor = C.line, borderRadius = 10, overflow = "hidden", children = {
+        UI.SimpleGrid { columns = 4, gap = 0, children = metrics },
+    } })
+    table.insert(children, UI.Row { justifyContent = "space-between", children = {
+        text(Data.Home(d.homeId).name, 14, C.muted),
+        text((d.workshop and "有作坊" or "无作坊") .. " · " .. (d.shop and "有商铺" or "无商铺"), 14, C.muted),
+    } })
     local leader = State.FindMember(d.members, d.leaderId)
     local leaderJob = leader and Data.Jobs[leader.jobId]
-    table.insert(children,panel({ text("家中 " .. #d.members .. " 人 · " .. adults .. " 成人 / " .. (#d.members-adults) .. " 孩子", 16, C.muted),
-        text("首任族长 · " .. (leader and leader.name or "未指定") .. " · " .. (leaderJob and leaderJob.name or "安排待校验"), 15),
-        button("查看全体 " .. #d.members .. " 人  ›", function() app:OpenOpeningDetail("people") end, true, { height = 44 }) },true))
-    table.insert(children,panel({ text("信物 " .. tostring(#d.selectedRelicIds) .. " 件 · " .. relicSummary(app), 14, C.muted),
-        button("查看信物与收藏  ›", function() app:OpenOpeningDetail("relics") end, true, { height = 44 }) }, true))
-    table.insert(children,button(ledger and ("首年净变化  " .. signed(ledger.netMoney) .. " 两  /  " .. signed(ledger.netGrain) .. " 石  ›") or "首年账本 · 请先修正草案",
-        function() app:OpenOpeningDetail("ledger") end,true,{height=48}))
-    table.insert(children,text("不含突发事件 · 剩余点数不必花完",14,C.muted))
+    table.insert(children, sectionTitle("家中 " .. #d.members .. " 人", adults .. " 成人 · " .. (#d.members - adults) .. " 孩子"))
+    table.insert(children, text("首任族长 · " .. (leader and leader.name or "未指定") .. " · " .. (leaderJob and leaderJob.name or "安排待校验"), 14, C.muted))
+    local memberTiles = {}
+    for index = 1, math.min(4, #d.members) do table.insert(memberTiles, memberTile(app, d.members[index])) end
+    table.insert(children, UI.SimpleGrid { columns = math.min(4, math.max(1, #memberTiles)), gap = 7, children = memberTiles })
+    if #d.members > #memberTiles then table.insert(children, button("查看全部 " .. #d.members .. " 人  ›", function() app:OpenOpeningDetail("people") end, true, { height = 44 })) end
+    local firstRelic = d.selectedRelicIds[1] and Data.Relic(d.selectedRelicIds[1]) or nil
+    table.insert(children, panel({
+        UI.Row { gap = 12, alignItems = "center", children = {
+            UI.Panel { width = 58, height = 58, justifyContent = "center", alignItems = "center", backgroundColor = {244,239,222,255}, borderWidth = 2, borderColor = C.gold, children = { text(firstRelic and lastGlyph(firstRelic.name) or "物", 27, C.gold) } },
+            UI.Panel { flex = 1, minWidth = 0, children = { text(firstRelic and firstRelic.name or "本局未带入旧物", 20), text(relicSummary(app), 14, C.muted) } },
+            button("›", function() app:OpenOpeningDetail("relics") end, true, { id = "opening-relic-detail", width = 42, height = 52, fontSize = 28 }),
+        } },
+    }, true))
+    table.insert(children, UI.Row { justifyContent = "space-between", alignItems = "center", children = {
+        text("首年预计净变化", 17),
+        button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { id = "opening-ledger-detail", height = 44, fontSize = 17 }),
+    } })
+    table.insert(children,text("不含突发事件 · 不用填写，也能直接开始",14,C.muted))
     if ledger and (not ledger.foodSatisfied or not ledger.moneySatisfied) then table.insert(children,text("首年钱粮可能不足，可调整家底或安排后再开始。",15,C.warning)) end
     return panel(children)
 end
@@ -291,9 +340,12 @@ function View.Build(app)
     end
     if view=="summary" then
         local issues=State.ValidateDraft(app.draft,app.profile,false)
-        footer={button("总计 " .. State.TotalPoints(app.draft) .. "/100 点 · 查看明细  ›",function() app:OpenOpeningDetail("points") end,true),
-            row({button("换一家",function() app:ChangeHouse() end,true,{flex=1,height=48}),button("就从这家开始",function() app:StartRun() end,false,{flex=2,height=48,disabled=#issues>0})}),
-            button("只改我在意的选项",function() app:BeginOpeningEdit() end,true)}
+        footer={UI.Row { justifyContent = "space-between", alignItems = "center", children = {
+                text("总计 " .. State.TotalPoints(app.draft) .. "/100 点", 18),
+                button("查看明细  ›",function() app:OpenOpeningDetail("points") end,true,{id="opening-points-detail",height=42,fontSize=14}),
+            } },
+            row({button("↻ 换一家",function() app:ChangeHouse() end,true,{id="opening-change-house",flex=1,height=52,fontSize=17}),button("就从这家开始  →",function() app:StartRun() end,false,{id="opening-start",flex=2,height=52,disabled=#issues>0,fontSize=17})}),
+            button("只改我在意的选项",function() app:BeginOpeningEdit() end,true,{height=40})}
         if #issues>0 then table.insert(footer,1,text(table.concat(issues,"\n"),14,C.warning)) end
         if app.houseUndo then table.insert(footer,button("恢复上一家",function() app:UndoHouse() end,true)) end
     elseif view=="editor" then

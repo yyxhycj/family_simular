@@ -102,6 +102,10 @@ local function run()
     local deadApp = App.New(); deadApp.profile, deadApp.draft, deadApp.run, deadApp.screen = handoverProfile, handoverDraft, handover, "game"
     deadApp:OpenRunMember(dead.id)
     assert(find(UI.modal, "生活与经历") and contains(UI.modal, "已故 · 生平可读") and contains(UI.modal, "离世，生平被保留在家谱中"), "已故成员不能在人物页回看离世事实")
+    deadApp:Render()
+    assert(find(UI.root, "家谱") and find(UI.root, "⌂\n家族") and find(UI.root, "人\n族人"), "家族主页没有渲染家谱入口与五项底部导航")
+    deadApp:ConfirmEventChoice({ instanceId = "visual-only", type = "growth", title = "人生节点", memberId = dead.id }, "暂缓", "结果：当前仅确认事件界面层级。", "defer")
+    assert(find(UI.modal, "人生节点") and find(UI.modal, "你准备这样决定") and find(UI.modal, "确认这个决定"), "事件确认没有渲染来源、决定和确认层级")
 
     local career, careerProfile, careerDraft = fresh()
     local worker = career.members[1]

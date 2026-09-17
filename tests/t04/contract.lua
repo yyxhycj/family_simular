@@ -28,6 +28,10 @@ local function contains(root, value)
     return find(root, function(node) return type(node.text) == "string" and node.text:find(value, 1, true) ~= nil end)
 end
 
+local function id(root, value)
+    return find(root, function(node) return node.id == value end)
+end
+
 local function run()
     local profile = State.NewProfile()
     local draft = assert(Opening.Generate(profile, 722, "mortal"))
@@ -43,10 +47,13 @@ local function run()
         assert(text(UI.root, value), "摘要缺少当前资产：" .. value)
     end
     assert(text(UI.root, "首任族长 · " .. leader.name .. " · " .. Data.Jobs[leader.jobId].name), "摘要缺少首任族长的初始安排")
-    assert(prefix(UI.root, "首年净变化  "), "摘要缺少同源的首年净变化入口")
+    assert(text(UI.root, "首年预计净变化") and id(UI.root, "opening-ledger-detail"), "摘要缺少同源的首年净变化入口")
     assert(prefix(UI.root, "总计 "), "摘要缺少开局总分入口")
-    assert(text(UI.root, "查看全体 " .. #app.draft.members .. " 人  ›"), "摘要缺少全体成员入口")
-    assert(text(UI.root, "查看信物与收藏  ›"), "摘要缺少信物明细入口")
+    for index = 1, math.min(4, #app.draft.members) do
+        assert(contains(UI.root, app.draft.members[index].name), "摘要缺少成员入口：" .. app.draft.members[index].name)
+    end
+    if #app.draft.members > 4 then assert(text(UI.root, "查看全部 " .. #app.draft.members .. " 人  ›"), "摘要缺少完整成员入口") end
+    assert(id(UI.root, "opening-relic-detail"), "摘要缺少信物明细入口")
 
     -- 多件信物不能只显示第一件；细节仍由同一个入口查看。
     local validDraft = State.Copy(app.draft)
@@ -58,10 +65,9 @@ local function run()
 
     -- 摘要中的真实按钮只切换只读明细，不能重掷或改写草案。
     local details = {
-        { node = function() return prefix(UI.root, "总计 ") end, view = "points" },
-        { node = function() return prefix(UI.root, "首年净变化  ") end, view = "ledger" },
-        { node = function() return text(UI.root, "查看全体 " .. #app.draft.members .. " 人  ›") end, view = "people" },
-        { node = function() return text(UI.root, "查看信物与收藏  ›") end, view = "relics" },
+        { node = function() return id(UI.root, "opening-points-detail") end, view = "points" },
+        { node = function() return id(UI.root, "opening-ledger-detail") end, view = "ledger" },
+        { node = function() return id(UI.root, "opening-relic-detail") end, view = "relics" },
     }
     local stableDraft = State.Copy(app.draft)
     for _, detail in ipairs(details) do
@@ -71,9 +77,12 @@ local function run()
         app:ReturnOpeningDetail()
         assert(app.openingView == "summary" and same(app.draft, stableDraft), "返回摘要改变了草案：" .. detail.view)
     end
+    app:OpenOpeningDetail("people")
+    assert(app.openingView == "people" and same(app.draft, stableDraft), "打开全体成员明细改变了草案")
+    app:ReturnOpeningDetail()
 
     -- "换一家"与恢复由真实摘要按钮发起；原运行局尚不存在时也不得产生额外存档。
-    local change = assert(text(UI.root, "换一家"))
+    local change = assert(id(UI.root, "opening-change-house"))
     change.onClick(change)
     assert(app.houseUndo and not same(app.draft, stableDraft) and State.Load() == nil, "换一家未生成新草案或提前写入存档")
     local undo = assert(text(UI.root, "恢复上一家"))
@@ -112,7 +121,7 @@ local function run()
     app:PrepareNewRun()
     app.draft.money = 999
     app:Render()
-    assert(assert(text(UI.root, "就从这家开始")).disabled, "非法草案的开始按钮没有禁用")
+    assert(assert(id(UI.root, "opening-start")).disabled, "非法草案的开始按钮没有禁用")
     app:StartRun()
     assert(same(app.run, storedRun) and same(State.Load().run, storedRun) and app.openingFeedback ~= "", "非法草案覆盖了旧局或未就地说明")
 

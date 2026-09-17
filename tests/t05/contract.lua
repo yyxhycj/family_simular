@@ -52,13 +52,13 @@ local function run()
     app:Render()
     local original = State.Copy(app.draft)
 
-    -- 摘要可直达世道或家底，不清空已生成草案。
-    local world = assert(text(UI.root, "调整世道与来历"))
-    world.onClick(world)
-    assert(app.openingView == "editor" and app.openingPage == "world" and same(app.draft, original), "摘要不能直达世道或直达时重置草案")
+    -- 摘要进入可选编辑器后可直达世道或家底，不清空已生成草案。
+    local openEditor = assert(text(UI.root, "只改我在意的选项"))
+    openEditor.onClick(openEditor)
+    assert(app.openingView == "editor" and app.openingPage == "world" and same(app.draft, original), "摘要不能进入世道编辑或进入时重置草案")
     assert(app:FinishOpeningEdit(false) and same(app.draft, original), "未改世道取消却改写草案")
-    app:Render()
-    local estate = assert(text(UI.root, "调整家底"))
+    app:BeginOpeningEdit()
+    local estate = assert(text(UI.root, "家底"))
     estate.onClick(estate)
     local expected = State.Copy(original)
     expected.money = expected.money + 10
