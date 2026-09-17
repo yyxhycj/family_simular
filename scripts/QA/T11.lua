@@ -1,0 +1,113 @@
+-- T11 隔离整合验收；真实 File、cjson、UI 与生产模块，玩家保存不动。
+---@diagnostic disable: assign-type-mismatch, undefined-global
+local UI = require "urhox-libs/UI"
+local nativeFile, nativeFS = File, fileSystem
+
+local function isolatedPath(path)
+    if path == "jiaye_save.json" or path == "jiaye_save.backup.json" or path == "jiaye_export.json" then return "t11_qa_" .. path end
+    return path
+end
+
+File = function(path, mode) return nativeFile(isolatedPath(path), mode) end
+fileSystem = { FileExists = function(_, path) return nativeFS:FileExists(isolatedPath(path)) end }
+
+local App = require "Jiaye.App"
+local Opening = require "Jiaye.Opening"
+local Simulation = require "Jiaye.Simulation"
+local State = require "Jiaye.State"
+
+local function adults(members)
+    local result = {}
+    for _, member in ipairs(members) do if member.alive and member.age >= 18 then table.insert(result, member) end end
+    return result
+end
+
+local function generatedDraft(profile)
+    for seed = 1, 4096 do
+        local draft = Opening.Generate(profile, seed, "mortal")
+        if draft then
+            local members = adults(draft.members)
+            if #members >= 2 and members[1].age <= 44 and members[2].age <= 44 and draft.money >= 60 and draft.grain >= 12 then return draft end
+        end
+    end
+    error("未找到可完成整合验收的合法家庭。")
+end
+
+local function resolvePending(run, profile)
+    for _ = 1, 128 do
+        local pending = Simulation.PendingEvents(run)
+        if #pending == 0 then return end
+        local event = pending[1]
+        if event.type == "leader" then
+            local candidate = adults(run.members)[1]
+            assert(candidate and Simulation.ResolveLeaderEvent(run, event.instanceId, candidate.id))
+        else
+            local ok, message = Simulation.ResolveEvent(run, event.instanceId, "defer", profile)
+            assert(ok, message)
+        end
+    end
+    error("待决家事未能收束。")
+end
+
+local function verify()
+    local profile = State.NewProfile()
+    local draft = generatedDraft(profile)
+    local run, issues = State.NewRun(draft, profile)
+    assert(run, table.concat(issues or {}, "；"))
+    assert(State.Save(profile, draft, run))
+
+    local openingApp = App.New()
+    assert(openingApp.run and openingApp.run.runId == run.runId)
+    openingApp.gameTab = "family"; openingApp:Render()
+
+    local family = adults(run.members)
+    for _, member in ipairs(family) do
+        assert(Simulation.SetJob(run, member.id, "farm"))
+        assert(Simulation.SetBirthPlan(run, member.id, false))
+    end
+    local firstLeader = run.leaderId
+    for year = 1, 10 do
+        resolvePending(run, profile)
+        assert(Simulation.AdvanceYear(run, profile))
+        if year == 1 then
+            local successor = nil
+            for _, member in ipairs(adults(run.members)) do if member.id ~= firstLeader then successor = member; break end end
+            assert(successor and Simulation.AppointLeader(run, successor.id, "T11 家业交接"))
+        end
+    end
+    assert(Simulation.IsEndingReady(run, "peaceful") and run.ending == nil)
+    assert(Simulation.ClaimEnding(run, "peaceful", profile))
+    assert(run.ending and run.ending.id == "peaceful" and #profile.endingRecords == 1 and #Simulation.PendingEvents(run) == 0)
+
+    local before = State.Copy(run)
+    assert(not Simulation.AdvanceYear(run, profile) and cjson.encode(before) == cjson.encode(run))
+    assert(State.Save(profile, draft, run))
+    local raw = assert(State.Export(profile, draft, run))
+    local candidate = assert(State.PreflightImport(raw))
+    assert(candidate.run.ending.id == "peaceful" and #candidate.profile.endingRecords == 1)
+
+    local reviewApp = App.New()
+    assert(reviewApp.run and reviewApp.run.ending and reviewApp.profile.endingRecords[1].id == "peaceful")
+    reviewApp.gameTab = "family"; reviewApp:Render()
+    reviewApp.gameTab = "history"; reviewApp.historySection = "endings"; reviewApp:Render()
+    return { family = draft.family, members = #draft.members, years = run.yearIndex, ending = run.ending.id, facts = #run.facts, ledgers = #run.annualLedgers, revision = State.Load().saveRevision }
+end
+
+function Start()
+    UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
+    local ok, result = pcall(verify)
+    if not ok then
+        print("T11_QA_FAIL " .. tostring(result))
+        UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", padding = 18, children = { UI.Label { text = "T11 验收失败\n" .. tostring(result), whiteSpace = "normal" } } })
+        return
+    end
+    print("T11_QA_PASS 生成家庭、年度交接、终章、只读、保存与家史重载通过 " .. cjson.encode(result))
+    UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", padding = 18, children = {
+        UI.Label { text = "T11 真实引擎整合验收通过", fontSize = 24 },
+        UI.Label { text = "· 生成合法家庭后入局保存，年度结算、交接与家史持续累积\n· 达成终章资格后仍可经营；确认落笔后写操作保持只读\n· 重载后终章、条件记录与家史来自同一份保存", whiteSpace = "normal", lineHeight = 1.65 },
+    } })
+end
+
+function Stop()
+    UI.Shutdown()
+end

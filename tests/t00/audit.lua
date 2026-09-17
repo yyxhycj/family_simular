@@ -4,9 +4,15 @@ local UI, notices, storage = {}, {}, { files = {}, failOpen = false, failWrite =
 local function widget(kind, props)
     props = props or {}; props.kind = kind
     props.SetText = function(self, text) self.text = text end
+    props.AddChild = function(self, child) self.children = self.children or {}; table.insert(self.children, child) end
+    props.AddContent = props.AddChild
+    props.SetFooter = function(self, footer) self.footer = footer; self:AddChild(footer) end
+    props.Open = function(self) UI.modal = self end
+    props.Close = function(self) if self.onClose then self.onClose(self) end end
+    props.Destroy = function(self) self.destroyed = true end
     return props
 end
-for _, kind in ipairs({ "Panel", "Row", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView" }) do
+for _, kind in ipairs({ "Panel", "Row", "SimpleGrid", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Modal" }) do
     UI[kind] = function(props) return widget(kind, props) end
 end
 UI.Box = function() return widget("Box") end
@@ -22,7 +28,7 @@ File = function(path, mode)
         IsOpen = function() return not storage.failOpen end,
         WriteString = function(_, raw)
             if storage.failWrite then return 0 end
-            storage.files[path] = raw; return #raw
+            storage.files[path] = raw; return true
         end,
         ReadString = function() return storage.files[path] end,
         Close = function() end,
@@ -48,8 +54,18 @@ end
 local function saveLoad(run, profile, draft)
     assert(State.Save(profile, draft, run))
     local loaded = assert(State.Load())
-    assert(equal(loaded, { run = run, profile = profile, draft = draft }), "adapter round-trip changed payload")
+    assert(equal(loaded.run, run) and equal(loaded.profile, profile) and equal(loaded.draft, draft) and loaded.saveRevision >= 1,
+        "adapter round-trip changed payload")
     return loaded.run
+end
+local function discardFactsWithMissingMembers(run)
+    for index = #run.facts, 1, -1 do
+        local valid = true
+        for _, memberId in ipairs(run.facts[index].memberIds or {}) do
+            if not State.FindMember(run.members, memberId) then valid = false end
+        end
+        if not valid then table.remove(run.facts, index) end
+    end
 end
 local function find(root, predicate)
     if predicate(root) then return root end
@@ -98,6 +114,7 @@ check("P02", "撤销世道不覆盖家底", app.draft.money == 180, "money=180",
 
 run, profile, draft = fresh()
 run.members = { run.members[1] }; local member = run.members[1]
+discardFactsWithMissingMembers(run)
 member.age = 30; member.health = 60; member.jobId = "play"; member.spouseId = nil
 run.land = 0; run.money = 0; run.grain = 0; run.metrics.stable = 4; run.metrics.foodYears = 7
 assert(Simulation.AdvanceYear(run, profile)); run = saveLoad(run, profile, draft)
@@ -114,6 +131,7 @@ check("P05", "真实婚入的同辈夫妻只算一代教书", generations == 1, 
 -- Seed 1 and age 89 cause leader death through the unmodified annual PRNG.
 run, profile, draft = fresh()
 run.members = { run.members[1], run.members[2] }; run.members[1].age = 89; run.members[2].age = 30
+discardFactsWithMissingMembers(run)
 for _, person in ipairs(run.members) do person.spouseId = nil; person.birthPlan = false end
 run.rngState = 1
 assert(Simulation.AdvanceYear(run, profile))
@@ -133,8 +151,8 @@ local manual = Simulation.AppointLeader(run, 2, "主动交接")
 local resolve, reason = Simulation.ResolveLeaderEvent(run, event.instanceId, 2)
 local advance = Simulation.AdvanceYear(run, profile)
 run = saveLoad(run, profile, draft); fixtures.blockedSuccession = { profile = profile, draft = draft, run = State.Copy(run) }
-check("P07", "人物入口继任同步关闭事件并可继续", manual and resolve and advance and #Simulation.PendingEvents(run) == 0,
-    "one handover, no pending leader event, advance succeeds", { manual = manual, resolve = resolve, advance = advance, reason = reason, pending = Simulation.PendingEvents(run), terms = run.leaderTerms })
+check("P07", "人物入口继任同步关闭事件并可继续", manual and not resolve and advance and #Simulation.PendingEvents(run) == 0,
+    "one handover closes the event; a later event resolution is rejected; advance succeeds", { manual = manual, resolve = resolve, advance = advance, reason = reason, pending = Simulation.PendingEvents(run), terms = run.leaderTerms })
 
 draft = State.NewDraft(); draft.originId = "gentry"; draft.tieId = "neighbor"; draft.money = 0; draft.grain = 0; draft.land = 0; draft.selectedRelicIds = {}
 run = assert(State.NewRun(draft, State.NewProfile()))
@@ -147,6 +165,10 @@ event = Simulation.PendingEvents(run)[1]; assert(event.type == "relic_resolution
 assert(Simulation.ResolveEvent(run, event.instanceId, "restore", profile)); assert(profile.unlockedRelicIds.plan)
 assert(State.Save(profile, draft, run)); fixtures.unlocked = assert(State.Load())
 app = App.New(); app:StartRun()
+if app.startConfirmationOpen then
+    local confirm = assert(find(UI.modal, function(node) return node.text == "确认开始" end))
+    confirm.onClick(confirm)
+end
 local restart = assert(State.Load())
 check("F01", "重启直接新开保留已解锁营造图", restart.profile.unlockedRelicIds.plan == true,
     "plan unlocked before and after restart/new run", { before = true, after = restart.profile.unlockedRelicIds.plan == true, total = State.TotalPoints(restart.draft) })
@@ -172,11 +194,10 @@ storage.failWrite = false
 check("F02", "坏结构/写失败不假报成功", bad == nil and malformed == nil and not saveOk and exportNotice.variant ~= "success" and not shortWriteOk,
     "reject invalid schema; report save/export/short-write failures; keep previous payload", { malformedRejected = malformed == nil, badStructureAccepted = bad ~= nil, openFailureReported = not saveOk, exportNotice = exportNotice, shortWriteAccepted = shortWriteOk, oldPayloadUnchanged = storage.files["jiaye_save.json"] == oldRaw })
 
-app = App.New(); app.screen = "opening"; app.openingPage = "estate"; app:Render()
-local stepper = assert(find(UI.root, function(node) return node.kind == "Stepper" and node.value == 80 end))
-stepper.onChange(stepper, 110)
-local label100 = find(UI.root, function(node) return node.kind == "Label" and node.text:find("总分 100/100", 1, true) end)
-local label97 = find(UI.root, function(node) return node.kind == "Label" and node.text:find("总分 97/100", 1, true) end)
+app = App.New(); app.screen = "opening"; app.openingView = "summary"; app:Render()
+app:SetDraftField("estate", "money", 110)
+local label100 = find(UI.root, function(node) return type(node.text) == "string" and node.text:find("总计 100/100", 1, true) end)
+local label97 = find(UI.root, function(node) return type(node.text) == "string" and node.text:find("总计 97/100", 1, true) end)
 check("F03", "钱数回调后预算组件立即一致", label100 ~= nil and label97 == nil,
     "100/100 visible in existing component tree", { actualTotal = State.TotalPoints(app.draft), stale97 = label97 ~= nil, fresh100 = label100 ~= nil, previewBound = app.previewLabel ~= nil })
 

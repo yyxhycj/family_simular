@@ -499,6 +499,8 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
     if event.type == "growth" then
         local member = State.FindMember(run.members, event.memberId)
         if not member then
+            event.cancelledMemberId = event.memberId
+            event.memberId = nil
             event.status = "cancelled"
             return false, "这位族人的记录已不存在，成长提醒已作废。"
         end

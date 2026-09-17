@@ -1,8 +1,3 @@
-"""T00 evidence runner. Only the Lua/UrhoX boundary is substituted, never game rules.
-
-Run from any directory using a venv with lupa==2.6. A failed product assertion
-exits 1; this audit deliberately does not turn known regressions into passes.
-"""
 import argparse
 import hashlib
 import json
@@ -55,12 +50,16 @@ source_paths = [ROOT / "scripts/main.lua", *sorted((ROOT / "scripts/Jiaye").glob
 source_records = {}
 for path in source_paths:
     relative = str(path.relative_to(ROOT))
-    old = subprocess.check_output(["git", "show", f"{HISTORICAL}:{relative}"], cwd=ROOT)
+    historical = subprocess.run(
+        ["git", "show", f"{HISTORICAL}:{relative}"], cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False
+    )
+    old = historical.stdout if historical.returncode == 0 else None
     current = path.read_bytes()
     source_records[relative] = {
         "sha256": hashlib.sha256(current).hexdigest(),
-        "historical_sha256": hashlib.sha256(old).hexdigest(),
-        "identical_to_historical": current == old,
+        "historical_present": old is not None,
+        "historical_sha256": hashlib.sha256(old).hexdigest() if old is not None else None,
+        "identical_to_historical": old is not None and current == old,
     }
 reference_hashes = {
     str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()

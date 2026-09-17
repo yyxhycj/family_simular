@@ -92,7 +92,7 @@ local function run()
     local dead = handover.members[1]
     local deadApp = App.New(); deadApp.profile, deadApp.draft, deadApp.run, deadApp.screen = handoverProfile, handoverDraft, handover, "game"
     deadApp:OpenRunMember(dead.id)
-    assert(find(UI.modal, "经历") and contains(UI.modal, "离世，生平被保留在家谱中"), "已故成员不能在人物页回看离世事实")
+    assert(find(UI.modal, "生活与经历") and contains(UI.modal, "已故 · 生平可读") and contains(UI.modal, "离世，生平被保留在家谱中"), "已故成员不能在人物页回看离世事实")
 
     local career, careerProfile, careerDraft = fresh()
     local worker = career.members[1]
@@ -121,8 +121,10 @@ local function run()
     assert(State.Save(careerProfile, careerDraft, career))
     local loaded = assert(State.Load())
     assert(#loaded.run.annualLedgers >= 1 and #loaded.run.facts >= 1, "年度账本或人物事实没有被保存")
-    local resumed = App.New(); resumed:Load(); resumed.gameTab = "history"; resumed:Render()
-    assert(find(UI.root, "历任族长") and find(UI.root, "年度账本") and find(UI.root, "查看此人生平"), "家史缺少历任族长或年度账本入口")
+    local resumed = App.New(); resumed:Load(); resumed.gameTab = "history"; resumed.historySection = "annals"; resumed:Render()
+    assert(find(UI.root, "年度账本"), "家史缺少年度账本入口")
+    resumed.historySection = "terms"; resumed:Render()
+    assert(find(UI.root, "历任族长") and find(UI.root, "查看此人生平"), "家史缺少历任族长入口")
     assert(dead and not dead.alive and factFor(handover, dead.id, "death"), "已故成员不可回看其离世事实")
     return {
         annualLedgerFrozen = true, hungerResets = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },
