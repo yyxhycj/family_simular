@@ -247,35 +247,47 @@ function App:AddMember()
         age = 18, parents = {}, talent = 2, focus = "general", experienceId = "none", trait = "沉静", jobId = "farm" }
     self.memberLeader = self.draft.leaderId
     self.memberReturn = self.openingView
-    self.memberSection = "base"; self.memberIssue = ""; self.removeConfirm = false
+    self.memberSection = "base"; self.memberIssue = ""; self.removeConfirm = false; self.memberRemoving = false
     self.openingView = "member"; self:Render()
 end
 
-function App:RemoveMember(memberId)
+function App:MarkDraftMemberForRemoval()
+    if self.memberIsNew or not self.memberEditing then return end
     if #self.draft.members <= 1 then self.memberIssue = "至少保留一位族人。"; self:Render(); return end
-    for index, member in ipairs(self.draft.members) do if member.id == memberId then table.remove(self.draft.members, index); break end end
-    for _, member in ipairs(self.draft.members) do
-        if member.spouseId == memberId then member.spouseId = nil end
-        local parents = {}; for _, id in ipairs(member.parents) do if id ~= memberId then table.insert(parents, id) end end
-        member.parents = parents
-    end
-    self.undo.people = nil; self.houseUndo = nil; self.memberEditing = nil; self.memberIsNew = nil; self.removeConfirm = false
-    self.openingView = self.memberReturn or "summary"
-    self.openingFeedback = "已移除成员并清理关系引用；如移除了首任族长，请另行指定。"; self:Render()
+    self.memberRemoving = true
+    self.memberIssue = ""
+    self:Render()
 end
 
 function App:OpenDraftMember(memberId)
     local member = State.FindMember(self.draft.members, memberId)
     if not member then return end
     self.memberEditing = State.Copy(member); self.memberIsNew = false; self.memberLeader = self.draft.leaderId
-    self.memberReturn = self.openingView; self.memberSection = "base"; self.memberIssue = ""; self.removeConfirm = false
+    self.memberReturn = self.openingView; self.memberSection = "base"; self.memberIssue = ""; self.removeConfirm = false; self.memberRemoving = false
     self.openingView = "member"; self:Render()
 end
 
 -- 预览和保存共用同一份候选草案；新成员尚未写入 draft 时也按最终形态计分和校验。
 function App:DraftMemberCandidate()
     local candidate, issue
-    if self.memberIsNew then
+    if self.memberRemoving then
+        candidate = State.Copy(self.draft)
+        local removed = self.memberEditing and self.memberEditing.id
+        if not removed then return nil, "没有可移除的成员，草案未改变。" end
+        local found = false
+        for index, member in ipairs(candidate.members) do
+            if member.id == removed then table.remove(candidate.members, index); found = true; break end
+        end
+        if not found then return nil, "找不到要移除的成员，草案未改变。" end
+        for _, member in ipairs(candidate.members) do
+            if member.spouseId == removed then member.spouseId = nil end
+            local parents = {}
+            for _, parentId in ipairs(member.parents) do if parentId ~= removed then table.insert(parents, parentId) end end
+            member.parents = parents
+        end
+        local issues = State.ValidateDraft(candidate, self.profile, true)
+        if #issues > 0 then return nil, table.concat(issues, "\n") end
+    elseif self.memberIsNew then
         candidate = State.Copy(self.draft)
         table.insert(candidate.members, State.Copy(self.memberEditing))
         candidate.nextId = math.max(candidate.nextId or 1, self.memberEditing.id + 1)
@@ -290,13 +302,17 @@ end
 function App:SaveDraftMember()
     local candidate, issue = self:DraftMemberCandidate()
     if not candidate then self.memberIssue = issue; self:Render(); return end
-    self.draft = candidate; self.undo.people = nil; self.houseUndo = nil; self.memberEditing = nil; self.memberIsNew = nil; self.removeConfirm = false
-    self.openingView = self.memberReturn or "summary"; self:Render()
+    local removed = self.memberRemoving
+    self.draft = candidate; self.undo.people = nil; self.houseUndo = nil; self.memberEditing = nil; self.memberIsNew = nil; self.memberRemoving = nil; self.removeConfirm = false
+    self.openingView = self.memberReturn or "summary"
+    self.openingFeedback = removed and "已移除成员并清理关系引用。" or ""
+    self:Render()
 end
 
 function App:CancelDraftMember()
     self.memberEditing = nil
     self.memberIsNew = nil
+    self.memberRemoving = nil
     self.memberIssue = ""
     self.removeConfirm = false
     self.openingView = self.memberReturn or "summary"

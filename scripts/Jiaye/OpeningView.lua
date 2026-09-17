@@ -81,6 +81,10 @@ function View.Summary(app)
         table.insert(metrics, UI.Panel { flex = 1, minWidth = 0, children = { text(metric[1],14,C.muted), text(metric[2],19) } })
     end
     table.insert(children, panel({ row(metrics), text(Data.Home(d.homeId).name .. " · " .. (d.workshop and "有作坊" or "无作坊") .. " · " .. (d.shop and "有商铺" or "无商铺"), 14) },true))
+    table.insert(children,row({
+        button("调整世道与来历",function() app:BeginOpeningEdit("world") end,true,{flex=1}),
+        button("调整家底",function() app:BeginOpeningEdit("estate") end,true,{flex=1}),
+    }))
     local leader = State.FindMember(d.members, d.leaderId)
     local leaderJob = leader and Data.Jobs[leader.jobId]
     table.insert(children,panel({ text("家中 " .. #d.members .. " 人 · " .. adults .. " 成人 / " .. (#d.members-adults) .. " 孩子", 16, C.muted),
@@ -204,6 +208,9 @@ local function memberView(app)
         table.insert(tabs,button(item[2],function() app.memberSection=item[1]; app:Render() end,item[1]~=app.memberSection,{flex=1}))
     end
     table.insert(children,row(tabs))
+    if app.memberRemoving then
+        table.insert(children,text("此人将在“保存移除”后才从草案删除；取消不会改动关系或族长。",15,C.warning))
+    end
     local function change(key,value) m[key]=value; app.memberIssue=""; app.removeConfirm=false; app:Render() end
     if app.memberSection=="base" then
         table.insert(children,text("完整姓名 · 手改后独立保留"))
@@ -252,9 +259,13 @@ local function memberView(app)
         for _,other in ipairs(app.draft.members) do if other.id~=m.id then table.insert(spouses,{value=other.id,label=other.name .. " · " .. other.age .. " 岁",disabled=other.age<18 or m.age<18}) end end
         table.insert(children,text("配偶 · 保存时双向校验")); table.insert(children,choose(spouses,m.spouseId or 0,function(v) change("spouseId",v~=0 and v or nil) end))
         if not app.memberIsNew then
-            table.insert(children,button(app.removeConfirm and "确认移除，并清理配偶/亲子引用" or "移除此人…",function()
-                if app.removeConfirm then app.removeConfirm=false; app:RemoveMember(m.id) else app.removeConfirm=true; app:Render() end
-            end,true))
+            if app.memberRemoving then
+                table.insert(children,button("取消移除标记",function() app.memberRemoving=false; app.memberIssue=""; app:Render() end,true))
+            else
+                table.insert(children,button(app.removeConfirm and "确认移除，并清理配偶/亲子引用" or "移除此人…",function()
+                    if app.removeConfirm then app.removeConfirm=false; app:MarkDraftMemberForRemoval() else app.removeConfirm=true; app:Render() end
+                end,true))
+            end
         end
     end
     local candidate,issue=app:DraftMemberCandidate()
@@ -289,7 +300,7 @@ function View.Build(app)
         footer={text("总计 " .. State.TotalPoints(app.draft) .. "/100 · 超分可保留编辑，但不能开局",14,C.muted),
             row({button("取消编辑",function() app:FinishOpeningEdit(false) end,true,{flex=1}),button("保存并返回",function() app:FinishOpeningEdit(true) end,false,{flex=1})})}
     elseif view=="member" then
-        footer={row({button("取消",function() app:CancelDraftMember() end,true,{flex=1}),button("保存人物",function() app:SaveDraftMember() end,false,{flex=1})})}
+        footer={row({button("取消",function() app:CancelDraftMember() end,true,{flex=1}),button(app.memberRemoving and "保存移除" or "保存人物",function() app:SaveDraftMember() end,false,{flex=1})})}
     elseif view=="name" then
         footer={row({button("取消",function() show(app,"summary") end,true,{flex=1}),button("保存姓名",function()
             local ok,message=Opening.Rename(app.draft,app.nameEditing)
