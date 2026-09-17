@@ -24,6 +24,14 @@ local function adults(members, livingOnly)
     return result
 end
 
+local function same(left, right)
+    if type(left) ~= type(right) then return false end
+    if type(left) ~= "table" then return left == right end
+    for key, value in pairs(left) do if not same(value, right[key]) then return false end end
+    for key in pairs(right) do if left[key] == nil then return false end end
+    return true
+end
+
 local function generatedDraft(profile)
     for seed = 1, 4096 do
         local draft = Opening.Generate(profile, seed, "mortal")
@@ -82,7 +90,7 @@ local function verify()
     assert(run.ending and run.ending.id == "peaceful" and #profile.endingRecords == 1 and #Simulation.PendingEvents(run) == 0)
 
     local before = State.Copy(run)
-    assert(not Simulation.AdvanceYear(run, profile) and cjson.encode(before) == cjson.encode(run))
+    assert(not Simulation.AdvanceYear(run, profile) and same(before, run))
     assert(State.Save(profile, draft, run))
     local raw = assert(State.Export(profile, draft, run))
     local candidate = assert(State.PreflightImport(raw))
