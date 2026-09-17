@@ -122,7 +122,7 @@ function State.Generation(members, memberId, visited)
     visited = visited or {}
     if visited[memberId] then return 1 end
     visited[memberId] = true
-    local generation = 1
+    local generation = type(member.generation) == "number" and math.max(1, member.generation) or 1
     for _, parentId in ipairs(type(member.parents) == "table" and member.parents or {}) do
         generation = math.max(generation, State.Generation(members, parentId, visited) + 1)
     end
@@ -278,15 +278,25 @@ function State.NewRun(draft, profile)
     for index, relicId in ipairs(draft.selectedRelicIds) do table.insert(relicInstances, { instanceId = "relic-" .. tostring(index), definitionId = relicId, status = "held", custodianId = draft.leaderId, stage = "idle" }) end
     local reputation = (origin.id == "gentry" and 25 or 0) + (draft.tieId == "neighbor" and 12 or 0)
     if draft.homeId == "estate" then reputation = reputation + 8 end
-    return {
+    local run = {
         runId = "run-" .. tostring(os.time()), schemaVersion = 1, rulesVersion = Data.RULES_VERSION,
         openingSnapshot = State.Copy(draft), worldId = draft.worldId, yearIndex = 0, calendar = draft.calendar, eraId = period.era, eraSinceYear = 0,
         placeId = draft.placeId, originId = draft.originId, habitId = draft.habitId, tieId = draft.tieId,
         members = members, leaderId = draft.leaderId, leaderTerms = { { memberId = draft.leaderId, startYear = 0, endYear = nil, effective = false, reason = "开局任命" } },
         money = draft.money, grain = draft.grain, land = draft.land, homeId = draft.homeId, workshop = draft.workshop, shop = draft.shop,
-        reputation = reputation, relicInstances = relicInstances, events = {}, logs = {}, ending = nil, revision = 0,
+        reputation = reputation, relicInstances = relicInstances, events = {}, logs = {}, facts = {}, annualLedgers = {}, ending = nil, revision = 0,
         rngState = draft.rngSeed, processedCommands = {}, flags = {}, metrics = { stable = 0, foodYears = 0, aid = 0, migrations = 0, lastMove = 0 },
-    }, nil
+    }
+    for _, member in ipairs(run.members) do
+        State.AddFact(run, "opening", member.name .. "以“" .. Data.Jobs[member.jobId].name .. "”开始这一段人生。", { member.id }, { recordLog = false })
+    end
+    local leader = State.FindMember(run.members, run.leaderId)
+    local firstTerm = run.leaderTerms[1]
+    if leader and firstTerm then
+        local fact = State.AddFact(run, "leadership", leader.name .. "受家人推举，成为首任族长。", { leader.id }, { reason = firstTerm.reason, leaderTermStart = 1, recordLog = false })
+        firstTerm.factId = fact.id
+    end
+    return run, nil
 end
 
 function State.Random(run, min, max)
@@ -296,8 +306,47 @@ function State.Random(run, min, max)
     return value
 end
 
-function State.AddLog(run, text)
-    table.insert(run.logs, 1, { year = run.calendar, text = text })
+function State.AddLog(run, text, detail)
+    run.logs = run.logs or {}
+    run.nextHistoryId = run.nextHistoryId or (#run.logs + 1)
+    local entry = { id = "history-" .. tostring(run.nextHistoryId), year = run.calendar, text = text }
+    run.nextHistoryId = run.nextHistoryId + 1
+    for key, value in pairs(type(detail) == "table" and detail or {}) do entry[key] = State.Copy(value) end
+    table.insert(run.logs, 1, entry)
+    return entry
+end
+
+function State.AddFact(run, kind, text, memberIds, detail)
+    run.facts = run.facts or {}
+    run.nextFactId = run.nextFactId or (#run.facts + 1)
+    local fact = { id = "fact-" .. tostring(run.nextFactId), year = run.calendar, kind = kind, text = text, memberIds = State.Copy(memberIds or {}) }
+    run.nextFactId = run.nextFactId + 1
+    for key, value in pairs(type(detail) == "table" and detail or {}) do fact[key] = State.Copy(value) end
+    table.insert(run.facts, 1, fact)
+    if fact.recordLog ~= false then State.AddLog(run, text, { factId = fact.id, memberIds = fact.memberIds }) end
+    for _, memberId in ipairs(fact.memberIds) do
+        local member = State.FindMember(run.members, memberId)
+        if member then
+            member.factIds = member.factIds or {}
+            table.insert(member.factIds, 1, fact.id)
+        end
+    end
+    return fact
+end
+
+function State.RecordAnnualLedger(run, ledger, yearStart)
+    run.annualLedgers = run.annualLedgers or {}
+    run.nextLedgerId = run.nextLedgerId or (#run.annualLedgers + 1)
+    local record = State.Copy(ledger)
+    record.id = "ledger-" .. tostring(run.nextLedgerId)
+    record.year = run.calendar
+    record.yearIndex = run.yearIndex + 1
+    record.yearStart = State.Copy(yearStart)
+    run.nextLedgerId = run.nextLedgerId + 1
+    table.insert(run.annualLedgers, 1, record)
+    local fact = State.AddFact(run, "annual_ledger", "大晟历 " .. tostring(record.year) .. " 年账本已结算：银 " .. tostring(record.netMoney) .. " 两，粮 " .. tostring(record.netGrain) .. " 石。", {}, { ledgerId = record.id, recordLog = false })
+    record.factId = fact.id
+    return record
 end
 
 -- 两个交替存档位：只写非最新的一份，失败时保留上次可读进度。

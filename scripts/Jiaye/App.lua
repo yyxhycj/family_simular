@@ -499,6 +499,21 @@ function App:BuildPendingEvent(event)
         local choices = {}; for _, member in ipairs(self.run.members) do if member.alive and member.age >= 18 then table.insert(choices, Button("任命 " .. member.name, function() self:RunAction(function() return Simulation.ResolveLeaderEvent(self.run, event.instanceId, member.id) end) end, { height = 38 })) end end
         return Card({ Label("族长之位空缺", { fontSize = 19, fontWeight = "bold" }), Label("家族仍可继续，但需要从在世成年族人中选任族长。", { fontSize = 14, whiteSpace = "normal" }), UI.Panel { gap = 6, children = choices } }, { borderColor = C.warning })
     end
+    if event.type == "growth" then
+        local member = State.FindMember(self.run.members, event.memberId)
+        local job = event.jobId and Data.Jobs[event.jobId] or nil
+        local detail = member and (event.growthId == "promotion" and (member.name .. "已具备“" .. (job and job.name or "新岗位") .. "”资格。是否现在查看安排？岗位不会自动改变。") or (member.name .. "已经成年，可以由你决定接下来的安排。")) or "这条成长记录的族人已不在当前家谱中。"
+        return Card({
+            Label(event.title, { fontSize = 19, fontWeight = "bold" }), Label(detail, { fontSize = 14, whiteSpace = "normal", lineHeight = 1.55 }),
+            UI.Row { gap = 8, children = {
+                Button("查看安排", function()
+                    self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "acknowledge", self.profile) end)
+                    if member then self:OpenRunMember(member.id) end
+                end, { flex = 1 }),
+                Button("暂不转业", function() self:RunAction(function() return Simulation.ResolveEvent(self.run, event.instanceId, "defer", self.profile) end) end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
+            } },
+        }, { borderColor = C.green })
+    end
     local details = {
         medical_find = "医馆愿意把一册珍贵的批注医案托付给家中。收下后，它会真实进入本局藏阁，并解锁下一局。",
         plan_work = "有人看中了旧营造图。备好工料接下活计，可换得净收益与声望。",
@@ -678,7 +693,7 @@ function App:OpenRunMember(memberId)
     if member.alive and not self.run.ending then
         for jobId, job in pairs(Data.Jobs) do
             local ok, reason = Simulation.GetJobReason(member, jobId)
-            content:GetChildAt(1):AddChild(Button(job.name .. (ok and "" or " · " .. reason), function() self:RunAction(function() return Simulation.SetJob(self.run, memberId, jobId) end); modal:Close() end, { height = 36, backgroundColor = ok and (member.jobId == jobId and C.green or C.pale) or { 235, 229, 224, 255 }, textColor = ok and (member.jobId == jobId and { 255, 255, 255, 255 } or C.green) or C.warning, fontSize = 11 }))
+            content:GetChildAt(1):AddChild(Button(job.name .. (ok and "" or " · " .. reason), function() self:ConfirmRunJob(memberId, jobId, modal) end, { height = 36, backgroundColor = ok and (member.jobId == jobId and C.green or C.pale) or { 235, 229, 224, 255 }, textColor = ok and (member.jobId == jobId and { 255, 255, 255, 255 } or C.green) or C.warning, fontSize = 11 }))
         end
         content:GetChildAt(1):AddChild(Button("应试（10 两）", function() self:RunAction(function() return Simulation.TakeExam(self.run, memberId) end); modal:Close() end, { height = 38 }))
         content:GetChildAt(1):AddChild(Button("安排婚配（12 两）", function() self:RunAction(function() return Simulation.Marry(self.run, memberId) end); modal:Close() end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
@@ -697,8 +712,47 @@ function App:OpenRunMember(memberId)
         end
     end
     content:GetChildAt(1):AddChild(Label("经历", { fontSize = 16, fontWeight = "bold", marginTop = 8 }))
-    for _, line in ipairs(member.biography) do content:GetChildAt(1):AddChild(Label("• " .. line, { fontSize = 13, whiteSpace = "normal", fontColor = C.muted })) end
+    local factMap, shown = {}, false
+    for _, fact in ipairs(self.run.facts or {}) do factMap[fact.id] = fact end
+    for _, line in ipairs(member.biography or {}) do
+        shown = true
+        content:GetChildAt(1):AddChild(Label("• " .. line, { fontSize = 13, whiteSpace = "normal", fontColor = C.muted }))
+    end
+    for _, factId in ipairs(member.factIds or {}) do
+        local fact = factMap[factId]
+        if fact then
+            shown = true
+            content:GetChildAt(1):AddChild(Label("大晟历 " .. tostring(fact.year) .. " 年 · " .. fact.text, { fontSize = 13, whiteSpace = "normal", fontColor = C.muted }))
+        end
+    end
+    if not shown then content:GetChildAt(1):AddChild(Label("尚无可回看的经历。", { fontSize = 13, fontColor = C.muted })) end
     modal:AddContent(content); modal:SetFooter(Button("返回", function() modal:Close() end, { height = 40 })); modal:Open()
+end
+
+function App:ConfirmRunJob(memberId, jobId, parentModal)
+    local member = State.FindMember(self.run.members, memberId)
+    local job = Data.Jobs[jobId]
+    local ok, reason = false, "这位族人已不在家谱中。"
+    if member then ok, reason = Simulation.GetJobReason(member, jobId) end
+    if not ok or not job then self:Notify(reason, "warning"); return end
+    if member.jobId == jobId then self:Notify("此人已经在做这份安排。", "info"); return end
+    local money = job.money or 0
+    local moneyLine = money >= 0 and ("预计本年收入 " .. tostring(money) .. " 两") or ("预计本年培养费用 " .. tostring(-money) .. " 两")
+    local growthLine = job.stat and ("成长：" .. job.stat .. " +" .. tostring(job.gain or 0)) or "成长：以当前安排维持家中事务。"
+    local modal = UI.Modal { title = "确认安排 · " .. member.name, size = "fullscreen", backgroundColor = C.card, borderColor = C.line, titleTextColor = C.ink, closeIconColor = C.muted, closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end }
+    modal:AddContent(UI.Panel { padding = 14, gap = 8, children = {
+        Label("改为“" .. job.name .. "”", { fontSize = 18, fontWeight = "bold" }),
+        Label(job.desc, { fontSize = 14, whiteSpace = "normal", lineHeight = 1.5 }),
+        Label(moneyLine .. "\n" .. growthLine, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }),
+    } })
+    modal:SetFooter(UI.Row { gap = 8, children = {
+        Button("取消", function() modal:Close() end, { flex = 1, height = 40, backgroundColor = C.pale, textColor = C.green }),
+        Button("确认安排", function()
+            self:RunAction(function() return Simulation.SetJob(self.run, memberId, jobId) end)
+            modal:Close(); if parentModal then parentModal:Close() end
+        end, { flex = 1, height = 40 }),
+    } })
+    modal:Open()
 end
 
 function App:BuildPeopleTab()
@@ -828,6 +882,28 @@ function App:BuildHistoryTab()
         Button("下一页", function() turnTo(self.historyPage + 1) end, { flex = 1, disabled = self.historyPage == pageCount }),
         Button("最早", function() turnTo(pageCount) end, { flex = 1, disabled = self.historyPage == pageCount }),
     } }
+    local termCards = {}
+    local openingCalendar = TableValue(self.run.openingSnapshot).calendar or self.run.calendar
+    for _, term in ipairs(self.run.leaderTerms or {}) do
+        local member = State.FindMember(self.run.members, term.memberId)
+        local startYear = openingCalendar + (term.startYear or 0)
+        local endYear = term.endYear and (openingCalendar + term.endYear) or "至今"
+        table.insert(termCards, Card({
+            Label((member and member.name or "未知族人") .. " · " .. tostring(startYear) .. "—" .. tostring(endYear), { fontSize = 16, fontWeight = "bold" }),
+            Label("缘由：" .. tostring(term.reason or "未记录") .. " · " .. ((term.effective and "有效任期") or "任期尚未满一年"), { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
+            Button(member and "查看此人生平" or "人物记录缺失", function() if member then self:OpenRunMember(member.id) end end, { height = 34, disabled = not member, backgroundColor = C.pale, textColor = C.green }),
+        }))
+    end
+    if #termCards == 0 then table.insert(termCards, Label("尚未记录任期。", { fontSize = 13, fontColor = C.muted })) end
+    local ledgerCards = {}
+    for _, ledger in ipairs(self.run.annualLedgers or {}) do
+        local start = TableValue(ledger.yearStart)
+        table.insert(ledgerCards, Card({
+            Label("大晟历 " .. tostring(ledger.year) .. " 年账本", { fontSize = 16, fontWeight = "bold" }),
+            Label("年初：银 " .. tostring(start.money or ledger.beforeMoney) .. " 两 · 粮 " .. tostring(start.grain or ledger.beforeGrain) .. " 石\n收入 " .. tostring(ledger.income or 0) .. " 两 · 培养 " .. tostring(ledger.training or 0) .. " 两 · 产业 " .. tostring(ledger.industryIncome or 0) .. " 两 · 生活 " .. tostring(ledger.livingExpense or 0) .. " 两\n粮食：需 " .. tostring(ledger.foodNeed or 0) .. " 石 · 缺 " .. tostring(ledger.foodShortfall or 0) .. " 石 · 净变 " .. tostring(ledger.netGrain or 0) .. " 石", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+        }))
+    end
+    if #ledgerCards == 0 then table.insert(ledgerCards, Label("推进第一年后，这里会保留每一年的年初快照与结算分项。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" })) end
     return UI.Panel { gap = 12, children = {
         Card({ Label("家史", { fontSize = 21, fontWeight = "bold" }), Label("家史全量保留，按新到旧分页。", { fontSize = 13, fontColor = C.muted }),
             UI.Row { gap = 8, children = {
@@ -835,6 +911,8 @@ function App:BuildHistoryTab()
                 Button("新立家谱", function() self:PrepareNewRun() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
             } },
         }),
+        Card({ Label("历任族长", { fontSize = 18, fontWeight = "bold" }), Label("任期和人物经历引用同一份事实记录。", { fontSize = 12, fontColor = C.muted }), UI.Panel { gap = 8, children = termCards } }),
+        Card({ Label("年度账本", { fontSize = 18, fontWeight = "bold" }), Label("每年结算冻结年初资源与收入、培养、生活、粮食分项。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }), UI.Panel { gap = 8, children = ledgerCards } }),
         Card({ Label("年鉴 · " .. tostring(#self.run.logs) .. " 条 · 第 " .. tostring(self.historyPage) .. "/" .. tostring(pageCount) .. " 页", { fontSize = 18, fontWeight = "bold" }), pager, UI.Panel { gap = 8, children = logCards } }),
         Card({ Label("可探索的终章", { fontSize = 18, fontWeight = "bold" }), UI.Panel { gap = 8, children = endingCards } }),
     } }
