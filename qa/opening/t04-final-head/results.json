@@ -1,0 +1,272 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "distinct": 48,
+        "id": "seeded_generation",
+        "maxPopulation": 6,
+        "samples": 48
+      },
+      {
+        "id": "name_isolation",
+        "family": "司马",
+        "points": 66
+      },
+      {
+        "id": "edit_validation",
+        "pageIsolation": true,
+        "rejected": 3,
+        "pointLinesSafe": true,
+        "limits": "100/101"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "income": 29,
+        "netGrain": 5,
+        "netMoney": -1,
+        "id": "preview"
+      },
+      {
+        "reputation": 26,
+        "ledger": {
+          "grainSold": 0,
+          "beforeGrain": 24,
+          "livingExpense": 14,
+          "money": 79,
+          "landGrain": 4,
+          "foodNeed": 7,
+          "saleIncome": 0,
+          "boughtGrain": 0,
+          "foodCost": 0,
+          "netGrain": 5,
+          "netMoney": -1,
+          "training": 16,
+          "grain": 29,
+          "industryIncome": 0,
+          "members": [
+            {
+              "name": "林成",
+              "job": "手艺谋生",
+              "money": 21,
+              "grain": 0,
+              "memberId": 1
+            },
+            {
+              "name": "许青",
+              "job": "耕作谋生",
+              "money": 8,
+              "grain": 8,
+              "memberId": 2
+            },
+            {
+              "name": "林芸",
+              "job": "随师学医",
+              "money": -9,
+              "grain": 0,
+              "memberId": 3
+            },
+            {
+              "name": "林安",
+              "job": "读书求学",
+              "money": -7,
+              "grain": 0,
+              "memberId": 4
+            }
+          ],
+          "beforeMoney": 80,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "moneySatisfied": true,
+          "income": 29
+        },
+        "id": "advance"
+      },
+      {
+        "stable": 0,
+        "shortfall": 3,
+        "foodYears": 0,
+        "id": "shortage"
+      },
+      {
+        "tradeIncome": 36,
+        "reputation": 37,
+        "id": "stacking"
+      },
+      {
+        "invalidDraftPreserved": true,
+        "landCost": 30,
+        "id": "price_and_reject"
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "addCancelPure": true,
+      "newMemberSpouseSaved": true,
+      "newMemberPreview": true,
+      "generatedFailureInjected": true,
+      "inputKeepsFocus": true,
+      "detailReturnPreserved": true,
+      "editCancelPure": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "invalidStartInline": true,
+      "pageUndoScoped": true,
+      "coverActionsReachable": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 97,
+      "duplicateConfirmationIgnored": true,
+      "ledger": {
+        "foodNeed": 4,
+        "money": 0,
+        "foodCost": 0,
+        "livingExpense": 12,
+        "beforeGrain": 20,
+        "beforeMoney": 0,
+        "moneySatisfied": true,
+        "grainSold": 14,
+        "foodSatisfied": true,
+        "industryIncome": 0,
+        "income": 0,
+        "saleIncome": 28,
+        "grain": 14,
+        "netGrain": -6,
+        "landGrain": 12,
+        "netMoney": 0,
+        "boughtGrain": 0,
+        "members": [
+          {
+            "memberId": 1,
+            "name": "叶修衡",
+            "grain": 0,
+            "money": -9,
+            "job": "随师学医"
+          },
+          {
+            "memberId": 2,
+            "name": "姜晚宁",
+            "grain": 0,
+            "money": -7,
+            "job": "读书求学"
+          }
+        ],
+        "foodShortfall": 0,
+        "training": 16
+      },
+      "snapshot": {
+        "calendar": 60,
+        "rngSeed": 657062171,
+        "money": 0,
+        "workshop": false,
+        "tieId": "neighbor",
+        "nextId": 3,
+        "members": [
+          {
+            "sex": "男",
+            "spouseId": 2,
+            "givenName": "修衡",
+            "experienceId": "none",
+            "nameSource": "family",
+            "jobId": "medical",
+            "focus": "martial",
+            "age": 39,
+            "name": "叶修衡",
+            "parents": {},
+            "trait": "沉静",
+            "id": 1,
+            "talent": 1
+          },
+          {
+            "sex": "女",
+            "spouseId": 1,
+            "givenName": "晚宁",
+            "experienceId": "basic",
+            "nameSource": "external",
+            "jobId": "study",
+            "focus": "trade",
+            "age": 47,
+            "name": "姜晚宁",
+            "parents": {},
+            "trait": "仁厚",
+            "id": 2,
+            "talent": 1
+          }
+        ],
+        "homeId": "rented",
+        "nameSeed": 657062171,
+        "habitId": "education",
+        "placeId": "mountain",
+        "leaderId": 1,
+        "worldId": "mortal",
+        "grain": 20,
+        "periodId": "peace",
+        "land": 3,
+        "family": "叶",
+        "shop": false,
+        "originId": "gentry",
+        "selectedRelicIds": [
+          "ruler",
+          "letter"
+        ],
+        "generatorVersion": 1
+      },
+      "readOnlyViews": 5,
+      "priorSaveRetainedUntilConfirmation": true
+    },
+    "restart": {
+      "year": 1,
+      "ledger": {
+        "foodSatisfied": true,
+        "beforeGrain": 20,
+        "foodNeed": 4,
+        "foodCost": 0,
+        "money": 0,
+        "foodShortfall": 0,
+        "members": [
+          {
+            "job": "随师学医",
+            "memberId": 1,
+            "name": "叶修衡",
+            "grain": 0,
+            "money": -9
+          },
+          {
+            "job": "读书求学",
+            "memberId": 2,
+            "name": "姜晚宁",
+            "grain": 0,
+            "money": -7
+          }
+        ],
+        "grainSold": 14,
+        "moneySatisfied": true,
+        "netMoney": 0,
+        "income": 0,
+        "landGrain": 12,
+        "livingExpense": 12,
+        "grain": 14,
+        "industryIncome": 0,
+        "training": 16,
+        "boughtGrain": 0,
+        "beforeMoney": 0,
+        "netGrain": -6,
+        "saleIncome": 28
+      },
+      "points": 97,
+      "family": "叶"
+    }
+  }
+]

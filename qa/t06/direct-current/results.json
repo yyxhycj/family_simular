@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t06_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:70: 婚入配偶被误算成下一代\\nstack traceback:\\n\\t[string \"<python>\"]:70: in function <[string \"<python>\"]:31>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

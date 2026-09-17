@@ -1,0 +1,46 @@
+[
+  {
+    "id": "t03_contract",
+    "status": "PASS",
+    "evidence": [
+      {
+        "minPopulation": 2,
+        "distinct": 128,
+        "id": "seeded_households",
+        "samples": 128,
+        "sixMemberSeed": 722,
+        "populationKinds": 4,
+        "families": 12,
+        "maxPopulation": 5
+      },
+      {
+        "id": "seed_persistence",
+        "memberCount": 2,
+        "seed": 71,
+        "rngState": 1895998043,
+        "calendar": 156,
+        "family": "林"
+      },
+      {
+        "runUntouched": true,
+        "failurePreserved": true,
+        "id": "change_house",
+        "undoRestored": true
+      },
+      {
+        "separateNameSeed": true,
+        "id": "command_scope",
+        "externalAndCustomProtected": true,
+        "compoundFamilyName": true,
+        "pageCandidatePure": true
+      }
+    ],
+    "restart": {
+      "id": "restart_seed_persistence",
+      "family": "林",
+      "memberCount": 2,
+      "rngState": 1895998043,
+      "calendar": 156
+    }
+  }
+]

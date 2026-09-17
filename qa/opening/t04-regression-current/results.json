@@ -1,0 +1,364 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "distinct": 48,
+        "id": "seeded_generation",
+        "maxPopulation": 6,
+        "samples": 48
+      },
+      {
+        "id": "name_isolation",
+        "family": "司马",
+        "points": 66
+      },
+      {
+        "pageIsolation": true,
+        "rejected": 3,
+        "limits": "100/101",
+        "pointLinesSafe": true,
+        "id": "edit_validation"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "income": 29,
+        "netGrain": 5,
+        "netMoney": -1,
+        "id": "preview"
+      },
+      {
+        "reputation": 26,
+        "ledger": {
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "landGrain": 4,
+          "foodCost": 0,
+          "moneySatisfied": true,
+          "foodNeed": 7,
+          "netMoney": -1,
+          "netGrain": 5,
+          "income": 29,
+          "grain": 29,
+          "money": 79,
+          "training": 16,
+          "beforeGrain": 24,
+          "members": [
+            {
+              "job": "手艺谋生",
+              "grain": 0,
+              "name": "林成",
+              "money": 21,
+              "memberId": 1
+            },
+            {
+              "job": "耕作谋生",
+              "grain": 8,
+              "name": "许青",
+              "money": 8,
+              "memberId": 2
+            },
+            {
+              "job": "随师学医",
+              "grain": 0,
+              "name": "林芸",
+              "money": -9,
+              "memberId": 3
+            },
+            {
+              "job": "读书求学",
+              "grain": 0,
+              "name": "林安",
+              "money": -7,
+              "memberId": 4
+            }
+          ],
+          "boughtGrain": 0,
+          "industryIncome": 0,
+          "beforeMoney": 80,
+          "grainSold": 0,
+          "saleIncome": 0,
+          "livingExpense": 14
+        },
+        "id": "advance"
+      },
+      {
+        "foodYears": 0,
+        "stable": 0,
+        "shortfall": 3,
+        "id": "shortage"
+      },
+      {
+        "reputation": 37,
+        "tradeIncome": 36,
+        "id": "stacking"
+      },
+      {
+        "invalidDraftPreserved": true,
+        "landCost": 30,
+        "id": "price_and_reject"
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "generatedFailureInjected": true,
+      "newMemberPreview": true,
+      "coverActionsReachable": true,
+      "newMemberSpouseSaved": true,
+      "inputKeepsFocus": true,
+      "addCancelPure": true,
+      "invalidStartInline": true,
+      "detailReturnPreserved": true,
+      "editCancelPure": true,
+      "pageUndoScoped": true,
+      "savedDraftSurvivesLaterCancel": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 100,
+      "ledger": {
+        "landGrain": 0,
+        "industryIncome": 0,
+        "money": 1,
+        "grainSold": 2,
+        "beforeMoney": 40,
+        "income": 0,
+        "foodShortfall": 0,
+        "training": 29,
+        "foodNeed": 7,
+        "boughtGrain": 0,
+        "foodSatisfied": true,
+        "saleIncome": 4,
+        "netGrain": -9,
+        "moneySatisfied": true,
+        "netMoney": -39,
+        "beforeGrain": 20,
+        "grain": 11,
+        "members": [
+          {
+            "name": "许砚",
+            "memberId": 1,
+            "job": "随师学医",
+            "grain": 0,
+            "money": -8
+          },
+          {
+            "name": "程绮宁",
+            "memberId": 2,
+            "job": "随师学医",
+            "grain": 0,
+            "money": -8
+          },
+          {
+            "name": "许昭微",
+            "memberId": 3,
+            "job": "休养",
+            "grain": 0,
+            "money": 0
+          },
+          {
+            "name": "许芸禾",
+            "memberId": 4,
+            "job": "随师学医",
+            "grain": 0,
+            "money": -8
+          },
+          {
+            "name": "许微晚",
+            "memberId": 5,
+            "job": "习武",
+            "grain": 0,
+            "money": -5
+          }
+        ],
+        "livingExpense": 14,
+        "foodCost": 0
+      },
+      "readOnlyViews": 5,
+      "duplicateConfirmationIgnored": true,
+      "priorSaveRetainedUntilConfirmation": true,
+      "snapshot": {
+        "originId": "military",
+        "family": "许",
+        "tieId": "healer",
+        "nextId": 6,
+        "shop": false,
+        "calendar": 24,
+        "land": 0,
+        "generatorVersion": 1,
+        "rngSeed": 2067034020,
+        "periodId": "rebuild",
+        "placeId": "mountain",
+        "habitId": "education",
+        "homeId": "courtyard",
+        "grain": 20,
+        "leaderId": 1,
+        "nameSeed": 2067034020,
+        "workshop": false,
+        "money": 40,
+        "members": [
+          {
+            "focus": "medicine",
+            "sex": "男",
+            "id": 1,
+            "parents": {},
+            "talent": 3,
+            "name": "许砚",
+            "nameSource": "family",
+            "jobId": "medical",
+            "experienceId": "basic",
+            "givenName": "砚",
+            "age": 36,
+            "trait": "沉静",
+            "spouseId": 2
+          },
+          {
+            "focus": "skill",
+            "sex": "女",
+            "id": 2,
+            "parents": {},
+            "talent": 1,
+            "name": "程绮宁",
+            "nameSource": "external",
+            "jobId": "medical",
+            "experienceId": "none",
+            "givenName": "绮宁",
+            "age": 34,
+            "trait": "好奇",
+            "spouseId": 1
+          },
+          {
+            "focus": "skill",
+            "sex": "女",
+            "id": 3,
+            "parents": [
+              1,
+              2
+            ],
+            "name": "许昭微",
+            "nameSource": "family",
+            "jobId": "rest",
+            "experienceId": "none",
+            "givenName": "昭微",
+            "age": 9,
+            "trait": "爽朗",
+            "talent": 1
+          },
+          {
+            "focus": "trade",
+            "sex": "女",
+            "id": 4,
+            "parents": [
+              1,
+              2
+            ],
+            "name": "许芸禾",
+            "nameSource": "family",
+            "jobId": "medical",
+            "experienceId": "none",
+            "givenName": "芸禾",
+            "age": 12,
+            "trait": "踏实",
+            "talent": 3
+          },
+          {
+            "focus": "learn",
+            "sex": "女",
+            "id": 5,
+            "parents": [
+              1,
+              2
+            ],
+            "name": "许微晚",
+            "nameSource": "family",
+            "jobId": "train",
+            "experienceId": "basic",
+            "givenName": "微晚",
+            "age": 12,
+            "trait": "仁厚",
+            "talent": 1
+          }
+        ],
+        "worldId": "mortal",
+        "selectedRelicIds": [
+          "ruler"
+        ]
+      }
+    },
+    "restart": {
+      "points": 100,
+      "year": 1,
+      "ledger": {
+        "grainSold": 2,
+        "income": 0,
+        "foodNeed": 7,
+        "landGrain": 0,
+        "beforeGrain": 20,
+        "netMoney": -39,
+        "members": [
+          {
+            "grain": 0,
+            "job": "随师学医",
+            "memberId": 1,
+            "name": "许砚",
+            "money": -8
+          },
+          {
+            "grain": 0,
+            "job": "随师学医",
+            "memberId": 2,
+            "name": "程绮宁",
+            "money": -8
+          },
+          {
+            "grain": 0,
+            "job": "休养",
+            "memberId": 3,
+            "name": "许昭微",
+            "money": 0
+          },
+          {
+            "grain": 0,
+            "job": "随师学医",
+            "memberId": 4,
+            "name": "许芸禾",
+            "money": -8
+          },
+          {
+            "grain": 0,
+            "job": "习武",
+            "memberId": 5,
+            "name": "许微晚",
+            "money": -5
+          }
+        ],
+        "beforeMoney": 40,
+        "foodCost": 0,
+        "training": 29,
+        "foodShortfall": 0,
+        "saleIncome": 4,
+        "netGrain": -9,
+        "moneySatisfied": true,
+        "boughtGrain": 0,
+        "foodSatisfied": true,
+        "grain": 11,
+        "industryIncome": 0,
+        "livingExpense": 14,
+        "money": 1
+      },
+      "family": "许"
+    }
+  }
+]

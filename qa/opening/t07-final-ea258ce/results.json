@@ -1,0 +1,271 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "distinct": 48,
+        "samples": 48,
+        "maxPopulation": 6,
+        "id": "seeded_generation"
+      },
+      {
+        "points": 66,
+        "family": "司马",
+        "id": "name_isolation"
+      },
+      {
+        "limits": "100/101",
+        "pageIsolation": true,
+        "rejected": 3,
+        "pointLinesSafe": true,
+        "id": "edit_validation"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "netMoney": -1,
+        "income": 29,
+        "netGrain": 5
+      },
+      {
+        "id": "advance",
+        "ledger": {
+          "saleIncome": 0,
+          "income": 29,
+          "boughtGrain": 0,
+          "industryIncome": 0,
+          "money": 79,
+          "foodShortfall": 0,
+          "training": 16,
+          "beforeMoney": 80,
+          "grainSold": 0,
+          "foodSatisfied": true,
+          "livingExpense": 14,
+          "foodNeed": 7,
+          "landGrain": 4,
+          "grain": 29,
+          "netGrain": 5,
+          "netMoney": -1,
+          "beforeGrain": 24,
+          "members": [
+            {
+              "grain": 0,
+              "job": "手艺谋生",
+              "money": 21,
+              "memberId": 1,
+              "name": "林成"
+            },
+            {
+              "grain": 8,
+              "job": "耕作谋生",
+              "money": 8,
+              "memberId": 2,
+              "name": "许青"
+            },
+            {
+              "grain": 0,
+              "job": "随师学医",
+              "money": -9,
+              "memberId": 3,
+              "name": "林芸"
+            },
+            {
+              "grain": 0,
+              "job": "读书求学",
+              "money": -7,
+              "memberId": 4,
+              "name": "林安"
+            }
+          ],
+          "foodCost": 0,
+          "moneySatisfied": true
+        },
+        "reputation": 26
+      },
+      {
+        "id": "shortage",
+        "shortfall": 3,
+        "foodYears": 0,
+        "stable": 0
+      },
+      {
+        "id": "stacking",
+        "reputation": 37,
+        "tradeIncome": 36
+      },
+      {
+        "id": "price_and_reject",
+        "landCost": 30,
+        "invalidDraftPreserved": true
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "pageUndoScoped": true,
+      "addCancelPure": true,
+      "generatedFailureInjected": true,
+      "invalidStartInline": true,
+      "detailReturnPreserved": true,
+      "editCancelPure": true,
+      "inputKeepsFocus": true,
+      "newMemberPreview": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "newMemberSpouseSaved": true,
+      "coverActionsReachable": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "priorSaveRetainedUntilConfirmation": true,
+      "snapshot": {
+        "money": 90,
+        "rngSeed": 1062533641,
+        "periodId": "peace",
+        "leaderId": 1,
+        "land": 0,
+        "members": [
+          {
+            "id": 1,
+            "focus": "medicine",
+            "nameSource": "family",
+            "name": "程绮棠",
+            "experienceId": "medical",
+            "parents": {},
+            "talent": 4,
+            "age": 35,
+            "givenName": "绮棠",
+            "sex": "女",
+            "jobId": "home",
+            "spouseId": 2,
+            "trait": "踏实"
+          },
+          {
+            "id": 2,
+            "focus": "general",
+            "nameSource": "external",
+            "name": "陆远川",
+            "experienceId": "craft",
+            "parents": {},
+            "talent": 2,
+            "age": 41,
+            "givenName": "远川",
+            "sex": "男",
+            "jobId": "train",
+            "spouseId": 1,
+            "trait": "好奇"
+          }
+        ],
+        "grain": 40,
+        "homeId": "rented",
+        "originId": "scholar",
+        "habitId": "none",
+        "workshop": false,
+        "family": "程",
+        "shop": false,
+        "placeId": "border",
+        "calendar": 60,
+        "tieId": "healer",
+        "generatorVersion": 1,
+        "worldId": "mortal",
+        "nextId": 3,
+        "selectedRelicIds": [
+          "letter"
+        ],
+        "nameSeed": 1062533641
+      },
+      "duplicateConfirmationIgnored": true,
+      "ledger": {
+        "income": 0,
+        "netGrain": -4,
+        "livingExpense": 9,
+        "landGrain": 0,
+        "boughtGrain": 0,
+        "netMoney": -15,
+        "industryIncome": 0,
+        "foodNeed": 4,
+        "training": 6,
+        "grain": 36,
+        "members": [
+          {
+            "grain": 0,
+            "money": 0,
+            "name": "程绮棠",
+            "job": "料理家事",
+            "memberId": 1
+          },
+          {
+            "grain": 0,
+            "money": -6,
+            "name": "陆远川",
+            "job": "习武",
+            "memberId": 2
+          }
+        ],
+        "foodCost": 0,
+        "money": 75,
+        "beforeMoney": 90,
+        "saleIncome": 0,
+        "beforeGrain": 40,
+        "foodSatisfied": true,
+        "foodShortfall": 0,
+        "grainSold": 0,
+        "moneySatisfied": true
+      },
+      "readOnlyViews": 5,
+      "points": 100
+    },
+    "restart": {
+      "ledger": {
+        "foodSatisfied": true,
+        "beforeGrain": 40,
+        "members": [
+          {
+            "grain": 0,
+            "name": "程绮棠",
+            "money": 0,
+            "memberId": 1,
+            "job": "料理家事"
+          },
+          {
+            "grain": 0,
+            "name": "陆远川",
+            "money": -6,
+            "memberId": 2,
+            "job": "习武"
+          }
+        ],
+        "livingExpense": 9,
+        "moneySatisfied": true,
+        "saleIncome": 0,
+        "foodCost": 0,
+        "beforeMoney": 90,
+        "training": 6,
+        "netMoney": -15,
+        "industryIncome": 0,
+        "netGrain": -4,
+        "foodNeed": 4,
+        "foodShortfall": 0,
+        "income": 0,
+        "landGrain": 0,
+        "money": 75,
+        "grainSold": 0,
+        "grain": 36,
+        "boughtGrain": 0
+      },
+      "family": "程",
+      "points": 100,
+      "year": 1
+    }
+  }
+]

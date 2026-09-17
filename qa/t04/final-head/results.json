@@ -1,0 +1,24 @@
+[
+  {
+    "id": "t04_contract",
+    "status": "PASS",
+    "evidence": {
+      "id": "opening_summary",
+      "summaryToRunSnapshot": true,
+      "invalidStartBlocked": true,
+      "oldRunCancelPreserved": true,
+      "seed": 722,
+      "details": 4,
+      "family": "顾",
+      "leaderJob": "随家人生活",
+      "changeHouseUndo": true,
+      "population": 6
+    },
+    "restart": {
+      "population": 2,
+      "year": 0,
+      "family": "陆",
+      "id": "restart"
+    }
+  }
+]

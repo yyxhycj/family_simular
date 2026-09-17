@@ -282,8 +282,27 @@ function Simulation.BuyAsset(run, assetId)
     if assetId == "shop" and run.shop then return false, "家中已有商铺。" end
     run.money = run.money - price
     if assetId == "land" then run.land = run.land + 1 elseif assetId == "workshop" then run.workshop = true else run.shop = true end
-    State.AddLog(run, "置办“" .. ({ land = "田地", workshop = "木工作坊", shop = "小商铺" })[assetId] .. "”，花费 " .. tostring(price) .. " 两。")
+    local assetName = ({ land = "田地", workshop = "木工作坊", shop = "小商铺" })[assetId]
+    State.AddFact(run, "asset_purchase", "置办“" .. assetName .. "”，花费 " .. tostring(price) .. " 两。", {}, { assetId = assetId, price = price })
     return true, "置办完成。"
+end
+
+function Simulation.GrainPurchaseQuote(run, amount)
+    local closed, message = IsClosed(run)
+    if closed then return nil, message end
+    local price, reason = Economy.GrainPurchasePrice(run, amount)
+    if not price then return nil, reason end
+    return { amount = math.tointeger(amount), price = price }
+end
+
+function Simulation.BuyGrain(run, amount)
+    local quote, message = Simulation.GrainPurchaseQuote(run, amount)
+    if not quote then return false, message end
+    if run.money < quote.price then return false, "公库不足，购入 " .. tostring(quote.amount) .. " 石粮需要 " .. tostring(quote.price) .. " 两。" end
+    run.money = run.money - quote.price
+    run.grain = run.grain + quote.amount
+    State.AddFact(run, "grain_purchase", "购入 " .. tostring(quote.amount) .. " 石粮，花费 " .. tostring(quote.price) .. " 两。", {}, { amount = quote.amount, price = quote.price })
+    return true, "粮食已入库。"
 end
 
 function Simulation.SellRelic(run, instanceId)

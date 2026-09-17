@@ -1,0 +1,23 @@
+[
+  {
+    "id": "t06_contract",
+    "status": "PASS",
+    "evidence": {
+      "lineage": {
+        "spouse": 2,
+        "adopted": 2,
+        "born": 2
+      },
+      "annualLedgerFrozen": true,
+      "factsPersisted": true,
+      "historyEntrances": true,
+      "hungerResets": true,
+      "custodyRecovered": true
+    },
+    "restart": {
+      "year": 1,
+      "facts": 9,
+      "ledgers": 1
+    }
+  }
+]

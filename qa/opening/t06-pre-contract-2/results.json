@@ -1,0 +1,330 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "maxPopulation": 6,
+        "distinct": 48,
+        "id": "seeded_generation",
+        "samples": 48
+      },
+      {
+        "family": "司马",
+        "id": "name_isolation",
+        "points": 66
+      },
+      {
+        "rejected": 3,
+        "id": "edit_validation",
+        "limits": "100/101",
+        "pageIsolation": true,
+        "pointLinesSafe": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "netGrain": 5,
+        "income": 29,
+        "netMoney": -1
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "training": 16,
+          "boughtGrain": 0,
+          "foodShortfall": 0,
+          "foodCost": 0,
+          "saleIncome": 0,
+          "livingExpense": 14,
+          "landGrain": 4,
+          "netMoney": -1,
+          "members": [
+            {
+              "job": "手艺谋生",
+              "money": 21,
+              "memberId": 1,
+              "grain": 0,
+              "name": "林成"
+            },
+            {
+              "job": "耕作谋生",
+              "money": 8,
+              "memberId": 2,
+              "grain": 8,
+              "name": "许青"
+            },
+            {
+              "job": "随师学医",
+              "money": -9,
+              "memberId": 3,
+              "grain": 0,
+              "name": "林芸"
+            },
+            {
+              "job": "读书求学",
+              "money": -7,
+              "memberId": 4,
+              "grain": 0,
+              "name": "林安"
+            }
+          ],
+          "grainSold": 0,
+          "moneySatisfied": true,
+          "netGrain": 5,
+          "income": 29,
+          "foodNeed": 7,
+          "beforeGrain": 24,
+          "money": 79,
+          "foodSatisfied": true,
+          "industryIncome": 0,
+          "grain": 29,
+          "beforeMoney": 80
+        }
+      },
+      {
+        "id": "shortage",
+        "shortfall": 3,
+        "stable": 0,
+        "foodYears": 0
+      },
+      {
+        "id": "stacking",
+        "reputation": 37,
+        "tradeIncome": 36
+      },
+      {
+        "id": "price_and_reject",
+        "landCost": 30,
+        "invalidDraftPreserved": true
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "newMemberSpouseSaved": true,
+      "generatedFailureInjected": true,
+      "coverActionsReachable": true,
+      "invalidStartInline": true,
+      "inputKeepsFocus": true,
+      "addCancelPure": true,
+      "detailReturnPreserved": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "newMemberPreview": true,
+      "editCancelPure": true,
+      "pageUndoScoped": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 94,
+      "priorSaveRetainedUntilConfirmation": true,
+      "ledger": {
+        "grainSold": 0,
+        "members": [
+          {
+            "name": "姜衡安",
+            "memberId": 1,
+            "job": "休养",
+            "grain": 0,
+            "money": 0
+          },
+          {
+            "name": "姜安",
+            "memberId": 2,
+            "job": "休养",
+            "grain": 0,
+            "money": 0
+          },
+          {
+            "name": "姜安远",
+            "memberId": 3,
+            "job": "耕作谋生",
+            "grain": 9,
+            "money": 6
+          },
+          {
+            "name": "姜瑶",
+            "memberId": 4,
+            "job": "读书求学",
+            "grain": 0,
+            "money": -6
+          }
+        ],
+        "foodShortfall": 0,
+        "netGrain": 6,
+        "foodSatisfied": true,
+        "beforeMoney": 100,
+        "netMoney": -18,
+        "training": 6,
+        "boughtGrain": 0,
+        "foodNeed": 7,
+        "beforeGrain": 4,
+        "saleIncome": 0,
+        "grain": 10,
+        "money": 82,
+        "moneySatisfied": true,
+        "livingExpense": 18,
+        "income": 6,
+        "foodCost": 0,
+        "industryIncome": 0,
+        "landGrain": 4
+      },
+      "readOnlyViews": 5,
+      "snapshot": {
+        "calendar": 132,
+        "nameSeed": 333591654,
+        "grain": 4,
+        "selectedRelicIds": [
+          "ruler",
+          "letter"
+        ],
+        "nextId": 5,
+        "worldId": "mortal",
+        "rngSeed": 333591654,
+        "shop": false,
+        "money": 100,
+        "originId": "plain",
+        "periodId": "unrest",
+        "tieId": "neighbor",
+        "habitId": "education",
+        "land": 1,
+        "leaderId": 1,
+        "homeId": "rented",
+        "workshop": true,
+        "family": "姜",
+        "members": [
+          {
+            "age": 44,
+            "id": 1,
+            "sex": "男",
+            "talent": 2,
+            "jobId": "rest",
+            "name": "姜衡安",
+            "givenName": "衡安",
+            "focus": "martial",
+            "nameSource": "family",
+            "parents": {},
+            "trait": "仁厚",
+            "experienceId": "craft"
+          },
+          {
+            "age": 50,
+            "id": 2,
+            "sex": "男",
+            "talent": 1,
+            "jobId": "rest",
+            "name": "姜安",
+            "givenName": "安",
+            "focus": "skill",
+            "nameSource": "family",
+            "parents": {},
+            "trait": "仁厚",
+            "experienceId": "none"
+          },
+          {
+            "age": 20,
+            "id": 3,
+            "sex": "男",
+            "talent": 1,
+            "jobId": "farm",
+            "name": "姜安远",
+            "givenName": "安远",
+            "focus": "skill",
+            "nameSource": "family",
+            "parents": [
+              1
+            ],
+            "trait": "仁厚",
+            "experienceId": "basic"
+          },
+          {
+            "age": 9,
+            "id": 4,
+            "sex": "女",
+            "talent": 2,
+            "jobId": "study",
+            "name": "姜瑶",
+            "givenName": "瑶",
+            "focus": "medicine",
+            "nameSource": "family",
+            "parents": [
+              1
+            ],
+            "trait": "爽朗",
+            "experienceId": "basic"
+          }
+        ],
+        "generatorVersion": 1,
+        "placeId": "village"
+      },
+      "duplicateConfirmationIgnored": true
+    },
+    "restart": {
+      "points": 94,
+      "family": "姜",
+      "ledger": {
+        "grain": 10,
+        "foodNeed": 7,
+        "money": 82,
+        "netMoney": -18,
+        "netGrain": 6,
+        "training": 6,
+        "foodShortfall": 0,
+        "grainSold": 0,
+        "boughtGrain": 0,
+        "foodSatisfied": true,
+        "saleIncome": 0,
+        "moneySatisfied": true,
+        "landGrain": 4,
+        "beforeMoney": 100,
+        "livingExpense": 18,
+        "beforeGrain": 4,
+        "industryIncome": 0,
+        "income": 6,
+        "members": [
+          {
+            "grain": 0,
+            "name": "姜衡安",
+            "job": "休养",
+            "memberId": 1,
+            "money": 0
+          },
+          {
+            "grain": 0,
+            "name": "姜安",
+            "job": "休养",
+            "memberId": 2,
+            "money": 0
+          },
+          {
+            "grain": 9,
+            "name": "姜安远",
+            "job": "耕作谋生",
+            "memberId": 3,
+            "money": 6
+          },
+          {
+            "grain": 0,
+            "name": "姜瑶",
+            "job": "读书求学",
+            "memberId": 4,
+            "money": -6
+          }
+        ],
+        "foodCost": 0
+      },
+      "year": 1
+    }
+  }
+]

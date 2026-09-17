@@ -1,0 +1,334 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "seeded_generation",
+        "maxPopulation": 6,
+        "distinct": 48,
+        "samples": 48
+      },
+      {
+        "id": "name_isolation",
+        "points": 66,
+        "family": "司马"
+      },
+      {
+        "id": "edit_validation",
+        "rejected": 3,
+        "pointLinesSafe": true,
+        "pageIsolation": true,
+        "limits": "100/101"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netGrain": 5,
+        "netMoney": -1,
+        "id": "preview",
+        "income": 29
+      },
+      {
+        "reputation": 26,
+        "id": "advance",
+        "ledger": {
+          "beforeGrain": 24,
+          "foodCost": 0,
+          "income": 29,
+          "grain": 29,
+          "industryIncome": 0,
+          "members": [
+            {
+              "memberId": 1,
+              "job": "手艺谋生",
+              "grain": 0,
+              "name": "林成",
+              "money": 21
+            },
+            {
+              "memberId": 2,
+              "job": "耕作谋生",
+              "grain": 8,
+              "name": "许青",
+              "money": 8
+            },
+            {
+              "memberId": 3,
+              "job": "随师学医",
+              "grain": 0,
+              "name": "林芸",
+              "money": -9
+            },
+            {
+              "memberId": 4,
+              "job": "读书求学",
+              "grain": 0,
+              "name": "林安",
+              "money": -7
+            }
+          ],
+          "training": 16,
+          "netMoney": -1,
+          "saleIncome": 0,
+          "foodNeed": 7,
+          "beforeMoney": 80,
+          "money": 79,
+          "netGrain": 5,
+          "boughtGrain": 0,
+          "grainSold": 0,
+          "landGrain": 4,
+          "moneySatisfied": true,
+          "foodSatisfied": true,
+          "foodShortfall": 0,
+          "livingExpense": 14
+        }
+      },
+      {
+        "shortfall": 3,
+        "foodYears": 0,
+        "id": "shortage",
+        "stable": 0
+      },
+      {
+        "reputation": 37,
+        "id": "stacking",
+        "tradeIncome": 36
+      },
+      {
+        "landCost": 30,
+        "id": "price_and_reject",
+        "invalidDraftPreserved": true
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "savedDraftSurvivesLaterCancel": true,
+      "inputKeepsFocus": true,
+      "coverActionsReachable": true,
+      "addCancelPure": true,
+      "newMemberSpouseSaved": true,
+      "newMemberPreview": true,
+      "editCancelPure": true,
+      "invalidStartInline": true,
+      "generatedFailureInjected": true,
+      "pageUndoScoped": true,
+      "detailReturnPreserved": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "readOnlyViews": 5,
+      "points": 91,
+      "snapshot": {
+        "nextId": 5,
+        "placeId": "mountain",
+        "members": [
+          {
+            "name": "苏棠微",
+            "givenName": "棠微",
+            "nameSource": "family",
+            "focus": "medicine",
+            "sex": "女",
+            "parents": {},
+            "talent": 2,
+            "spouseId": 2,
+            "jobId": "train",
+            "id": 1,
+            "trait": "爽朗",
+            "age": 42,
+            "experienceId": "none"
+          },
+          {
+            "name": "程允衡",
+            "givenName": "允衡",
+            "nameSource": "external",
+            "focus": "skill",
+            "sex": "男",
+            "parents": {},
+            "talent": 4,
+            "spouseId": 1,
+            "jobId": "play",
+            "id": 2,
+            "trait": "仁厚",
+            "age": 41,
+            "experienceId": "medical"
+          },
+          {
+            "name": "苏修知",
+            "givenName": "修知",
+            "nameSource": "family",
+            "sex": "男",
+            "parents": [
+              1,
+              2
+            ],
+            "talent": 2,
+            "jobId": "play",
+            "focus": "general",
+            "id": 3,
+            "trait": "踏实",
+            "age": 2,
+            "experienceId": "none"
+          },
+          {
+            "name": "苏禾",
+            "givenName": "禾",
+            "nameSource": "family",
+            "sex": "女",
+            "parents": [
+              1,
+              2
+            ],
+            "talent": 1,
+            "jobId": "play",
+            "focus": "trade",
+            "id": 4,
+            "trait": "踏实",
+            "age": 6,
+            "experienceId": "none"
+          }
+        ],
+        "rngSeed": 1805670148,
+        "family": "苏",
+        "grain": 20,
+        "homeId": "rented",
+        "periodId": "strain",
+        "worldId": "mortal",
+        "generatorVersion": 1,
+        "selectedRelicIds": [
+          "book",
+          "ruler"
+        ],
+        "leaderId": 1,
+        "originId": "merchant",
+        "habitId": "education",
+        "nameSeed": 1805670148,
+        "money": 0,
+        "calendar": 96,
+        "tieId": "teacher",
+        "workshop": false,
+        "shop": false,
+        "land": 1
+      },
+      "ledger": {
+        "boughtGrain": 0,
+        "income": 0,
+        "foodShortfall": 0,
+        "members": [
+          {
+            "memberId": 1,
+            "grain": 0,
+            "money": -5,
+            "job": "习武",
+            "name": "苏棠微"
+          },
+          {
+            "memberId": 2,
+            "grain": 0,
+            "money": 0,
+            "job": "随家人生活",
+            "name": "程允衡"
+          },
+          {
+            "memberId": 3,
+            "grain": 0,
+            "money": 0,
+            "job": "随家人生活",
+            "name": "苏修知"
+          },
+          {
+            "memberId": 4,
+            "grain": 0,
+            "money": 0,
+            "job": "随家人生活",
+            "name": "苏禾"
+          }
+        ],
+        "industryIncome": 0,
+        "grain": 10,
+        "beforeMoney": 0,
+        "saleIncome": 24,
+        "foodSatisfied": true,
+        "money": 2,
+        "beforeGrain": 20,
+        "foodCost": 0,
+        "netGrain": -10,
+        "netMoney": 2,
+        "training": 5,
+        "landGrain": 4,
+        "foodNeed": 6,
+        "moneySatisfied": true,
+        "livingExpense": 17,
+        "grainSold": 8
+      },
+      "priorSaveRetainedUntilConfirmation": true,
+      "duplicateConfirmationIgnored": true
+    },
+    "restart": {
+      "points": 91,
+      "family": "苏",
+      "year": 1,
+      "ledger": {
+        "landGrain": 4,
+        "foodCost": 0,
+        "members": [
+          {
+            "name": "苏棠微",
+            "job": "习武",
+            "money": -5,
+            "grain": 0,
+            "memberId": 1
+          },
+          {
+            "name": "程允衡",
+            "job": "随家人生活",
+            "money": 0,
+            "grain": 0,
+            "memberId": 2
+          },
+          {
+            "name": "苏修知",
+            "job": "随家人生活",
+            "money": 0,
+            "grain": 0,
+            "memberId": 3
+          },
+          {
+            "name": "苏禾",
+            "job": "随家人生活",
+            "money": 0,
+            "grain": 0,
+            "memberId": 4
+          }
+        ],
+        "netMoney": 2,
+        "beforeMoney": 0,
+        "grainSold": 8,
+        "boughtGrain": 0,
+        "saleIncome": 24,
+        "foodShortfall": 0,
+        "beforeGrain": 20,
+        "money": 2,
+        "livingExpense": 17,
+        "foodNeed": 6,
+        "netGrain": -10,
+        "moneySatisfied": true,
+        "grain": 10,
+        "industryIncome": 0,
+        "training": 5,
+        "foodSatisfied": true,
+        "income": 0
+      }
+    }
+  }
+]

@@ -1,0 +1,300 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "samples": 48,
+        "maxPopulation": 6,
+        "id": "seeded_generation",
+        "distinct": 48
+      },
+      {
+        "family": "司马",
+        "id": "name_isolation",
+        "points": 66
+      },
+      {
+        "id": "edit_validation",
+        "rejected": 3,
+        "limits": "100/101",
+        "pageIsolation": true,
+        "pointLinesSafe": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "netMoney": -1,
+        "income": 29,
+        "netGrain": 5
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "boughtGrain": 0,
+          "foodShortfall": 0,
+          "money": 79,
+          "beforeMoney": 80,
+          "saleIncome": 0,
+          "members": [
+            {
+              "job": "手艺谋生",
+              "money": 21,
+              "memberId": 1,
+              "grain": 0,
+              "name": "林成"
+            },
+            {
+              "job": "耕作谋生",
+              "money": 8,
+              "memberId": 2,
+              "grain": 8,
+              "name": "许青"
+            },
+            {
+              "job": "随师学医",
+              "money": -9,
+              "memberId": 3,
+              "grain": 0,
+              "name": "林芸"
+            },
+            {
+              "job": "读书求学",
+              "money": -7,
+              "memberId": 4,
+              "grain": 0,
+              "name": "林安"
+            }
+          ],
+          "income": 29,
+          "netGrain": 5,
+          "foodNeed": 7,
+          "foodCost": 0,
+          "grainSold": 0,
+          "netMoney": -1,
+          "grain": 29,
+          "landGrain": 4,
+          "foodSatisfied": true,
+          "beforeGrain": 24,
+          "training": 16,
+          "moneySatisfied": true,
+          "industryIncome": 0,
+          "livingExpense": 14
+        }
+      },
+      {
+        "id": "shortage",
+        "stable": 0,
+        "foodYears": 0,
+        "shortfall": 3
+      },
+      {
+        "id": "stacking",
+        "reputation": 37,
+        "tradeIncome": 36
+      },
+      {
+        "id": "price_and_reject",
+        "landCost": 30,
+        "invalidDraftPreserved": true
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "addCancelPure": true,
+      "newMemberPreview": true,
+      "pageUndoScoped": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "newMemberSpouseSaved": true,
+      "invalidStartInline": true,
+      "coverActionsReachable": true,
+      "generatedFailureInjected": true,
+      "editCancelPure": true,
+      "detailReturnPreserved": true,
+      "inputKeepsFocus": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "ledger": {
+        "saleIncome": 10,
+        "landGrain": 0,
+        "moneySatisfied": true,
+        "income": 0,
+        "beforeGrain": 24,
+        "foodShortfall": 0,
+        "livingExpense": 9,
+        "netMoney": 1,
+        "money": 1,
+        "foodSatisfied": true,
+        "foodNeed": 5,
+        "boughtGrain": 0,
+        "netGrain": -10,
+        "grain": 14,
+        "training": 0,
+        "members": [
+          {
+            "money": 0,
+            "grain": 0,
+            "job": "随家人生活",
+            "memberId": 1,
+            "name": "叶棠"
+          },
+          {
+            "money": 0,
+            "grain": 0,
+            "job": "休养",
+            "memberId": 2,
+            "name": "叶川衡"
+          },
+          {
+            "money": 0,
+            "grain": 0,
+            "job": "休养",
+            "memberId": 3,
+            "name": "叶川"
+          }
+        ],
+        "industryIncome": 0,
+        "foodCost": 0,
+        "grainSold": 5,
+        "beforeMoney": 0
+      },
+      "points": 88,
+      "priorSaveRetainedUntilConfirmation": true,
+      "duplicateConfirmationIgnored": true,
+      "snapshot": {
+        "selectedRelicIds": [
+          "book",
+          "ruler"
+        ],
+        "generatorVersion": 1,
+        "family": "叶",
+        "homeId": "simple",
+        "rngSeed": 2062098109,
+        "nextId": 4,
+        "worldId": "mortal",
+        "grain": 24,
+        "periodId": "rebuild",
+        "originId": "artisan",
+        "workshop": false,
+        "money": 0,
+        "nameSeed": 2062098109,
+        "habitId": "frugal",
+        "calendar": 12,
+        "placeId": "village",
+        "tieId": "partner",
+        "members": [
+          {
+            "givenName": "棠",
+            "experienceId": "trade",
+            "sex": "女",
+            "id": 1,
+            "nameSource": "family",
+            "parents": {},
+            "age": 23,
+            "focus": "learn",
+            "talent": 3,
+            "jobId": "play",
+            "trait": "踏实",
+            "name": "叶棠"
+          },
+          {
+            "givenName": "川衡",
+            "experienceId": "none",
+            "sex": "男",
+            "id": 2,
+            "nameSource": "family",
+            "parents": {},
+            "age": 29,
+            "focus": "trade",
+            "talent": 3,
+            "jobId": "rest",
+            "trait": "踏实",
+            "name": "叶川衡"
+          },
+          {
+            "givenName": "川",
+            "experienceId": "none",
+            "sex": "男",
+            "id": 3,
+            "nameSource": "family",
+            "parents": [
+              1
+            ],
+            "age": 5,
+            "focus": "skill",
+            "talent": 3,
+            "jobId": "rest",
+            "trait": "踏实",
+            "name": "叶川"
+          }
+        ],
+        "leaderId": 1,
+        "shop": false,
+        "land": 0
+      },
+      "readOnlyViews": 5
+    },
+    "restart": {
+      "family": "叶",
+      "ledger": {
+        "foodCost": 0,
+        "beforeGrain": 24,
+        "foodShortfall": 0,
+        "training": 0,
+        "members": [
+          {
+            "grain": 0,
+            "name": "叶棠",
+            "memberId": 1,
+            "money": 0,
+            "job": "随家人生活"
+          },
+          {
+            "grain": 0,
+            "name": "叶川衡",
+            "memberId": 2,
+            "money": 0,
+            "job": "休养"
+          },
+          {
+            "grain": 0,
+            "name": "叶川",
+            "memberId": 3,
+            "money": 0,
+            "job": "休养"
+          }
+        ],
+        "grainSold": 5,
+        "livingExpense": 9,
+        "grain": 14,
+        "moneySatisfied": true,
+        "foodSatisfied": true,
+        "income": 0,
+        "money": 1,
+        "beforeMoney": 0,
+        "boughtGrain": 0,
+        "foodNeed": 5,
+        "landGrain": 0,
+        "netMoney": 1,
+        "saleIncome": 10,
+        "netGrain": -10,
+        "industryIncome": 0
+      },
+      "points": 88,
+      "year": 1
+    }
+  }
+]

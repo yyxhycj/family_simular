@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t05_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:134: 超分草案没有保留供继续编辑\\nstack traceback:\\n\\t[string \"<python>\"]:134: in function <[string \"<python>\"]:47>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t04_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:135: 新 Lua 进程未恢复已确认的新局\\nstack traceback:\\n\\t[string \"<python>\"]:135: in function <[string \"<python>\"]:133>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

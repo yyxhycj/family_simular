@@ -1,0 +1,271 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "samples": 48,
+        "id": "seeded_generation",
+        "distinct": 48,
+        "maxPopulation": 6
+      },
+      {
+        "family": "司马",
+        "id": "name_isolation",
+        "points": 66
+      },
+      {
+        "id": "edit_validation",
+        "rejected": 3,
+        "pointLinesSafe": true,
+        "limits": "100/101",
+        "pageIsolation": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "netMoney": -1,
+        "netGrain": 5,
+        "income": 29
+      },
+      {
+        "id": "advance",
+        "ledger": {
+          "moneySatisfied": true,
+          "landGrain": 4,
+          "beforeGrain": 24,
+          "foodNeed": 7,
+          "grain": 29,
+          "livingExpense": 14,
+          "members": [
+            {
+              "money": 21,
+              "memberId": 1,
+              "name": "林成",
+              "job": "手艺谋生",
+              "grain": 0
+            },
+            {
+              "money": 8,
+              "memberId": 2,
+              "name": "许青",
+              "job": "耕作谋生",
+              "grain": 8
+            },
+            {
+              "money": -9,
+              "memberId": 3,
+              "name": "林芸",
+              "job": "随师学医",
+              "grain": 0
+            },
+            {
+              "money": -7,
+              "memberId": 4,
+              "name": "林安",
+              "job": "读书求学",
+              "grain": 0
+            }
+          ],
+          "foodShortfall": 0,
+          "netMoney": -1,
+          "industryIncome": 0,
+          "income": 29,
+          "foodSatisfied": true,
+          "grainSold": 0,
+          "money": 79,
+          "netGrain": 5,
+          "boughtGrain": 0,
+          "foodCost": 0,
+          "training": 16,
+          "beforeMoney": 80,
+          "saleIncome": 0
+        },
+        "reputation": 26
+      },
+      {
+        "id": "shortage",
+        "stable": 0,
+        "foodYears": 0,
+        "shortfall": 3
+      },
+      {
+        "id": "stacking",
+        "tradeIncome": 36,
+        "reputation": 37
+      },
+      {
+        "id": "price_and_reject",
+        "landCost": 30,
+        "invalidDraftPreserved": true
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "pageUndoScoped": true,
+      "inputKeepsFocus": true,
+      "editCancelPure": true,
+      "coverActionsReachable": true,
+      "addCancelPure": true,
+      "invalidStartInline": true,
+      "detailReturnPreserved": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "newMemberPreview": true,
+      "generatedFailureInjected": true,
+      "newMemberSpouseSaved": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "ledger": {
+        "money": 5,
+        "training": 5,
+        "grain": 4,
+        "netMoney": 5,
+        "saleIncome": 0,
+        "members": [
+          {
+            "job": "担任护卫",
+            "name": "林棠芸",
+            "money": 23,
+            "grain": 0,
+            "memberId": 1
+          },
+          {
+            "job": "学一门手艺",
+            "name": "苏允川",
+            "money": -5,
+            "grain": 0,
+            "memberId": 2
+          }
+        ],
+        "beforeGrain": 8,
+        "landGrain": 0,
+        "moneySatisfied": true,
+        "foodCost": 0,
+        "foodNeed": 4,
+        "foodSatisfied": true,
+        "grainSold": 0,
+        "beforeMoney": 0,
+        "income": 23,
+        "netGrain": -4,
+        "boughtGrain": 0,
+        "foodShortfall": 0,
+        "industryIncome": 0,
+        "livingExpense": 13
+      },
+      "readOnlyViews": 5,
+      "duplicateConfirmationIgnored": true,
+      "priorSaveRetainedUntilConfirmation": true,
+      "points": 86,
+      "snapshot": {
+        "workshop": false,
+        "calendar": 72,
+        "originId": "scholar",
+        "tieId": "none",
+        "worldId": "mortal",
+        "rngSeed": 1966698263,
+        "periodId": "peace",
+        "members": [
+          {
+            "givenName": "棠芸",
+            "name": "林棠芸",
+            "experienceId": "martial",
+            "nameSource": "family",
+            "sex": "女",
+            "parents": {},
+            "trait": "好奇",
+            "jobId": "guard",
+            "talent": 2,
+            "id": 1,
+            "focus": "learn",
+            "spouseId": 2,
+            "age": 37
+          },
+          {
+            "givenName": "允川",
+            "name": "苏允川",
+            "experienceId": "medical",
+            "nameSource": "external",
+            "sex": "男",
+            "parents": {},
+            "trait": "沉静",
+            "jobId": "apprentice",
+            "talent": 4,
+            "id": 2,
+            "focus": "general",
+            "spouseId": 1,
+            "age": 38
+          }
+        ],
+        "nextId": 3,
+        "family": "林",
+        "shop": false,
+        "land": 0,
+        "money": 0,
+        "grain": 8,
+        "homeId": "rented",
+        "habitId": "none",
+        "selectedRelicIds": [
+          "book"
+        ],
+        "placeId": "port",
+        "generatorVersion": 1,
+        "leaderId": 1,
+        "nameSeed": 1966698263
+      }
+    },
+    "restart": {
+      "family": "林",
+      "ledger": {
+        "landGrain": 0,
+        "moneySatisfied": true,
+        "netMoney": 5,
+        "foodSatisfied": true,
+        "saleIncome": 0,
+        "industryIncome": 0,
+        "livingExpense": 13,
+        "training": 5,
+        "income": 23,
+        "money": 5,
+        "netGrain": -4,
+        "foodCost": 0,
+        "members": [
+          {
+            "memberId": 1,
+            "job": "担任护卫",
+            "money": 23,
+            "name": "林棠芸",
+            "grain": 0
+          },
+          {
+            "memberId": 2,
+            "job": "学一门手艺",
+            "money": -5,
+            "name": "苏允川",
+            "grain": 0
+          }
+        ],
+        "beforeGrain": 8,
+        "beforeMoney": 0,
+        "foodShortfall": 0,
+        "foodNeed": 4,
+        "grainSold": 0,
+        "boughtGrain": 0,
+        "grain": 4
+      },
+      "points": 86,
+      "year": 1
+    }
+  }
+]

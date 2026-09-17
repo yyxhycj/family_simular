@@ -45,6 +45,16 @@ local function ApplyIncome(run, member, job, period, place)
     end
 end
 
+-- 购粮与年度缺粮补购使用同一份时期和地点价格，界面预览可直接引用。
+function Economy.GrainPurchasePrice(run, amount)
+    amount = math.tointeger(amount)
+    if not amount or amount <= 0 then return nil, "购粮数量须为正整数。" end
+    local period = Data.Period(run.eraId) or Data.Period("peace")
+    local place = Data.Place(run.placeId)
+    if not place then return nil, "当前落脚处无效。" end
+    return math.ceil(period.food * amount * (place.foodMultiplier or 1))
+end
+
 local function ResolveLivingCosts(run, living, period, place)
     local ledger = { foodCost = 0, boughtGrain = 0, grainSold = 0, saleIncome = 0 }
     local home = Data.Home(run.homeId)
@@ -64,7 +74,7 @@ local function ResolveLivingCosts(run, living, period, place)
     ledger.foodSatisfied = run.grain >= foodNeed
     if ledger.foodSatisfied then run.grain = run.grain - foodNeed else
         local missing = foodNeed - run.grain; run.grain = 0
-        local price = math.ceil(period.food * missing * (place.foodMultiplier or 1))
+        local price = Economy.GrainPurchasePrice(run, missing)
         if run.money >= price then
             run.money = run.money - price
             ledger.foodSatisfied = true; ledger.foodCost = price; ledger.boughtGrain = missing

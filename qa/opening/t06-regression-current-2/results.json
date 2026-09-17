@@ -1,0 +1,272 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "samples": 48,
+        "maxPopulation": 6,
+        "distinct": 48,
+        "id": "seeded_generation"
+      },
+      {
+        "points": 66,
+        "family": "司马",
+        "id": "name_isolation"
+      },
+      {
+        "rejected": 3,
+        "limits": "100/101",
+        "pageIsolation": true,
+        "pointLinesSafe": true,
+        "id": "edit_validation"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netGrain": 5,
+        "id": "preview",
+        "netMoney": -1,
+        "income": 29
+      },
+      {
+        "id": "advance",
+        "ledger": {
+          "netGrain": 5,
+          "boughtGrain": 0,
+          "beforeGrain": 24,
+          "grain": 29,
+          "beforeMoney": 80,
+          "grainSold": 0,
+          "training": 16,
+          "income": 29,
+          "foodCost": 0,
+          "foodNeed": 7,
+          "netMoney": -1,
+          "money": 79,
+          "foodSatisfied": true,
+          "landGrain": 4,
+          "moneySatisfied": true,
+          "saleIncome": 0,
+          "industryIncome": 0,
+          "members": [
+            {
+              "name": "林成",
+              "memberId": 1,
+              "job": "手艺谋生",
+              "money": 21,
+              "grain": 0
+            },
+            {
+              "name": "许青",
+              "memberId": 2,
+              "job": "耕作谋生",
+              "money": 8,
+              "grain": 8
+            },
+            {
+              "name": "林芸",
+              "memberId": 3,
+              "job": "随师学医",
+              "money": -9,
+              "grain": 0
+            },
+            {
+              "name": "林安",
+              "memberId": 4,
+              "job": "读书求学",
+              "money": -7,
+              "grain": 0
+            }
+          ],
+          "foodShortfall": 0,
+          "livingExpense": 14
+        },
+        "reputation": 26
+      },
+      {
+        "foodYears": 0,
+        "id": "shortage",
+        "stable": 0,
+        "shortfall": 3
+      },
+      {
+        "id": "stacking",
+        "tradeIncome": 36,
+        "reputation": 37
+      },
+      {
+        "id": "price_and_reject",
+        "invalidDraftPreserved": true,
+        "landCost": 30
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "coverActionsReachable": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "newMemberSpouseSaved": true,
+      "editCancelPure": true,
+      "invalidStartInline": true,
+      "detailReturnPreserved": true,
+      "generatedFailureInjected": true,
+      "newMemberPreview": true,
+      "inputKeepsFocus": true,
+      "pageUndoScoped": true,
+      "addCancelPure": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 100,
+      "ledger": {
+        "training": 0,
+        "livingExpense": 12,
+        "beforeGrain": 8,
+        "foodCost": 0,
+        "moneySatisfied": true,
+        "netMoney": -4,
+        "saleIncome": 0,
+        "netGrain": 9,
+        "grain": 17,
+        "industryIncome": 0,
+        "beforeMoney": 40,
+        "foodShortfall": 0,
+        "grainSold": 0,
+        "money": 36,
+        "foodSatisfied": true,
+        "foodNeed": 4,
+        "boughtGrain": 0,
+        "income": 8,
+        "members": [
+          {
+            "job": "随家人生活",
+            "name": "陆远知",
+            "memberId": 1,
+            "grain": 0,
+            "money": 0
+          },
+          {
+            "job": "耕作谋生",
+            "name": "顾瑶",
+            "memberId": 2,
+            "grain": 5,
+            "money": 8
+          }
+        ],
+        "landGrain": 8
+      },
+      "snapshot": {
+        "selectedRelicIds": [
+          "book",
+          "ruler"
+        ],
+        "tieId": "none",
+        "rngSeed": 1225224293,
+        "habitId": "care",
+        "periodId": "peace",
+        "family": "陆",
+        "members": [
+          {
+            "trait": "细致",
+            "experienceId": "scholar",
+            "name": "陆远知",
+            "jobId": "play",
+            "givenName": "远知",
+            "parents": {},
+            "spouseId": 2,
+            "sex": "男",
+            "talent": 3,
+            "focus": "general",
+            "nameSource": "family",
+            "id": 1,
+            "age": 39
+          },
+          {
+            "trait": "踏实",
+            "experienceId": "basic",
+            "name": "顾瑶",
+            "jobId": "farm",
+            "givenName": "瑶",
+            "parents": {},
+            "spouseId": 1,
+            "sex": "女",
+            "talent": 5,
+            "focus": "medicine",
+            "nameSource": "external",
+            "id": 2,
+            "age": 42
+          }
+        ],
+        "generatorVersion": 1,
+        "land": 2,
+        "placeId": "mountain",
+        "worldId": "mortal",
+        "grain": 8,
+        "nameSeed": 1225224293,
+        "originId": "military",
+        "shop": false,
+        "money": 40,
+        "nextId": 3,
+        "homeId": "rented",
+        "leaderId": 1,
+        "workshop": false,
+        "calendar": 60
+      },
+      "duplicateConfirmationIgnored": true,
+      "readOnlyViews": 5,
+      "priorSaveRetainedUntilConfirmation": true
+    },
+    "restart": {
+      "ledger": {
+        "netGrain": 9,
+        "industryIncome": 0,
+        "money": 36,
+        "boughtGrain": 0,
+        "beforeMoney": 40,
+        "grain": 17,
+        "foodShortfall": 0,
+        "members": [
+          {
+            "grain": 0,
+            "money": 0,
+            "memberId": 1,
+            "name": "陆远知",
+            "job": "随家人生活"
+          },
+          {
+            "grain": 5,
+            "money": 8,
+            "memberId": 2,
+            "name": "顾瑶",
+            "job": "耕作谋生"
+          }
+        ],
+        "moneySatisfied": true,
+        "livingExpense": 12,
+        "training": 0,
+        "grainSold": 0,
+        "saleIncome": 0,
+        "beforeGrain": 8,
+        "netMoney": -4,
+        "landGrain": 8,
+        "income": 8,
+        "foodNeed": 4,
+        "foodSatisfied": true,
+        "foodCost": 0
+      },
+      "year": 1,
+      "family": "陆",
+      "points": 100
+    }
+  }
+]

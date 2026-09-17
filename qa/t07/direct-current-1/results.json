@@ -1,0 +1,24 @@
+[
+  {
+    "id": "t07_contract",
+    "status": "PASS",
+    "evidence": {
+      "plan": true,
+      "pauseResume": true,
+      "executorRecovery": true,
+      "saleCancels": true,
+      "basic": {
+        "letter": "test-letter",
+        "book": "test-book"
+      },
+      "newbook": true,
+      "jade": true,
+      "notes": true
+    },
+    "restart": {
+      "relics": 2,
+      "notesUnlocked": true,
+      "year": 1
+    }
+  }
+]

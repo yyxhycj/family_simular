@@ -1,0 +1,361 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "maxPopulation": 6,
+        "distinct": 48,
+        "id": "seeded_generation",
+        "samples": 48
+      },
+      {
+        "family": "司马",
+        "id": "name_isolation",
+        "points": 66
+      },
+      {
+        "pointLinesSafe": true,
+        "pageIsolation": true,
+        "limits": "100/101",
+        "id": "edit_validation",
+        "rejected": 3
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "income": 29,
+        "netGrain": 5,
+        "netMoney": -1
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "money": 79,
+          "foodCost": 0,
+          "beforeMoney": 80,
+          "grain": 29,
+          "members": [
+            {
+              "memberId": 1,
+              "name": "林成",
+              "job": "手艺谋生",
+              "grain": 0,
+              "money": 21
+            },
+            {
+              "memberId": 2,
+              "name": "许青",
+              "job": "耕作谋生",
+              "grain": 8,
+              "money": 8
+            },
+            {
+              "memberId": 3,
+              "name": "林芸",
+              "job": "随师学医",
+              "grain": 0,
+              "money": -9
+            },
+            {
+              "memberId": 4,
+              "name": "林安",
+              "job": "读书求学",
+              "grain": 0,
+              "money": -7
+            }
+          ],
+          "beforeGrain": 24,
+          "foodSatisfied": true,
+          "foodNeed": 7,
+          "foodShortfall": 0,
+          "livingExpense": 14,
+          "boughtGrain": 0,
+          "moneySatisfied": true,
+          "netMoney": -1,
+          "income": 29,
+          "industryIncome": 0,
+          "netGrain": 5,
+          "saleIncome": 0,
+          "grainSold": 0,
+          "landGrain": 4,
+          "training": 16
+        }
+      },
+      {
+        "id": "shortage",
+        "stable": 0,
+        "foodYears": 0,
+        "shortfall": 3
+      },
+      {
+        "id": "stacking",
+        "reputation": 37,
+        "tradeIncome": 36
+      },
+      {
+        "id": "price_and_reject",
+        "landCost": 30,
+        "invalidDraftPreserved": true
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "addCancelPure": true,
+      "newMemberSpouseSaved": true,
+      "newMemberPreview": true,
+      "pageUndoScoped": true,
+      "coverActionsReachable": true,
+      "invalidStartInline": true,
+      "editCancelPure": true,
+      "detailReturnPreserved": true,
+      "inputKeepsFocus": true,
+      "generatedFailureInjected": true,
+      "savedDraftSurvivesLaterCancel": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "snapshot": {
+        "periodId": "unrest",
+        "members": [
+          {
+            "givenName": "知成",
+            "experienceId": "martial",
+            "id": 1,
+            "sex": "男",
+            "parents": [
+              3
+            ],
+            "focus": "general",
+            "name": "许知成",
+            "nameSource": "family",
+            "spouseId": 2,
+            "age": 46,
+            "jobId": "rest",
+            "trait": "踏实",
+            "talent": 2
+          },
+          {
+            "givenName": "禾",
+            "experienceId": "none",
+            "id": 2,
+            "sex": "女",
+            "parents": {},
+            "focus": "trade",
+            "name": "姜禾",
+            "nameSource": "external",
+            "spouseId": 1,
+            "age": 47,
+            "jobId": "medical",
+            "trait": "爽朗",
+            "talent": 2
+          },
+          {
+            "givenName": "禾晚",
+            "experienceId": "none",
+            "id": 3,
+            "sex": "女",
+            "focus": "skill",
+            "parents": {},
+            "nameSource": "family",
+            "age": 73,
+            "name": "许禾晚",
+            "trait": "沉静",
+            "jobId": "play",
+            "talent": 5
+          },
+          {
+            "givenName": "明",
+            "experienceId": "craft",
+            "id": 4,
+            "sex": "男",
+            "focus": "medicine",
+            "parents": [
+              1,
+              2
+            ],
+            "nameSource": "family",
+            "age": 22,
+            "name": "许明",
+            "trait": "仁厚",
+            "jobId": "medical",
+            "talent": 1
+          },
+          {
+            "givenName": "棠",
+            "experienceId": "none",
+            "id": 5,
+            "sex": "女",
+            "focus": "martial",
+            "parents": [
+              1,
+              2
+            ],
+            "nameSource": "family",
+            "age": 2,
+            "name": "许棠",
+            "trait": "好奇",
+            "jobId": "play",
+            "talent": 1
+          }
+        ],
+        "workshop": false,
+        "rngSeed": 1938027224,
+        "shop": false,
+        "land": 0,
+        "placeId": "village",
+        "generatorVersion": 1,
+        "habitId": "none",
+        "family": "许",
+        "leaderId": 1,
+        "calendar": 132,
+        "money": 120,
+        "nameSeed": 1938027224,
+        "worldId": "mortal",
+        "nextId": 6,
+        "grain": 4,
+        "originId": "military",
+        "homeId": "rented",
+        "tieId": "partner",
+        "selectedRelicIds": {}
+      },
+      "points": 95,
+      "readOnlyViews": 5,
+      "ledger": {
+        "grainSold": 0,
+        "members": [
+          {
+            "name": "许知成",
+            "job": "休养",
+            "memberId": 1,
+            "money": 0,
+            "grain": 0
+          },
+          {
+            "name": "姜禾",
+            "job": "随师学医",
+            "memberId": 2,
+            "money": -7,
+            "grain": 0
+          },
+          {
+            "name": "许禾晚",
+            "job": "随家人生活",
+            "memberId": 3,
+            "money": 0,
+            "grain": 0
+          },
+          {
+            "name": "许明",
+            "job": "随师学医",
+            "memberId": 4,
+            "money": -7,
+            "grain": 0
+          },
+          {
+            "name": "许棠",
+            "job": "随家人生活",
+            "memberId": 5,
+            "money": 0,
+            "grain": 0
+          }
+        ],
+        "landGrain": 0,
+        "industryIncome": 0,
+        "beforeMoney": 120,
+        "livingExpense": 23,
+        "saleIncome": 0,
+        "training": 14,
+        "foodSatisfied": true,
+        "income": 0,
+        "moneySatisfied": true,
+        "boughtGrain": 5,
+        "beforeGrain": 4,
+        "netGrain": -4,
+        "netMoney": -57,
+        "foodShortfall": 5,
+        "money": 63,
+        "foodCost": 20,
+        "foodNeed": 9,
+        "grain": 0
+      },
+      "priorSaveRetainedUntilConfirmation": true,
+      "duplicateConfirmationIgnored": true
+    },
+    "restart": {
+      "points": 95,
+      "ledger": {
+        "income": 0,
+        "boughtGrain": 5,
+        "grainSold": 0,
+        "foodCost": 20,
+        "landGrain": 0,
+        "beforeGrain": 4,
+        "grain": 0,
+        "members": [
+          {
+            "grain": 0,
+            "job": "休养",
+            "memberId": 1,
+            "money": 0,
+            "name": "许知成"
+          },
+          {
+            "grain": 0,
+            "job": "随师学医",
+            "memberId": 2,
+            "money": -7,
+            "name": "姜禾"
+          },
+          {
+            "grain": 0,
+            "job": "随家人生活",
+            "memberId": 3,
+            "money": 0,
+            "name": "许禾晚"
+          },
+          {
+            "grain": 0,
+            "job": "随师学医",
+            "memberId": 4,
+            "money": -7,
+            "name": "许明"
+          },
+          {
+            "grain": 0,
+            "job": "随家人生活",
+            "memberId": 5,
+            "money": 0,
+            "name": "许棠"
+          }
+        ],
+        "training": 14,
+        "saleIncome": 0,
+        "industryIncome": 0,
+        "netMoney": -57,
+        "moneySatisfied": true,
+        "foodNeed": 9,
+        "netGrain": -4,
+        "beforeMoney": 120,
+        "foodShortfall": 5,
+        "money": 63,
+        "foodSatisfied": true,
+        "livingExpense": 23
+      },
+      "year": 1,
+      "family": "许"
+    }
+  }
+]

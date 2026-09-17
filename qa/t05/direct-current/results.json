@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t05_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:90: 夹具必须含有可验证亲缘的成员\\nstack traceback:\\n\\t[string \"<python>\"]:90: in function <[string \"<python>\"]:47>\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

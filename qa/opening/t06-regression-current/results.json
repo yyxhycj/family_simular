@@ -1,0 +1,271 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "samples": 48,
+        "distinct": 48,
+        "maxPopulation": 6,
+        "id": "seeded_generation"
+      },
+      {
+        "points": 66,
+        "family": "司马",
+        "id": "name_isolation"
+      },
+      {
+        "limits": "100/101",
+        "rejected": 3,
+        "pageIsolation": true,
+        "pointLinesSafe": true,
+        "id": "edit_validation"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "netMoney": -1,
+        "netGrain": 5,
+        "id": "preview",
+        "income": 29
+      },
+      {
+        "reputation": 26,
+        "id": "advance",
+        "ledger": {
+          "landGrain": 4,
+          "boughtGrain": 0,
+          "livingExpense": 14,
+          "industryIncome": 0,
+          "netMoney": -1,
+          "moneySatisfied": true,
+          "beforeMoney": 80,
+          "foodSatisfied": true,
+          "foodNeed": 7,
+          "training": 16,
+          "beforeGrain": 24,
+          "money": 79,
+          "income": 29,
+          "foodShortfall": 0,
+          "netGrain": 5,
+          "saleIncome": 0,
+          "grain": 29,
+          "grainSold": 0,
+          "foodCost": 0,
+          "members": [
+            {
+              "name": "林成",
+              "job": "手艺谋生",
+              "grain": 0,
+              "memberId": 1,
+              "money": 21
+            },
+            {
+              "name": "许青",
+              "job": "耕作谋生",
+              "grain": 8,
+              "memberId": 2,
+              "money": 8
+            },
+            {
+              "name": "林芸",
+              "job": "随师学医",
+              "grain": 0,
+              "memberId": 3,
+              "money": -9
+            },
+            {
+              "name": "林安",
+              "job": "读书求学",
+              "grain": 0,
+              "memberId": 4,
+              "money": -7
+            }
+          ]
+        }
+      },
+      {
+        "stable": 0,
+        "foodYears": 0,
+        "id": "shortage",
+        "shortfall": 3
+      },
+      {
+        "reputation": 37,
+        "id": "stacking",
+        "tradeIncome": 36
+      },
+      {
+        "landCost": 30,
+        "id": "price_and_reject",
+        "invalidDraftPreserved": true
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "editCancelPure": true,
+      "inputKeepsFocus": true,
+      "newMemberSpouseSaved": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "detailReturnPreserved": true,
+      "addCancelPure": true,
+      "generatedFailureInjected": true,
+      "invalidStartInline": true,
+      "pageUndoScoped": true,
+      "coverActionsReachable": true,
+      "newMemberPreview": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 97,
+      "duplicateConfirmationIgnored": true,
+      "priorSaveRetainedUntilConfirmation": true,
+      "readOnlyViews": 5,
+      "snapshot": {
+        "originId": "scholar",
+        "grain": 12,
+        "habitId": "none",
+        "selectedRelicIds": [
+          "ruler"
+        ],
+        "periodId": "strain",
+        "generatorVersion": 1,
+        "money": 40,
+        "placeId": "port",
+        "family": "宋",
+        "shop": false,
+        "workshop": false,
+        "tieId": "none",
+        "homeId": "simple",
+        "calendar": 120,
+        "nameSeed": 1762102332,
+        "nextId": 3,
+        "members": [
+          {
+            "givenName": "知",
+            "sex": "男",
+            "jobId": "study",
+            "age": 50,
+            "nameSource": "family",
+            "spouseId": 2,
+            "id": 1,
+            "talent": 5,
+            "name": "宋知",
+            "trait": "爽朗",
+            "parents": {},
+            "experienceId": "craft",
+            "focus": "trade"
+          },
+          {
+            "givenName": "昭青",
+            "sex": "女",
+            "jobId": "farm",
+            "age": 49,
+            "nameSource": "external",
+            "spouseId": 1,
+            "id": 2,
+            "talent": 3,
+            "name": "顾昭青",
+            "trait": "爽朗",
+            "parents": {},
+            "experienceId": "basic",
+            "focus": "skill"
+          }
+        ],
+        "land": 1,
+        "leaderId": 1,
+        "rngSeed": 1762102332,
+        "worldId": "mortal"
+      },
+      "ledger": {
+        "netGrain": 6,
+        "foodCost": 0,
+        "industryIncome": 0,
+        "livingExpense": 10,
+        "income": 8,
+        "saleIncome": 0,
+        "landGrain": 4,
+        "money": 32,
+        "foodSatisfied": true,
+        "grainSold": 0,
+        "members": [
+          {
+            "memberId": 1,
+            "name": "宋知",
+            "job": "读书求学",
+            "money": -6,
+            "grain": 0
+          },
+          {
+            "memberId": 2,
+            "name": "顾昭青",
+            "job": "耕作谋生",
+            "money": 8,
+            "grain": 6
+          }
+        ],
+        "netMoney": -8,
+        "foodNeed": 4,
+        "beforeGrain": 12,
+        "grain": 18,
+        "foodShortfall": 0,
+        "moneySatisfied": true,
+        "beforeMoney": 40,
+        "boughtGrain": 0,
+        "training": 6
+      }
+    },
+    "restart": {
+      "ledger": {
+        "boughtGrain": 0,
+        "foodNeed": 4,
+        "foodCost": 0,
+        "netMoney": -8,
+        "foodShortfall": 0,
+        "saleIncome": 0,
+        "landGrain": 4,
+        "money": 32,
+        "beforeMoney": 40,
+        "members": [
+          {
+            "money": -6,
+            "job": "读书求学",
+            "name": "宋知",
+            "grain": 0,
+            "memberId": 1
+          },
+          {
+            "money": 8,
+            "job": "耕作谋生",
+            "name": "顾昭青",
+            "grain": 6,
+            "memberId": 2
+          }
+        ],
+        "livingExpense": 10,
+        "moneySatisfied": true,
+        "grainSold": 0,
+        "netGrain": 6,
+        "grain": 18,
+        "income": 8,
+        "beforeGrain": 12,
+        "training": 6,
+        "foodSatisfied": true,
+        "industryIncome": 0
+      },
+      "family": "宋",
+      "points": 97,
+      "year": 1
+    }
+  }
+]

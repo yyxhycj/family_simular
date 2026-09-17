@@ -1,0 +1,300 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "maxPopulation": 6,
+        "id": "seeded_generation",
+        "distinct": 48,
+        "samples": 48
+      },
+      {
+        "id": "name_isolation",
+        "points": 66,
+        "family": "司马"
+      },
+      {
+        "pointLinesSafe": true,
+        "pageIsolation": true,
+        "id": "edit_validation",
+        "rejected": 3,
+        "limits": "100/101"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "income": 29,
+        "id": "preview",
+        "netMoney": -1,
+        "netGrain": 5
+      },
+      {
+        "ledger": {
+          "training": 16,
+          "beforeMoney": 80,
+          "landGrain": 4,
+          "grain": 29,
+          "saleIncome": 0,
+          "foodNeed": 7,
+          "boughtGrain": 0,
+          "livingExpense": 14,
+          "moneySatisfied": true,
+          "industryIncome": 0,
+          "foodCost": 0,
+          "grainSold": 0,
+          "beforeGrain": 24,
+          "income": 29,
+          "money": 79,
+          "netGrain": 5,
+          "members": [
+            {
+              "money": 21,
+              "job": "手艺谋生",
+              "memberId": 1,
+              "name": "林成",
+              "grain": 0
+            },
+            {
+              "money": 8,
+              "job": "耕作谋生",
+              "memberId": 2,
+              "name": "许青",
+              "grain": 8
+            },
+            {
+              "money": -9,
+              "job": "随师学医",
+              "memberId": 3,
+              "name": "林芸",
+              "grain": 0
+            },
+            {
+              "money": -7,
+              "job": "读书求学",
+              "memberId": 4,
+              "name": "林安",
+              "grain": 0
+            }
+          ],
+          "netMoney": -1,
+          "foodShortfall": 0,
+          "foodSatisfied": true
+        },
+        "id": "advance",
+        "reputation": 26
+      },
+      {
+        "stable": 0,
+        "id": "shortage",
+        "shortfall": 3,
+        "foodYears": 0
+      },
+      {
+        "id": "stacking",
+        "tradeIncome": 36,
+        "reputation": 37
+      },
+      {
+        "id": "price_and_reject",
+        "invalidDraftPreserved": true,
+        "landCost": 30
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "coverActionsReachable": true,
+      "editCancelPure": true,
+      "generatedFailureInjected": true,
+      "pageUndoScoped": true,
+      "newMemberSpouseSaved": true,
+      "newMemberPreview": true,
+      "addCancelPure": true,
+      "inputKeepsFocus": true,
+      "savedDraftSurvivesLaterCancel": true,
+      "detailReturnPreserved": true,
+      "invalidStartInline": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "snapshot": {
+        "generatorVersion": 1,
+        "worldId": "mortal",
+        "leaderId": 1,
+        "homeId": "courtyard",
+        "selectedRelicIds": [
+          "book",
+          "letter"
+        ],
+        "periodId": "unrest",
+        "shop": false,
+        "habitId": "none",
+        "rngSeed": 734483075,
+        "nextId": 4,
+        "originId": "plain",
+        "workshop": false,
+        "money": 80,
+        "grain": 16,
+        "placeId": "port",
+        "family": "顾",
+        "members": [
+          {
+            "experienceId": "scholar",
+            "focus": "general",
+            "parents": {},
+            "id": 1,
+            "nameSource": "family",
+            "talent": 3,
+            "age": 33,
+            "name": "顾禾",
+            "givenName": "禾",
+            "sex": "女",
+            "jobId": "apprentice",
+            "trait": "沉静"
+          },
+          {
+            "experienceId": "craft",
+            "focus": "martial",
+            "parents": {},
+            "id": 2,
+            "nameSource": "family",
+            "talent": 1,
+            "age": 26,
+            "name": "顾明成",
+            "givenName": "明成",
+            "sex": "男",
+            "jobId": "medical",
+            "trait": "沉静"
+          },
+          {
+            "experienceId": "none",
+            "focus": "martial",
+            "parents": [
+              1
+            ],
+            "id": 3,
+            "nameSource": "family",
+            "talent": 5,
+            "age": 7,
+            "name": "顾远衡",
+            "givenName": "远衡",
+            "sex": "男",
+            "jobId": "rest",
+            "trait": "细致"
+          }
+        ],
+        "land": 0,
+        "calendar": 132,
+        "tieId": "none",
+        "nameSeed": 734483075
+      },
+      "ledger": {
+        "beforeMoney": 80,
+        "netGrain": -5,
+        "netMoney": -23,
+        "boughtGrain": 0,
+        "moneySatisfied": true,
+        "grainSold": 0,
+        "income": 0,
+        "industryIncome": 0,
+        "livingExpense": 12,
+        "beforeGrain": 16,
+        "grain": 11,
+        "money": 57,
+        "foodShortfall": 0,
+        "saleIncome": 0,
+        "foodNeed": 5,
+        "members": [
+          {
+            "grain": 0,
+            "money": -4,
+            "job": "学一门手艺",
+            "name": "顾禾",
+            "memberId": 1
+          },
+          {
+            "grain": 0,
+            "money": -7,
+            "job": "随师学医",
+            "name": "顾明成",
+            "memberId": 2
+          },
+          {
+            "grain": 0,
+            "money": 0,
+            "job": "休养",
+            "name": "顾远衡",
+            "memberId": 3
+          }
+        ],
+        "training": 11,
+        "foodCost": 0,
+        "landGrain": 0,
+        "foodSatisfied": true
+      },
+      "points": 100,
+      "duplicateConfirmationIgnored": true,
+      "readOnlyViews": 5,
+      "priorSaveRetainedUntilConfirmation": true
+    },
+    "restart": {
+      "ledger": {
+        "moneySatisfied": true,
+        "landGrain": 0,
+        "industryIncome": 0,
+        "beforeGrain": 16,
+        "boughtGrain": 0,
+        "grainSold": 0,
+        "saleIncome": 0,
+        "netMoney": -23,
+        "members": [
+          {
+            "name": "顾禾",
+            "job": "学一门手艺",
+            "memberId": 1,
+            "money": -4,
+            "grain": 0
+          },
+          {
+            "name": "顾明成",
+            "job": "随师学医",
+            "memberId": 2,
+            "money": -7,
+            "grain": 0
+          },
+          {
+            "name": "顾远衡",
+            "job": "休养",
+            "memberId": 3,
+            "money": 0,
+            "grain": 0
+          }
+        ],
+        "foodNeed": 5,
+        "training": 11,
+        "grain": 11,
+        "livingExpense": 12,
+        "income": 0,
+        "foodSatisfied": true,
+        "foodCost": 0,
+        "netGrain": -5,
+        "beforeMoney": 80,
+        "money": 57,
+        "foodShortfall": 0
+      },
+      "year": 1,
+      "points": 100,
+      "family": "顾"
+    }
+  }
+]
