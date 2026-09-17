@@ -107,18 +107,22 @@ local function verify()
     for _, member in ipairs(collapseRun.members) do member.age, member.health, member.jobId, member.birthPlan = 30, 100, "play", false end
     collapseRun.money, collapseRun.grain, collapseRun.land = 0, 0, 0
     assert(Simulation.AdvanceYear(collapseRun, collapseProfile))
-    assert(collapseRun.ending and collapseRun.ending.id == "collapse" and collapseRun.lastLedger.resourcesExhausted and #collapseProfile.endingRecords == 1)
+    assert(collapseRun.ending and collapseRun.ending.id == "collapse" and collapseRun.ending.automaticTrigger == "resources_exhausted"
+        and collapseRun.lastLedger.resourcesExhausted and #collapseProfile.endingRecords == 1
+        and collapseProfile.endingRecords[1].automaticTrigger == "resources_exhausted")
     local collapseBefore = State.Copy(collapseRun)
     assert(not Simulation.SetJob(collapseRun, collapseRun.members[1].id, "farm") and same(collapseBefore, collapseRun))
     assert(State.Save(collapseProfile, collapseDraft, collapseRun))
     local collapsed = assert(State.Load())
-    assert(collapsed.run.ending.id == "collapse" and collapsed.profile.endingRecords[1].factId == collapseRun.ending.factId)
+    assert(collapsed.run.ending.id == "collapse" and collapsed.run.ending.automaticTrigger == "resources_exhausted"
+        and collapsed.profile.endingRecords[1].factId == collapseRun.ending.factId
+        and collapsed.profile.endingRecords[1].automaticTrigger == "resources_exhausted")
     local collapseApp = App.New()
     assert(collapseApp.run and collapseApp.run.ending and collapseApp.run.ending.id == "collapse")
     collapseApp.gameTab = "family"; collapseApp:Render()
     collapseApp.gameTab = "history"; collapseApp.historySection = "annals"; collapseApp:Render()
     return { family = draft.family, members = #draft.members, years = run.yearIndex, ending = run.ending.id, facts = #run.facts, ledgers = #run.annualLedgers,
-        collapseEnding = collapsed.run.ending.id, collapseRevision = collapsed.saveRevision }
+        collapseEnding = collapsed.run.ending.id, collapseTrigger = collapsed.run.ending.automaticTrigger, collapseRevision = collapsed.saveRevision }
 end
 
 function Start()
