@@ -16,9 +16,11 @@ local Opening = require "Jiaye.Opening"
 local Simulation = require "Jiaye.Simulation"
 local State = require "Jiaye.State"
 
-local function adults(members)
+local function adults(members, livingOnly)
     local result = {}
-    for _, member in ipairs(members) do if member.alive and member.age >= 18 then table.insert(result, member) end end
+    for _, member in ipairs(members) do
+        if member.age >= 18 and (not livingOnly or member.alive) then table.insert(result, member) end
+    end
     return result
 end
 
@@ -39,7 +41,7 @@ local function resolvePending(run, profile)
         if #pending == 0 then return end
         local event = pending[1]
         if event.type == "leader" then
-            local candidate = adults(run.members)[1]
+            local candidate = adults(run.members, true)[1]
             assert(candidate and Simulation.ResolveLeaderEvent(run, event.instanceId, candidate.id))
         else
             local ok, message = Simulation.ResolveEvent(run, event.instanceId, "defer", profile)
@@ -60,7 +62,7 @@ local function verify()
     assert(openingApp.run and openingApp.run.runId == run.runId)
     openingApp.gameTab = "family"; openingApp:Render()
 
-    local family = adults(run.members)
+    local family = adults(run.members, true)
     for _, member in ipairs(family) do
         assert(Simulation.SetJob(run, member.id, "farm"))
         assert(Simulation.SetBirthPlan(run, member.id, false))
@@ -71,7 +73,7 @@ local function verify()
         assert(Simulation.AdvanceYear(run, profile))
         if year == 1 then
             local successor = nil
-            for _, member in ipairs(adults(run.members)) do if member.id ~= firstLeader then successor = member; break end end
+            for _, member in ipairs(adults(run.members, true)) do if member.id ~= firstLeader then successor = member; break end end
             assert(successor and Simulation.AppointLeader(run, successor.id, "T11 家业交接"))
         end
     end
