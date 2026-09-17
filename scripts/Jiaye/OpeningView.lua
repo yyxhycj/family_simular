@@ -31,6 +31,21 @@ local function choose(items, value, onChange)
     return UI.Dropdown { options = items, value = value, height = 44, fontSize = 15, maxVisibleItems = 5,
         onChange = function(_, selected) onChange(selected) end }
 end
+local function quantityControl(label, value, min, max, step, suffix, onChange)
+    local function move(delta)
+        local nextValue = math.max(min, math.min(max, value + delta))
+        if nextValue ~= value then onChange(nextValue) end
+    end
+    return UI.Panel { gap = 6, children = {
+        text(label .. "：" .. tostring(value) .. suffix, 17),
+        row({
+            button("−", function() move(-step) end, true, { width = 44, height = 44, disabled = value <= min }),
+            UI.Panel { flex = 1, height = 44, justifyContent = "center", alignItems = "center", backgroundColor = C.card,
+                borderColor = C.line, borderWidth = 1, borderRadius = 8, children = { text(tostring(value) .. suffix, 19) } },
+            button("+", function() move(step) end, true, { width = 44, height = 44, disabled = value >= max }),
+        }),
+    }}
+end
 local function options(items)
     local result = {}
     for _, item in ipairs(items) do table.insert(result, { value = item.id, label = item.name .. " · " .. tostring(item.cost or 0) .. " 点" }) end
@@ -45,7 +60,7 @@ local function relicSummary(app)
     local result = {}
     for _, id in ipairs(app.draft.selectedRelicIds) do local relic = Data.Relic(id); if relic then table.insert(result, relic.name .. " · " .. relic.cost .. " 点") end end
     if #result == 0 then return "未带信物 · 可以空手开篇" end
-    return result[1] .. (#result > 1 and " · 另有 " .. tostring(#result - 1) .. " 件" or "")
+    return result[1]
 end
 
 function View.Summary(app)
@@ -150,10 +165,9 @@ local function editor(app)
         choice("落脚地区","placeId",options(Data.Places),d.placeId,place.desc .. "\n" .. place.burden)
     elseif page=="people" then table.insert(children,peopleView(app))
     elseif page=="estate" then
-        for _, item in ipairs({{"money","现银（两）",300,Data.OpeningCosts.moneyUnit},{"grain","存粮（石）",160,Data.OpeningCosts.grainUnit},{"land","田地（亩）",12,1}}) do
+        for _, item in ipairs({{"money","现银",300,Data.OpeningCosts.moneyUnit," 两"},{"grain","存粮",160,Data.OpeningCosts.grainUnit," 石"},{"land","田地",12,1," 亩"}}) do
             local key=item[1]
-            table.insert(children,text(item[2] .. "：" .. d[key],17))
-            table.insert(children,UI.Stepper {value=d[key],min=0,max=item[3],step=item[4],height=44,onChange=function(_,v) app:SetDraftField(page,key,math.floor(v)) end})
+            table.insert(children,quantityControl(item[2], d[key], 0, item[3], item[4], item[5], function(v) app:SetDraftField(page,key,v) end))
         end
         choice("住宅","homeId",options(Data.Homes),d.homeId)
         for _, item in ipairs({{"workshop","木工作坊",Data.OpeningCosts.workshop},{"shop","小商铺",Data.OpeningCosts.shop}}) do
@@ -197,8 +211,7 @@ local function memberView(app)
             table.insert(children,text("本姓成员的名（不含姓）"))
             table.insert(children,field(m.givenName,function(_,value) m.givenName=value; m.name=app.draft.family .. value; app.memberIssue=""; app.removeConfirm=false end))
         end
-        table.insert(children,text("年龄 " .. m.age .. " 岁"))
-        table.insert(children,UI.Stepper {value=m.age,min=0,max=92,step=1,height=44,onChange=function(_,v) change("age",math.floor(v)) end})
+        table.insert(children,quantityControl("年龄", m.age, 0, 92, 1, " 岁", function(v) change("age",v) end))
         table.insert(children,choose({{value="男",label="男"},{value="女",label="女"}},m.sex,function(v) change("sex",v) end))
         table.insert(children,button(app.memberLeader==m.id and "✓ 首任族长" or "设为首任族长",function() app.memberLeader=m.id; app:Render() end,true,{disabled=m.age<18}))
     elseif app.memberSection=="skills" then
