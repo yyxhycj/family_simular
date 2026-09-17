@@ -43,6 +43,8 @@ local function CheckEconomyAndHistory(lines)
     beforeMoney, beforeGrain = run.money, run.grain
     ok, message = Simulation.BuyGrain(run, 0)
     assert(not ok and run.money == beforeMoney and run.grain == beforeGrain, "非法购粮改变了资源。")
+    ok, message = Simulation.BuyGrain(run, beforeMoney + 1)
+    assert(not ok and run.money == beforeMoney and run.grain == beforeGrain, "公库不足时购粮改变了资源。")
 
     beforeMoney = run.money
     ok, message = Simulation.BuyAsset(run, "land")

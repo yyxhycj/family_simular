@@ -992,14 +992,19 @@ function App:BuildEstateTab()
             self:ConfirmRunAction("确认" .. item.label, "成本：" .. tostring(prices[item.id]) .. " 两。\n结果：" .. item.outcome, function() return Simulation.BuyAsset(self.run, item.id) end, "确认置办")
         end, { height = 46, fontSize = 13 }))
     end
-    local craftNames, tradeNames = {}, {}
+    ---@type string[]
+    local craftNames = {}
+    ---@type string[]
+    local tradeNames = {}
     for _, member in ipairs(self.run.members) do
         if member.alive and member.jobId == "craft" then table.insert(craftNames, member.name) end
         if member.alive and member.jobId == "trade" then table.insert(tradeNames, member.name) end
     end
     local workshopExpected = self.run.workshop and (#craftNames > 0 and "预计 +8 两" or "当前无人经营，预计 +0 两") or "尚未置办"
     local shopExpected = self.run.shop and (#tradeNames > 0 and "预计 +10 两" or "当前无人经营，预计 +0 两") or "尚未置办"
-    local lastLedger = (self.run.annualLedgers or {})[1]
+    ---@type table<any, any>
+    local annualLedgers = TableValue(self.run.annualLedgers)
+    local lastLedger = annualLedgers[1]
     local realized = lastLedger and ("上一年已实现产业收入 " .. tostring(lastLedger.industryIncome or 0) .. " 两 · 田产收粮 " .. tostring(lastLedger.landGrain or 0) .. " 石") or "尚未结算年度，已实现收入会在推进一年后写入账本。"
     local grainQuote = self.run.ending and nil or Simulation.GrainPurchaseQuote(self.run, 2)
     local estateChildren = {
