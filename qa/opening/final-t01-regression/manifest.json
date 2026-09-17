@@ -1,0 +1,25 @@
+{
+  "captured_at": "2026-09-17T03:19:50.267346+00:00",
+  "base_sha": "ca26af6cb6fb9dc9c18ca747f8f1de78edc9bb86",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "lupa": "2.6",
+  "lua": "Lua 5.4",
+  "layer": "actual Lua modules and UI callbacks; declaration-only UI; disk File adapter and Python JSON; new VM restart",
+  "engine": false,
+  "real_device": false,
+  "sources": {
+    "scripts/Jiaye/App.lua": "7ee99eedbbe3dee6e5b00757f2ea7f072944ccd5509e165a2e585351c9b11575",
+    "scripts/Jiaye/Data.lua": "be96bcb9467ab4e2227debdc199502fae76017e3b5132f6900431df8a8f28f7f",
+    "scripts/Jiaye/Economy.lua": "7b51ea5625616cd8eb5e8637415e3b52dd8e6a624040b472c2127685312852b4",
+    "scripts/Jiaye/Opening.lua": "d8e2cb59d3f574ffab130c819d91cbfb0db48ffa7c67fb959455564023bdb899",
+    "scripts/Jiaye/OpeningView.lua": "3190536a1c2114fc8fddc1bd2eb84c86ab13437f67637126a8d6ef2a2efbcde5",
+    "scripts/Jiaye/Simulation.lua": "4d26883408b2849ba011e81745414dd3ee9938b9e24794b050ed2d83411d2274",
+    "scripts/Jiaye/State.lua": "07cb20634fdd08051779fded39e91b40c090d0feee8c15e145f0b3d21cdbfa54",
+    "tests/t01/README.md": "ea5aa2e369dad67aa184e0d36e6100ac4090fed306e3fc8af06c2af84f16ecf0",
+    "tests/t01/boundary.lua": "7d525a60ab6d0340f8b883179b9adcafae632e36f525ad3d0cee91d6d230689b",
+    "tests/t01/cases.lua": "982fc0ea1a677258635df1a4a2625132628397911f34c13ca7082a59b2a9eca0",
+    "tests/t01/run.py": "915566974449dd7708b193a245cb08c461dfdf12fb5007de2c5a5842f47117d2"
+  },
+  "passed": 6,
+  "failed": 0
+}

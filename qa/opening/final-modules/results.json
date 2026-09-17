@@ -1,0 +1,324 @@
+[
+  {
+    "id": "model",
+    "status": "PASS",
+    "evidence": [
+      {
+        "samples": 48,
+        "id": "seeded_generation",
+        "maxPopulation": 6,
+        "distinct": 48
+      },
+      {
+        "id": "name_isolation",
+        "family": "司马",
+        "points": 66
+      },
+      {
+        "id": "edit_validation",
+        "rejected": 3,
+        "limits": "100/101",
+        "pageIsolation": true,
+        "pointLinesSafe": true
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "status": "PASS",
+    "evidence": [
+      {
+        "id": "preview",
+        "income": 29,
+        "netGrain": 5,
+        "netMoney": -1
+      },
+      {
+        "id": "advance",
+        "reputation": 26,
+        "ledger": {
+          "livingExpense": 14,
+          "grainSold": 0,
+          "beforeMoney": 80,
+          "beforeGrain": 24,
+          "foodNeed": 7,
+          "moneySatisfied": true,
+          "members": [
+            {
+              "money": 21,
+              "job": "手艺谋生",
+              "memberId": 1,
+              "name": "林成",
+              "grain": 0
+            },
+            {
+              "money": 8,
+              "job": "耕作谋生",
+              "memberId": 2,
+              "name": "许青",
+              "grain": 8
+            },
+            {
+              "money": -9,
+              "job": "随师学医",
+              "memberId": 3,
+              "name": "林芸",
+              "grain": 0
+            },
+            {
+              "money": -7,
+              "job": "读书求学",
+              "memberId": 4,
+              "name": "林安",
+              "grain": 0
+            }
+          ],
+          "netGrain": 5,
+          "training": 16,
+          "income": 29,
+          "grain": 29,
+          "industryIncome": 0,
+          "foodCost": 0,
+          "money": 79,
+          "landGrain": 4,
+          "saleIncome": 0,
+          "foodSatisfied": true,
+          "netMoney": -1,
+          "foodShortfall": 0,
+          "boughtGrain": 0
+        }
+      },
+      {
+        "id": "shortage",
+        "stable": 0,
+        "foodYears": 0,
+        "shortfall": 3
+      }
+    ]
+  },
+  {
+    "id": "ui",
+    "status": "PASS",
+    "evidence": {
+      "newMemberPreview": true,
+      "detailReturnPreserved": true,
+      "coverActionsReachable": true,
+      "generatedFailureInjected": true,
+      "newMemberSpouseSaved": true,
+      "inputKeepsFocus": true,
+      "invalidStartInline": true,
+      "pageUndoScoped": true,
+      "editCancelPure": true,
+      "addCancelPure": true,
+      "savedDraftSurvivesLaterCancel": true
+    }
+  },
+  {
+    "id": "integration",
+    "status": "PASS",
+    "evidence": {
+      "points": 85,
+      "duplicateConfirmationIgnored": true,
+      "snapshot": {
+        "originId": "plain",
+        "generatorVersion": 1,
+        "selectedRelicIds": [
+          "ruler",
+          "letter"
+        ],
+        "nameSeed": 989173145,
+        "grain": 4,
+        "family": "程",
+        "workshop": true,
+        "periodId": "unrest",
+        "tieId": "neighbor",
+        "habitId": "education",
+        "members": [
+          {
+            "trait": "爽朗",
+            "givenName": "昭宁",
+            "age": 55,
+            "talent": 3,
+            "nameSource": "family",
+            "parents": {},
+            "sex": "女",
+            "name": "程昭宁",
+            "spouseId": 2,
+            "experienceId": "medical",
+            "id": 1,
+            "focus": "skill",
+            "jobId": "train"
+          },
+          {
+            "trait": "沉静",
+            "givenName": "衡允",
+            "age": 53,
+            "talent": 2,
+            "nameSource": "external",
+            "parents": {},
+            "sex": "男",
+            "name": "许衡允",
+            "spouseId": 1,
+            "experienceId": "basic",
+            "id": 2,
+            "focus": "general",
+            "jobId": "rest"
+          },
+          {
+            "trait": "沉静",
+            "givenName": "棠青",
+            "age": 1,
+            "talent": 2,
+            "nameSource": "family",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "女",
+            "name": "程棠青",
+            "focus": "medicine",
+            "id": 3,
+            "jobId": "rest",
+            "experienceId": "none"
+          },
+          {
+            "trait": "沉静",
+            "givenName": "知",
+            "age": 14,
+            "talent": 1,
+            "nameSource": "family",
+            "parents": [
+              1,
+              2
+            ],
+            "sex": "男",
+            "name": "程知",
+            "focus": "learn",
+            "id": 4,
+            "jobId": "medical",
+            "experienceId": "none"
+          }
+        ],
+        "placeId": "port",
+        "rngSeed": 989173145,
+        "money": 10,
+        "nextId": 5,
+        "homeId": "rented",
+        "worldId": "mortal",
+        "calendar": 144,
+        "shop": false,
+        "land": 0,
+        "leaderId": 1
+      },
+      "readOnlyViews": 5,
+      "priorSaveRetainedUntilConfirmation": true,
+      "ledger": {
+        "foodNeed": 6,
+        "moneySatisfied": false,
+        "beforeGrain": 4,
+        "money": 0,
+        "income": 0,
+        "livingExpense": 19,
+        "foodSatisfied": false,
+        "saleIncome": 0,
+        "members": [
+          {
+            "money": -5,
+            "memberId": 1,
+            "name": "程昭宁",
+            "grain": 0,
+            "job": "习武"
+          },
+          {
+            "money": 0,
+            "memberId": 2,
+            "name": "许衡允",
+            "grain": 0,
+            "job": "休养"
+          },
+          {
+            "money": 0,
+            "memberId": 3,
+            "name": "程棠青",
+            "grain": 0,
+            "job": "休养"
+          },
+          {
+            "money": -7,
+            "memberId": 4,
+            "name": "程知",
+            "grain": 0,
+            "job": "随师学医"
+          }
+        ],
+        "netMoney": -10,
+        "netGrain": -4,
+        "grain": 0,
+        "boughtGrain": 0,
+        "beforeMoney": 10,
+        "foodCost": 0,
+        "landGrain": 0,
+        "foodShortfall": 2,
+        "industryIncome": 0,
+        "grainSold": 0,
+        "training": 12
+      }
+    },
+    "restart": {
+      "year": 1,
+      "ledger": {
+        "beforeMoney": 10,
+        "grain": 0,
+        "foodShortfall": 2,
+        "beforeGrain": 4,
+        "foodSatisfied": false,
+        "livingExpense": 19,
+        "landGrain": 0,
+        "saleIncome": 0,
+        "boughtGrain": 0,
+        "members": [
+          {
+            "job": "习武",
+            "grain": 0,
+            "name": "程昭宁",
+            "money": -5,
+            "memberId": 1
+          },
+          {
+            "job": "休养",
+            "grain": 0,
+            "name": "许衡允",
+            "money": 0,
+            "memberId": 2
+          },
+          {
+            "job": "休养",
+            "grain": 0,
+            "name": "程棠青",
+            "money": 0,
+            "memberId": 3
+          },
+          {
+            "job": "随师学医",
+            "grain": 0,
+            "name": "程知",
+            "money": -7,
+            "memberId": 4
+          }
+        ],
+        "netMoney": -10,
+        "income": 0,
+        "industryIncome": 0,
+        "netGrain": -4,
+        "grainSold": 0,
+        "training": 12,
+        "foodNeed": 6,
+        "moneySatisfied": false,
+        "money": 0,
+        "foodCost": 0
+      },
+      "family": "程",
+      "points": 85
+    }
+  }
+]

@@ -1,0 +1,114 @@
+{
+  "severity": 1,
+  "files": 9,
+  "results": [
+    {
+      "file": "App",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "State",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "Data",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "Opening",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "OpeningView",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "Economy",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "Simulation",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "main",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    },
+    {
+      "file": "QA/T01",
+      "status": "fulfilled",
+      "value": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"result\": {\"kind\": \"full\", \"items\": []}}"
+          }
+        ]
+      }
+    }
+  ]
+}

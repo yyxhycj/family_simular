@@ -2,6 +2,8 @@ local UI = require "urhox-libs/UI"
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Simulation = require "Jiaye.Simulation"
+local Opening = require "Jiaye.Opening"
+local OpeningView = require "Jiaye.OpeningView"
 
 local App = {}
 App.__index = App
@@ -71,6 +73,7 @@ function App:Init()
     self.run = nil
     self.screen = "cover"
     self.openingPage = "world"
+    self.openingView = "summary"
     self.gameTab = "family"
     self.undo = {}
     self.root = nil
@@ -78,6 +81,7 @@ function App:Init()
     self.peopleFilter = "all"
     self.peopleQuery = ""
     self.openingFeedback = ""
+    self.openingGenerationFailed = false
     self.historyPage = 1
     self.unsaved = false
     self.saveMessage = ""
@@ -85,6 +89,15 @@ function App:Init()
     if saved then self.profile, self.draft, self.run = saved.profile, saved.draft, saved.run end
     self.storageBlocked = status == "invalid"
     if status == "invalid" or status == "recovered" then self.saveMessage = message end
+    if not saved and not self.storageBlocked then
+        local draft, issue = Opening.Generate(self.profile, Opening.FreshSeed(), "mortal")
+        if draft then
+            self.draft = draft; self.screen = "opening"
+        else
+            self.openingGenerationFailed = true
+            self.openingFeedback = issue or "暂未生成合法家庭，请重试。"
+        end
+    end
     UI.Toast.GetGlobal({ position = "bottom", maxToasts = 1 })
 end
 
@@ -109,7 +122,7 @@ function App:Load()
     local value, message, status = State.Load()
     if not value then self:Notify(message, "warning"); return end
     self.profile, self.draft, self.run = value.profile, value.draft, value.run
-    self.previousDraft = nil; self.undo = {}; self.historyPage = 1; self.storageBlocked = false
+    self.previousDraft = nil; self.editBackup = nil; self.houseUndo = nil; self.openingView = "summary"; self.undo = {}; self.historyPage = 1; self.storageBlocked = false; self.openingGenerationFailed = false
     self.saveMessage = status == "recovered" and message or ""
     self.screen = self.run and "game" or "opening"
     self:Render(); self:Notify(message, status == "recovered" and "warning" or "success")
@@ -120,186 +133,201 @@ function App:Export()
     self:Notify(message, raw and "success" or "error")
 end
 
-function App:Random(max)
-    self.draft.rngSeed = (self.draft.rngSeed * 48271) % 2147483647
-    return math.floor(self.draft.rngSeed / 2147483647 * max) + 1
+function App:SetDraftField(page, key, value)
+    self.draft[key] = value; self.undo[page] = nil; self.houseUndo = nil
+    self.openingFeedback = ""; self:Render()
 end
 
-function App:RandomName(sex, surname)
-    local surnames = Data.Surnames
-    local givenNames = Data.GivenNames[sex == "男" and "male" or "female"]
-    return (surname or surnames[self:Random(#surnames)]) .. givenNames[self:Random(#givenNames)]
-end
-
-function App:RandomFamilyName(draft)
-    local target = draft or self.draft
-    local oldFamily = target.family
-    local nextFamily = Data.Surnames[self:Random(#Data.Surnames)]
-    target.family = nextFamily
-    for _, member in ipairs(target.members) do
-        if member.name:sub(1, #oldFamily) == oldFamily then
-            member.name = nextFamily .. member.name:sub(#oldFamily + 1)
-        end
-    end
-    if not draft then self:Render() end
-end
-
-function App:UpdatePreview()
-    if self.previewLabel then
-        local total = State.TotalPoints(self.draft)
-        self.previewLabel:SetText(self.draft.family .. "氏家谱 · " .. tostring(#self.draft.members) .. " 人 · " .. tostring(total) .. "/100 点")
-    end
-end
-
-function App:SetOpeningPage(page)
-    self.openingPage = page
+-- 所有真正写入草案的手改都统一从这里经过：当前页的旧随机结果随即失效。
+function App:MarkOpeningPageChanged(page)
+    self.undo[page] = nil
+    self.houseUndo = nil
     self.openingFeedback = ""
-    self:Render()
 end
 
-function App:SelectPeriod(id)
-    local period = Data.Period(id)
-    self.draft.periodId = id; self.draft.calendar = period.years[1]
-    self:Render()
-end
-
-function App:ToggleRelic(id)
-    local found = nil
-    for index, item in ipairs(self.draft.selectedRelicIds) do if item == id then found = index end end
-    if found then table.remove(self.draft.selectedRelicIds, found) else table.insert(self.draft.selectedRelicIds, id) end
-    self:Render()
-end
-
-function App:EligibleExperiences(member)
-    local job, choices = Data.Jobs[member.jobId], {}
-    if not job or member.age < job.min then return choices end
-    for _, experience in ipairs(Data.Experiences) do
-        local childAllowed = member.age >= 18 or experience.id == "none" or experience.id == "basic"
-        local requirementMet = not job.req or (experience.values[job.req[1]] or 0) >= job.req[2]
-        if childAllowed and requirementMet then table.insert(choices, experience) end
-    end
-    return choices
-end
-
-function App:IsPlayableDraft(candidate)
-    return #State.ValidateDraft(candidate, self.profile, false) == 0
-end
-
-function App:SafeRandomPage(before, page)
-    local candidate = State.Copy(before)
-    if page == "world" then
-        candidate.periodId = "unrest"; candidate.calendar = Data.Period("unrest").years[1]
-        candidate.originId = "plain"; candidate.placeId = "village"
-        self:RandomFamilyName(candidate)
-    elseif page == "people" then
-        for _, member in ipairs(candidate.members) do
-            member.talent = 1
-            local choices = self:EligibleExperiences(member)
-            table.sort(choices, function(a, b) return a.cost < b.cost end)
-            if not choices[1] then return nil end
-            member.experienceId = choices[1].id
-            local surname = member.name:sub(1, #candidate.family) == candidate.family and candidate.family or nil
-            member.name = self:RandomName(member.sex, surname)
-        end
-    elseif page == "estate" then
-        candidate.money = 0; candidate.grain = 0; candidate.land = 0
-        candidate.homeId = "rented"; candidate.workshop = false; candidate.shop = false
-        candidate.habitId = "none"; candidate.tieId = "none"
-    elseif page == "relics" then
-        candidate.selectedRelicIds = {}
-    end
-    return self:IsPlayableDraft(candidate) and candidate or nil
+function App:RandomFamilyName()
+    local ok, message = Opening.RandomFamilyName(self.draft)
+    if ok then self.undo.people = nil; self.houseUndo = nil end
+    self.openingFeedback = message; self:Render()
 end
 
 function App:RandomizePage(page)
-    local before = State.Copy(self.draft)
-    local generated = false
-    for _ = 1, 120 do
-        local candidate = State.Copy(before)
-        if page == "world" then
-            local period = Data.Periods[self:Random(#Data.Periods)]
-            candidate.periodId = period.id; candidate.calendar = period.years[self:Random(#period.years)]
-            candidate.originId = Data.Origins[self:Random(#Data.Origins)].id; candidate.placeId = Data.Places[self:Random(#Data.Places)].id
-        elseif page == "people" then
-            for _, member in ipairs(candidate.members) do
-                member.talent = self:Random(#Data.Talents)
-                local choices = self:EligibleExperiences(member)
-                if #choices == 0 then break end
-                member.experienceId = choices[self:Random(#choices)].id
-            end
-        elseif page == "estate" then
-            candidate.money = (self:Random(10) - 1) * 10; candidate.grain = (self:Random(10) - 1) * 4; candidate.land = self:Random(4) - 1
-            candidate.homeId = Data.Homes[self:Random(#Data.Homes)].id; candidate.workshop = self:Random(2) == 1; candidate.shop = self:Random(2) == 1
-            candidate.habitId = Data.Habits[self:Random(#Data.Habits)].id; candidate.tieId = Data.Ties[self:Random(#Data.Ties)].id
-        elseif page == "relics" then
-            candidate.selectedRelicIds = {}
-            for relicId in pairs(self.profile.unlockedRelicIds) do if self:Random(2) == 1 then table.insert(candidate.selectedRelicIds, relicId) end end
-        end
-        if self:IsPlayableDraft(candidate) then
-            if page == "world" then
-                self:RandomFamilyName(candidate)
-            elseif page == "people" then
-                for _, member in ipairs(candidate.members) do
-                    local surname = member.name:sub(1, #candidate.family) == candidate.family and candidate.family or nil
-                    member.name = self:RandomName(member.sex, surname)
-                end
-            end
-            candidate.rngSeed = self.draft.rngSeed
-            self.draft = candidate; generated = true; break
-        end
-    end
-    if not generated then
-        local fallback = self:SafeRandomPage(before, page)
-        if fallback then
-            fallback.rngSeed = self.draft.rngSeed
-            self.draft = fallback; generated = true
-        end
-    end
-    if generated then
-        self.undo[page] = before
-        self.openingFeedback = "已随机本页：总分 " .. tostring(State.TotalPoints(self.draft)) .. "/100，仍可直接开局。"
-    else
-        self.openingFeedback = "这一页没有可开局的新组合；先减少其他页的点数后再试。"
-    end
+    local before = Opening.Snapshot(self.draft, page)
+    local candidate, issue = Opening.RandomPage(self.draft, page, self.profile)
+    if candidate then
+        self.draft = candidate
+        self.undo[page] = { before = before, after = Opening.Snapshot(candidate, page) }
+        self.houseUndo = nil
+        self.openingFeedback = "已随机本页，可撤销；其他页保持不变。"
+    else self.openingFeedback = issue end
     self:Render()
 end
 
 function App:UndoPage(page)
-    if not self.undo[page] then self:Notify("本页没有可撤销的随机结果。", "warning"); return end
-    self.draft = self.undo[page]; self.undo[page] = nil; self.openingFeedback = "已恢复随机前的本页配置。"; self:Render()
-end
-
-function App:AddMember()
-    local id = self.draft.nextId; self.draft.nextId = id + 1
-    table.insert(self.draft.members, { id = id, name = self.draft.family .. "新", sex = "女", age = 18, parents = {}, spouseId = nil, talent = 2, focus = "general", experienceId = "none", trait = "沉静", jobId = "farm" })
+    local undo = self.undo[page]
+    if not undo or not Opening.Equal(Opening.Snapshot(self.draft, page), undo.after) then
+        self.undo[page] = nil; self.openingFeedback = "本页已修改或没有可撤销结果，草案保持不变。"
+    else
+        Opening.Restore(self.draft, page, undo.before); self.undo[page] = nil
+        self.openingFeedback = "已撤销本页随机，其他页保持不变。"
+    end
     self:Render()
 end
 
+function App:ChangeHouse()
+    local candidate, issue = Opening.Generate(self.profile, self.draft.rngSeed, self.draft.worldId)
+    if candidate then
+        self.houseUndo = State.Copy(self.draft); self.draft = candidate; self.undo = {}
+        self.openingFeedback = "已换一家；可恢复上一家，包括此前手改内容。"
+    else self.openingFeedback = issue end
+    self:Render()
+end
+
+function App:UndoHouse()
+    if not self.houseUndo then return end
+    self.draft = self.houseUndo; self.houseUndo = nil; self.undo = {}
+    self.openingFeedback = "已恢复上一家。"; self:Render()
+end
+
+function App:BeginOpeningEdit(page)
+    if not self.editBackup then self.editBackup = State.Copy(self.draft); self.editUndo = State.Copy(self.undo) end
+    self.openingView = "editor"; self.openingPage = page or "world"; self.openingFeedback = ""; self:Render()
+end
+
+function App:OpenOpeningDetail(view)
+    self.openingReturn = self.openingView or "summary"
+    self.openingView = view
+    self.openingFeedback = ""
+    self:Render()
+end
+
+function App:ReturnOpeningDetail()
+    self.openingView = self.openingReturn or "summary"
+    self.openingReturn = nil
+    self.openingFeedback = ""
+    self:Render()
+end
+
+function App:FinishOpeningEdit(save)
+    if save then
+        local issues = State.ValidateDraft(self.draft, self.profile, true)
+        if #issues > 0 then self.openingFeedback = table.concat(issues, "\n"); self:Render(); return false end
+    elseif self.editBackup then self.draft = self.editBackup; self.undo = self.editUndo or {} end
+    self.editBackup = nil; self.editUndo = nil; self.houseUndo = nil
+    self.openingView = "summary"; self.openingFeedback = ""; self:Render()
+    return true
+end
+
+function App:SaveOpeningDraft()
+    -- 编辑中的字段先通过“保存并返回”校验；校验失败时仍留在编辑器，绝不写入半成品。
+    if not self:FinishOpeningEdit(true) then return false end
+    return self:Save()
+end
+
+function App:SetOpeningPage(page)
+    self.openingPage = page; self.openingFeedback = ""; self:Render()
+end
+
+function App:SelectPeriod(id)
+    self.draft.calendar = Data.Period(id).years[1]
+    self:SetDraftField("world", "periodId", id)
+end
+
+function App:ToggleRelic(id)
+    local selected = State.Copy(self.draft.selectedRelicIds)
+    local found = false
+    for index, value in ipairs(selected) do if value == id then table.remove(selected, index); found = true; break end end
+    if not found then table.insert(selected, id) end
+    self:SetDraftField("relics", "selectedRelicIds", selected)
+end
+
+function App:AddMember()
+    -- 新成员只存在于人物编辑副本，取消时绝不改变成员列表或 nextId。
+    local id = self.draft.nextId
+    self.memberIsNew = true
+    self.memberEditing = { id = id, name = self.draft.family .. "新", nameSource = "family", givenName = "新", sex = "女",
+        age = 18, parents = {}, talent = 2, focus = "general", experienceId = "none", trait = "沉静", jobId = "farm" }
+    self.memberLeader = self.draft.leaderId
+    self.memberReturn = self.openingView
+    self.memberSection = "base"; self.memberIssue = ""; self.removeConfirm = false
+    self.openingView = "member"; self:Render()
+end
+
 function App:RemoveMember(memberId)
-    if #self.draft.members <= 1 then self:Notify("至少保留一位族人。", "warning"); return end
-    local member = State.FindMember(self.draft.members, memberId)
-    if memberId == self.draft.leaderId then self:Notify("请先指定另一位成年首任族长。", "warning"); return end
-    for index, item in ipairs(self.draft.members) do if item.id == memberId then table.remove(self.draft.members, index); break end end
-    for _, item in ipairs(self.draft.members) do
-        if item.spouseId == memberId then item.spouseId = nil end
-        local nextParents = {}; for _, parentId in ipairs(item.parents) do if parentId ~= memberId then table.insert(nextParents, parentId) end end; item.parents = nextParents
+    if #self.draft.members <= 1 then self.memberIssue = "至少保留一位族人。"; self:Render(); return end
+    for index, member in ipairs(self.draft.members) do if member.id == memberId then table.remove(self.draft.members, index); break end end
+    for _, member in ipairs(self.draft.members) do
+        if member.spouseId == memberId then member.spouseId = nil end
+        local parents = {}; for _, id in ipairs(member.parents) do if id ~= memberId then table.insert(parents, id) end end
+        member.parents = parents
     end
-    self:Render(); self:Notify("已移除“" .. member.name .. "”，关联关系已重新校验。", "success")
+    self.undo.people = nil; self.houseUndo = nil; self.memberEditing = nil; self.memberIsNew = nil; self.removeConfirm = false
+    self.openingView = self.memberReturn or "summary"
+    self.openingFeedback = "已移除成员并清理关系引用；如移除了首任族长，请另行指定。"; self:Render()
+end
+
+function App:OpenDraftMember(memberId)
+    local member = State.FindMember(self.draft.members, memberId)
+    if not member then return end
+    self.memberEditing = State.Copy(member); self.memberIsNew = false; self.memberLeader = self.draft.leaderId
+    self.memberReturn = self.openingView; self.memberSection = "base"; self.memberIssue = ""; self.removeConfirm = false
+    self.openingView = "member"; self:Render()
+end
+
+-- 预览和保存共用同一份候选草案；新成员尚未写入 draft 时也按最终形态计分和校验。
+function App:DraftMemberCandidate()
+    local candidate, issue
+    if self.memberIsNew then
+        candidate = State.Copy(self.draft)
+        table.insert(candidate.members, State.Copy(self.memberEditing))
+        candidate.nextId = math.max(candidate.nextId or 1, self.memberEditing.id + 1)
+        -- 复用编辑命令，使新增人物与既有成员完全同样处理双向婚配和旧配偶解绑。
+        candidate, issue = Opening.EditMember(candidate, self.memberEditing, self.memberLeader, self.profile)
+    else
+        candidate, issue = Opening.EditMember(self.draft, self.memberEditing, self.memberLeader, self.profile)
+    end
+    return candidate, issue
+end
+
+function App:SaveDraftMember()
+    local candidate, issue = self:DraftMemberCandidate()
+    if not candidate then self.memberIssue = issue; self:Render(); return end
+    self.draft = candidate; self.undo.people = nil; self.houseUndo = nil; self.memberEditing = nil; self.memberIsNew = nil; self.removeConfirm = false
+    self.openingView = self.memberReturn or "summary"; self:Render()
+end
+
+function App:CancelDraftMember()
+    self.memberEditing = nil
+    self.memberIsNew = nil
+    self.memberIssue = ""
+    self.removeConfirm = false
+    self.openingView = self.memberReturn or "summary"
+    self:Render()
 end
 
 function App:PrepareNewRun()
     if self.storageBlocked or self.unsaved then self:Notify("请先恢复或保存当前进度，再立新家谱。", "warning"); return end
-    if self.run and not self.previousDraft then
-        self.previousDraft = self.draft
-        self.draft = State.NewDraft()
+    if self.openingGenerationFailed then
+        -- 仅首次自动生成失败的封面可明确重试，不能把任意未开局草案当作可重掷对象。
+        local candidate, issue = Opening.Generate(self.profile, Opening.FreshSeed(), "mortal")
+        if not candidate then
+            self.openingFeedback = issue or "暂未生成合法家庭，请重试。"
+            self.screen = "cover"; self:Render()
+            return
+        end
+        self.draft = candidate; self.openingGenerationFailed = false
+    elseif self.run and not self.previousDraft then
+        local candidate, issue = Opening.Generate(self.profile, Opening.FreshSeed(), "mortal")
+        if not candidate then self.openingFeedback = issue; self:Notify(issue, "error"); return end
+        self.previousDraft = self.draft; self.draft = candidate
     end
-    self.screen = "opening"; self.openingPage = "world"; self.undo = {}; self.openingFeedback = ""
-    self:Render()
+    self.editBackup = nil; self.houseUndo = nil; self.undo = {}
+    self.screen = "opening"; self.openingView = "summary"; self.openingFeedback = ""; self:Render()
 end
 
 function App:CancelNewRun()
     if not self.previousDraft then return end
-    self.draft = self.previousDraft; self.previousDraft = nil; self.undo = {}
+    self.draft = self.previousDraft; self.previousDraft = nil; self.undo = {}; self.editBackup = nil; self.houseUndo = nil
     self.screen = "game"; self:Render()
 end
 
@@ -307,7 +335,10 @@ function App:StartRun()
     if self.storageBlocked or self.unsaved then self:Notify("请先恢复或保存当前进度，再立新家谱。", "warning"); return end
     if self.startConfirmationOpen or self.screen == "game" then return end
     local issues = State.ValidateDraft(self.draft, self.profile, false)
-    if #issues > 0 then self:Notify(table.concat(issues, " "), "error"); return end
+    if #issues > 0 then
+        self.openingFeedback = table.concat(issues, "\n")
+        self:Render(); self:Notify("请先修正开局草案。", "error"); return
+    end
     local previousRun, submitted = self.run, false
     local function commit()
         if submitted or self.run ~= previousRun then return end
@@ -402,242 +433,28 @@ function App:BuildRunStatusBar()
     }
 end
 
-function App:BuildOpeningFooter()
-    local pages = { "world", "people", "estate", "relics", "final" }
-    local index = 1; for i, page in ipairs(pages) do if page == self.openingPage then index = i end end
-    local total = State.TotalPoints(self.draft)
-    return UI.Panel {
-        flexDirection = "column", backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, padding = 8, gap = 5,
-        children = {
-            Label("总分 " .. tostring(total) .. "/100" .. (total > 100 and " · 超分，暂不能开局" or " · 可直接开局"), { fontSize = 11, fontColor = total > 100 and C.warning or C.muted, textAlign = "center" }),
-            UI.Row { gap = 8, children = {
-                index > 1 and Button("上一步", function() self:SetOpeningPage(pages[index - 1]) end, { flex = 1, height = 36, backgroundColor = C.pale, textColor = C.green }) or UI.Box(1, 1),
-                index < #pages and Button("下一步", function() self:SetOpeningPage(pages[index + 1]) end, { flex = 1, height = 36 }) or Button("开始家业", function() self:StartRun() end, { flex = 1, height = 36, backgroundColor = total > 100 and C.warning or C.green }),
-            } },
-        },
-    }
-end
-
-function App:BuildOpeningNav()
-    local pages = { { id = "world", text = "世道" }, { id = "people", text = "族人" }, { id = "estate", text = "家底" }, { id = "relics", text = "信物" }, { id = "final", text = "落笔" } }
-    local children = {}
-    for _, page in ipairs(pages) do
-        table.insert(children, Button(page.text, function() self:SetOpeningPage(page.id) end, { flex = 1, height = 34, fontSize = 11, backgroundColor = self.openingPage == page.id and C.green or C.pale, textColor = self.openingPage == page.id and { 255, 255, 255, 255 } or C.green }))
-    end
-    return UI.Panel { padding = 6, backgroundColor = C.paper, children = { UI.Row { gap = 4, children = children } } }
-end
-
-function App:BuildOptionList(items, selectedId, onSelect, description)
-    local children = {}
-    for _, item in ipairs(items) do
-        local active = item.id == selectedId
-        local detail = item.desc or ""
-        if item.burden then detail = detail .. "\n" .. item.burden end
-        table.insert(children, Button((active and "✓ " or "") .. item.name .. " · " .. tostring(item.cost or 0) .. " 点\n" .. detail, function()
-            onSelect(item.id)
-        end, {
-            height = item.burden and 64 or 50,
-            backgroundColor = active and C.green or C.card,
-            textColor = active and { 255, 255, 255, 255 } or C.ink,
-            borderColor = active and C.green or C.line,
-            borderWidth = 1,
-            textAlign = "left",
-            paddingHorizontal = 10,
-            fontSize = 13,
-        }))
-    end
-    return UI.Panel { gap = 9, children = children }
-end
-
-function App:BuildWorldPage()
-    local period = Data.Period(self.draft.periodId)
-    local years = {}
-    for _, year in ipairs(period.years) do table.insert(years, Button(tostring(year) .. " 年", function() self.draft.calendar = year; self:Render() end, { flex = 1, height = 38, backgroundColor = self.draft.calendar == year and C.green or C.pale, textColor = self.draft.calendar == year and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
-    local used, capacity = State.PageBudget(self.draft, "world")
-    return UI.Panel { gap = 12, children = {
-        Card({ Label("世道与来处", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点 · 时期与年份联动，年份不重复收费。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-            Label("家姓", { fontSize = 13 }), UI.Row { gap = 8, children = {
-                UI.TextField { value = self.draft.family, placeholder = "请输入姓氏", fontSize = 16, flex = 1, onChange = function(_, value) self.draft.family = value ~= "" and value or "林"; self:UpdatePreview() end },
-                Button("随机", function() self:RandomFamilyName() end, { width = 72, height = 40, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }),
-            } },
-            Label("开局时期", { fontSize = 13, fontWeight = "bold" }), self:BuildOptionList(Data.Periods, self.draft.periodId, function(id) self:SelectPeriod(id) end),
-            Label("当前时期可选年份 · 推导时世：" .. period.name, { fontSize = 13, fontColor = C.muted }), UI.Row { gap = 6, children = years },
-        }),
-        Card({ Label("来历", { fontSize = 18, fontWeight = "bold" }), self:BuildOptionList(Data.Origins, self.draft.originId, function(id) self.draft.originId = id; self:Render() end) }),
-        Card({ Label("落脚地区", { fontSize = 18, fontWeight = "bold" }), self:BuildOptionList(Data.Places, self.draft.placeId, function(id) self.draft.placeId = id; self:Render() end) }),
-    } }
-end
-
-function App:BuildPeoplePage()
-    local used, capacity = State.PageBudget(self.draft, "people")
-    local cards = { Card({ Label("家中这些人", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点。每个人都能独立查看与安排。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), Button("添加族人", function() self:AddMember() end, { height = 34 }) }) }
-    for _, member in ipairs(self.draft.members) do
-        local talentIndex = tonumber(member.talent) or 1
-        local talent = Data.Talent(talentIndex)
-        local experience = Data.Experience(member.experienceId)
-        table.insert(cards, Card({
-            UI.Row { justifyContent = "space-between", children = { Label(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 17, fontWeight = "bold" }), Label(member.id == self.draft.leaderId and "首任族长" or "", { fontSize = 12, fontColor = C.green }) } },
-            Label("" .. talent.name .. " · " .. experience.name .. " · " .. Data.Jobs[member.jobId].name .. " · " .. tostring(State.MemberCost(member)) .. " 点", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
-            UI.Row { gap = 8, children = { Button("查看与编辑", function() self:OpenDraftMember(member.id) end, { flex = 1, height = 34 }), Button("设为族长", function() self.draft.leaderId = member.id; self:Render() end, { flex = 1, height = 34, backgroundColor = C.pale, textColor = C.green }) } },
-        }))
-    end
-    return UI.Panel { gap = 10, children = cards }
-end
-
-function App:OpenDraftMember(memberId)
-    local original = State.FindMember(self.draft.members, memberId)
-    if not original then return end
-    local editing = State.Copy(original)
-    local modal = UI.Modal { title = editing.name .. " · 编辑", size = "fullscreen", closeOnOverlay = false, onClose = function(selfModal) selfModal:Destroy() end }
-    local nameField = UI.TextField { value = editing.name, flex = 1, onChange = function(_, value) if value ~= "" then editing.name = value end end }
-    local content = UI.ScrollView { height = "70%", flexBasis = 0, padding = 14, children = { UI.Panel { gap = 10, children = {
-        Label("姓名", { fontSize = 13 }), UI.Row { gap = 8, children = {
-            nameField,
-            Button("随机姓名", function()
-                editing.name = self:RandomName(editing.sex)
-                nameField:SetValue(editing.name)
-            end, { width = 92, height = 40, backgroundColor = C.pale, textColor = C.green, fontSize = 12 }),
-        } },
-        Label("年龄：" .. tostring(editing.age), { fontSize = 13 }), UI.Stepper { value = editing.age, min = 0, max = 92, step = 1, onChange = function(_, value) editing.age = math.floor(value) end },
-        Label("亲缘与婚配", { fontSize = 16, fontWeight = "bold", marginTop = 6 }),
-        Label("亲缘在保存时校验年龄差与循环；婚配必须双方成年。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
-        Label("资质", { fontSize = 13, fontWeight = "bold" }),
-    } } } }
-    local panel = content:GetChildAt(1)
-    for _, candidate in ipairs(self.draft.members) do
-        if candidate.id ~= editing.id and candidate.age - editing.age >= 18 then
-            panel:AddChild(Button((HasId(editing.parents, candidate.id) and "✓ " or "") .. "设为父母/养亲：" .. candidate.name, function()
-                if HasId(editing.parents, candidate.id) then
-                    local nextParents = {}; for _, id in ipairs(editing.parents) do if id ~= candidate.id then table.insert(nextParents, id) end end; editing.parents = nextParents
-                elseif #editing.parents < 2 then
-                    table.insert(editing.parents, candidate.id)
-                else self:Notify("最多可设两位父母/养亲。", "warning") end
-            end, { height = 34, backgroundColor = HasId(editing.parents, candidate.id) and C.green or C.pale, textColor = HasId(editing.parents, candidate.id) and { 255, 255, 255, 255 } or C.green, fontSize = 12 }))
-        end
-    end
-    for _, candidate in ipairs(self.draft.members) do
-        if candidate.id ~= editing.id and candidate.age >= 18 and editing.age >= 18 then
-            panel:AddChild(Button((editing.spouseId == candidate.id and "✓ " or "") .. "设为配偶：" .. candidate.name, function()
-                editing.spouseId = editing.spouseId == candidate.id and nil or candidate.id
-                self:Notify("婚配将在保存时双向写入并校验。", "info")
-            end, { height = 34, backgroundColor = editing.spouseId == candidate.id and C.green or C.pale, textColor = editing.spouseId == candidate.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 }))
-        end
-    end
-    for index, talent in ipairs(Data.Talents) do panel:AddChild(Button(talent.name .. " · " .. tostring(talent.cost) .. " 点", function() editing.talent = index; self:Notify("已在临时预览中选择“" .. talent.name .. "”。") end, { height = 34, backgroundColor = editing.talent == index and C.green or C.pale, textColor = editing.talent == index and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
-    panel:AddChild(Label("已有本领", { fontSize = 13, fontWeight = "bold" }))
-    for _, experience in ipairs(Data.Experiences) do panel:AddChild(Button(experience.name .. " · " .. tostring(experience.cost) .. " 点", function() editing.experienceId = experience.id; self:Notify("已在临时预览中选择“" .. experience.name .. "”。") end, { height = 34, backgroundColor = editing.experienceId == experience.id and C.green or C.pale, textColor = editing.experienceId == experience.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
-    modal:AddContent(content)
-    modal:SetFooter(UI.Row { gap = 8, children = {
-        Button("移除", function() modal:Close(); self:RemoveMember(memberId) end, { flex = 1, backgroundColor = C.warning }),
-        Button("取消", function() modal:Close() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
-        Button("保存", function()
-            for _, item in ipairs(self.draft.members) do if item.spouseId == memberId then item.spouseId = nil end end
-            if editing.spouseId then
-                local spouse = State.FindMember(self.draft.members, editing.spouseId)
-                if spouse then
-                    if spouse.spouseId then local former = State.FindMember(self.draft.members, spouse.spouseId); if former then former.spouseId = nil end end
-                    spouse.spouseId = memberId
-                end
-            end
-            for index, item in ipairs(self.draft.members) do if item.id == memberId then self.draft.members[index] = editing end end
-            modal:Close(); self:Render(); self:Notify("人物与关系编辑已保存。", "success")
-        end, { flex = 1 }),
-    } })
-    modal:Open()
-end
-
-function App:BuildEstatePage()
-    local used, capacity = State.PageBudget(self.draft, "estate")
-    local homeButtons = {}
-    for _, home in ipairs(Data.Homes) do table.insert(homeButtons, Button(home.name .. " · " .. tostring(home.cost) .. " 点", function() self.draft.homeId = home.id; self:Render() end, { height = 38, backgroundColor = self.draft.homeId == home.id and C.green or C.pale, textColor = self.draft.homeId == home.id and { 255, 255, 255, 255 } or C.green, fontSize = 12 })) end
-    local habitButtons = {}; for _, habit in ipairs(Data.Habits) do table.insert(habitButtons, Button(habit.name .. " · " .. tostring(habit.cost) .. " 点\n" .. habit.desc, function() self.draft.habitId = habit.id; self:Render() end, { height = 52, backgroundColor = self.draft.habitId == habit.id and C.green or C.pale, textColor = self.draft.habitId == habit.id and { 255, 255, 255, 255 } or C.green, fontSize = 12, textAlign = "left", paddingHorizontal = 10 })) end
-    local tieButtons = {}; for _, tie in ipairs(Data.Ties) do table.insert(tieButtons, Button(tie.name .. " · " .. tostring(tie.cost) .. " 点\n" .. tie.desc, function() self.draft.tieId = tie.id; self:Render() end, { height = 52, backgroundColor = self.draft.tieId == tie.id and C.green or C.pale, textColor = self.draft.tieId == tie.id and { 255, 255, 255, 255 } or C.green, fontSize = 12, textAlign = "left", paddingHorizontal = 10 })) end
-    return UI.Panel { gap = 12, children = {
-        Card({ Label("安身家底", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点。初始家底与每年收益分开结算。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-            Label("现银 " .. tostring(self.draft.money) .. " 两（每 10 两 1 点）", { fontSize = 14 }), UI.Stepper { value = self.draft.money, min = 0, max = 300, step = 10, onChange = function(_, value) self.draft.money = math.floor(value); self:UpdatePreview() end },
-            Label("存粮 " .. tostring(self.draft.grain) .. " 石（每 4 石 1 点）", { fontSize = 14 }), UI.Stepper { value = self.draft.grain, min = 0, max = 160, step = 4, onChange = function(_, value) self.draft.grain = math.floor(value); self:UpdatePreview() end },
-            Label("田地 " .. tostring(self.draft.land) .. " 亩（每亩 4 点）", { fontSize = 14 }), UI.Stepper { value = self.draft.land, min = 0, max = 12, step = 1, onChange = function(_, value) self.draft.land = math.floor(value); self:UpdatePreview() end },
-        }),
-        Card({ Label("住宅", { fontSize = 18, fontWeight = "bold" }), UI.Panel { gap = 6, children = homeButtons } }),
-        Card({ Label("产业", { fontSize = 18, fontWeight = "bold" }), UI.Toggle { checked = self.draft.workshop, onChange = function(_, value) self.draft.workshop = value; self:Render() end }, Label("木工作坊 · 14 点 · 需要手艺人经营才有收益", { fontSize = 13, fontColor = C.muted }), UI.Toggle { checked = self.draft.shop, onChange = function(_, value) self.draft.shop = value; self:Render() end }, Label("小商铺 · 20 点 · 需要经商族人经营才有收益", { fontSize = 13, fontColor = C.muted }) }),
-        Card({ Label("家风", { fontSize = 18, fontWeight = "bold" }), UI.Panel { gap = 6, children = habitButtons }, Label("往来关系", { fontSize = 18, fontWeight = "bold", marginTop = 8 }), UI.Panel { gap = 6, children = tieButtons } }),
-    } }
-end
-
-function App:BuildRelicPage()
-    local used, capacity = State.PageBudget(self.draft, "relics")
-    local cards = { Card({ Label("随身旧物", { fontSize = 21, fontWeight = "bold" }), Label("本页 " .. tostring(used) .. "/" .. tostring(math.max(0, capacity)) .. " 点。解锁资格与本局实体分开，带入可多选。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }) }) }
-    for _, relic in ipairs(Data.Relics) do
-        local unlocked = self.profile.unlockedRelicIds[relic.id]
-        local selected = false; for _, id in ipairs(self.draft.selectedRelicIds) do if id == relic.id then selected = true end end
-        table.insert(cards, Card({ Label(relic.name .. " · " .. tostring(relic.cost) .. " 点", { fontSize = 17, fontWeight = "bold", fontColor = unlocked and C.ink or C.muted }), Label(relic.desc, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }),
-            unlocked and Button(selected and "已带入" or "带入本局", function() self:ToggleRelic(relic.id) end, { height = 38, backgroundColor = selected and C.green or C.pale, textColor = selected and { 255, 255, 255, 255 } or C.green }) or Label("尚未解锁 · 可在凡世经历中寻找线索", { fontSize = 12, fontColor = C.warning }),
-        }, { borderColor = selected and C.green or C.line, backgroundColor = unlocked and C.card or { 239, 238, 232, 255 } }))
-    end
-    return UI.Panel { gap = 10, children = cards }
-end
-
 function App:BuildFinalPage()
-    local total = State.TotalPoints(self.draft); local issues = State.ValidateDraft(self.draft, self.profile, false)
-    local groups = State.PointGroups(self.draft)
-    local rows = { Label("世道 " .. tostring(groups.world) .. " 点", { fontSize = 14 }), Label("族人 " .. tostring(groups.people) .. " 点", { fontSize = 14 }), Label("家底 " .. tostring(groups.estate) .. " 点", { fontSize = 14 }), Label("信物 " .. tostring(groups.relics) .. " 点", { fontSize = 14 }) }
-    local issueLabels = {}; for _, issue in ipairs(issues) do table.insert(issueLabels, Label("• " .. issue, { fontSize = 13, fontColor = C.warning, whiteSpace = "normal" })) end
-    local issueWidget = #issueLabels > 0 and UI.Panel { gap = 6, children = issueLabels } or Label("草案有效。未花完的点数不会自动兑换成家财。", { fontSize = 13, fontColor = C.muted })
-    local startButton = Button(total <= 100 and "开始这一局" or "超分，返回调整", function()
-        self:StartRun()
-    end, { backgroundColor = total <= 100 and C.green or C.warning })
-    local summaryCard = Card({
-        Label("落笔之前", { fontSize = 21, fontWeight = "bold" }),
-        Label(self.draft.family .. "氏 · 大晟历 " .. tostring(self.draft.calendar) .. " 年 · " .. Data.Period(self.draft.periodId).name, { fontSize = 14, fontColor = C.muted }),
-        UI.Panel { gap = 6, children = rows },
-        UI.Divider { color = C.line },
-        Label("总计 " .. tostring(total) .. "/100 点", { fontSize = 24, fontWeight = "bold", fontColor = total > 100 and C.warning or C.green }),
-        issueWidget,
-        startButton,
-    })
-    local backupActions = UI.Row { gap = 8, children = {
-        Button("写入备份", function() self:Export() end, { flex = 1, height = 38 }),
-        Button("读取最近存档", function() self:Load() end, { flex = 1, height = 38, backgroundColor = C.pale, textColor = C.green }),
-    } }
-    local backupCard = Card({
-        Label("本地备份", { fontSize = 18, fontWeight = "bold" }),
-        Label("存档仅属于当前项目与当前用户；可生成 JSON 备份，换设备时请自行带回。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-        backupActions,
-    })
-    return UI.Panel { gap = 12, children = { summaryCard, backupCard } }
+    return OpeningView.Summary(self)
 end
 
 function App:BuildCover()
+    local actions = {
+        Label("家业", { fontSize = 42, fontWeight = "bold", fontColor = { 255, 254, 250, 255 } }),
+        Label("一部由选择写成的家谱", { fontSize = 18, fontColor = { 226, 235, 220, 255 } }),
+        Label("立一户人家，过一年算一年。有人出生、有人离去，手艺、声望与旧物都会留在家史里。", { fontSize = 15, fontColor = { 226, 235, 220, 255 }, whiteSpace = "normal", lineHeight = 1.65, marginTop = 12 }),
+    }
+    if self.openingGenerationFailed then
+        table.insert(actions, Label(self.openingFeedback, { fontSize = 14, fontColor = { 255, 207, 184, 255 }, whiteSpace = "normal", lineHeight = 1.5 }))
+    end
+    table.insert(actions, Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 20 }))
+    table.insert(actions, Button("读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
     return UI.Panel { width = "100%", height = "100%", backgroundColor = C.dark, justifyContent = "center", padding = 26, children = {
-        UI.Panel { gap = 16, children = {
-            Label("家业", { fontSize = 42, fontWeight = "bold", fontColor = { 255, 254, 250, 255 } }),
-            Label("一部由选择写成的家谱", { fontSize = 18, fontColor = { 226, 235, 220, 255 } }),
-            Label("立一户人家，过一年算一年。有人出生、有人离去，手艺、声望与旧物都会留在家史里。", { fontSize = 15, fontColor = { 226, 235, 220, 255 }, whiteSpace = "normal", lineHeight = 1.65, marginTop = 12 }),
-            Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 20 }),
-            Button("读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }),
-        } },
+        UI.Panel { gap = 16, children = actions },
     } }
 end
 
 function App:BuildOpening()
-    local builders = { world = function() return self:BuildWorldPage() end, people = function() return self:BuildPeoplePage() end, estate = function() return self:BuildEstatePage() end, relics = function() return self:BuildRelicPage() end, final = function() return self:BuildFinalPage() end }
-    local page = self.openingPage
-    local pageActions = UI.Row { gap = 8, children = {
-        Button("随机本页", function() self:RandomizePage(page) end, { flex = 1, height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }),
-        Button("撤销随机", function() self:UndoPage(page) end, { flex = 1, height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }),
-    } }
-    local pageChildren = { pageActions }
-    if self.previousDraft then table.insert(pageChildren, 1, Button("取消新局，回到原家谱", function() self:CancelNewRun() end, { backgroundColor = C.pale, textColor = C.green })) end
-    if self.openingFeedback ~= "" then table.insert(pageChildren, Label(self.openingFeedback, { fontSize = 11, fontColor = C.green, backgroundColor = C.pale, padding = 8, borderRadius = 8, whiteSpace = "normal" })) end
-    table.insert(pageChildren, builders[page]())
-    local pageContent = UI.Panel { gap = 8, children = pageChildren }
-    local scroll = UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 8, children = { pageContent } }
-    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, flexDirection = "column", children = {
-        self:BuildHeader("家业", "凡世王朝 · 开局立谱"),
-        self:BuildOpeningNav(),
-        scroll,
-        self:BuildOpeningFooter(),
-    } }
+    return OpeningView.Build(self)
 end
 
 function App:BuildGameNav()

@@ -1,6 +1,9 @@
 local Data = {}
 
 Data.LIMIT = 100
+Data.OpeningCosts = { moneyUnit = 10, grainUnit = 4, land = 4, workshop = 14, shop = 20 }
+Data.FocusNames = { general = "均衡", learn = "学识", skill = "手艺", medicine = "医术", trade = "经营", martial = "武艺" }
+Data.JobOrder = { "play", "study", "farm", "apprentice", "craft", "trade", "teach", "medical", "doctor", "train", "guard", "official", "home", "rest" }
 Data.WORLD_NAME = "大晟"
 Data.RULES_VERSION = 1
 

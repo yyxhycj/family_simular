@@ -14,6 +14,7 @@ function State.NewProfile()
     return { schemaVersion = 1, unlockedRelicIds = { book = true, ruler = true, letter = true }, endingRecords = {} }
 end
 
+-- 旧版兼容与验收基线；玩家新局由 Opening.Generate 生成。
 function State.NewDraft()
     return {
         family = "林", worldId = "mortal", periodId = "peace", calendar = 72,
@@ -30,8 +31,10 @@ function State.NewDraft()
 end
 
 function State.MemberBaseCost(member)
-    if member.age < 18 then return 4 end
-    if member.age >= 55 then return 6 end
+    local age = type(member) == "table" and member.age or nil
+    if type(age) ~= "number" then return 0 end
+    if age < 18 then return 4 end
+    if age >= 55 then return 6 end
     return 8
 end
 
@@ -41,26 +44,58 @@ function State.MemberCost(member)
     return State.MemberBaseCost(member) + talent.cost + (experience and experience.cost or 0)
 end
 
-function State.PointGroups(draft)
-    local world = (Data.Period(draft.periodId) and Data.Period(draft.periodId).cost or 0)
-        + (Data.Origin(draft.originId) and Data.Origin(draft.originId).cost or 0)
-        + (Data.Place(draft.placeId) and Data.Place(draft.placeId).cost or 0)
-    local people = 0
-    for _, member in ipairs(draft.members) do people = people + State.MemberCost(member) end
-    local estate = math.floor(draft.money / 10) + math.floor(draft.grain / 4) + draft.land * 4
-        + (Data.Home(draft.homeId) and Data.Home(draft.homeId).cost or 0)
-        + (draft.workshop and 14 or 0) + (draft.shop and 20 or 0)
-        + (Data.Habit(draft.habitId) and Data.Habit(draft.habitId).cost or 0)
-        + (Data.Tie(draft.tieId) and Data.Tie(draft.tieId).cost or 0)
-    local relics, seen = 0, {}
-    for _, relicId in ipairs(draft.selectedRelicIds) do
-        if not seen[relicId] then
-            seen[relicId] = true
-            local relic = Data.Relic(relicId)
-            relics = relics + (relic and relic.cost or 0)
-        end
+function State.PointLines(draft)
+    local rows, prices = {}, Data.OpeningCosts
+    draft = type(draft) == "table" and draft or {}
+    local function add(group, label, cost, effect)
+        table.insert(rows, { group = group, label = label, cost = cost or 0, effect = effect or "" })
     end
-    return { world = world, people = people, estate = estate, relics = relics }
+    local period = Data.Period(draft.periodId)
+    if period then
+        add("world", period.name, period.cost,
+            "工资倍率 " .. string.format("%.2f", period.wage) .. "；粮价 " .. tostring(period.food)
+            .. " 两/石；生活开支倍率 " .. string.format("%.2f", period.expense))
+    end
+    for _, item in ipairs({ Data.Origin(draft.originId), Data.Place(draft.placeId) }) do
+        if item then add("world", item.name, item.cost, item.desc) end
+    end
+    for _, member in ipairs(type(draft.members) == "table" and draft.members or {}) do
+        member = type(member) == "table" and member or {}
+        local talent, experience = Data.Talent(member.talent), Data.Experience(member.experienceId)
+        local name = type(member.name) == "string" and member.name or "未命名成员"
+        add("people", name .. " · 人口", State.MemberBaseCost(member), "姓名、性别不计点")
+        add("people", name .. " · " .. talent.name, talent.cost, "成长修正 " .. tostring(talent.gain))
+        if experience then add("people", name .. " · " .. experience.name, experience.cost, "已有本领") end
+        local job = Data.Jobs[member.jobId]
+        if job then add("people", name .. " · 初始安排：" .. job.name, 0, job.desc) end
+        local focus = Data.FocusNames[member.focus]
+        if focus then add("people", name .. " · 偏向：" .. focus, 0, "不计点；当前版本不直接改变初始数值。") end
+    end
+    local money = type(draft.money) == "number" and draft.money or 0
+    local grain = type(draft.grain) == "number" and draft.grain or 0
+    local land = type(draft.land) == "number" and draft.land or 0
+    add("estate", "现银 " .. tostring(money) .. " 两", math.floor(money / prices.moneyUnit), "每 " .. prices.moneyUnit .. " 两 1 点")
+    add("estate", "存粮 " .. tostring(grain) .. " 石", math.floor(grain / prices.grainUnit), "每 " .. prices.grainUnit .. " 石 1 点")
+    add("estate", "田地 " .. tostring(land) .. " 亩", land * prices.land, "每亩每年收粮 4 石")
+    local home = Data.Home(draft.homeId)
+    if home then add("estate", home.name, home.cost, "每年维护 " .. home.upkeep .. " 两") end
+    if draft.workshop then add("estate", "木工作坊", prices.workshop, "有手艺人经营，每年 +8 两") end
+    if draft.shop then add("estate", "小商铺", prices.shop, "有经商族人经营，每年 +10 两") end
+    for _, item in ipairs({ Data.Habit(draft.habitId), Data.Tie(draft.tieId) }) do
+        if item then add("estate", item.name, item.cost, item.desc) end
+    end
+    local seen = {}
+    for _, id in ipairs(type(draft.selectedRelicIds) == "table" and draft.selectedRelicIds or {}) do
+        local relic = Data.Relic(id)
+        if relic and not seen[id] then add("relics", relic.name, relic.cost, relic.desc); seen[id] = true end
+    end
+    return rows
+end
+
+function State.PointGroups(draft)
+    local groups = { world = 0, people = 0, estate = 0, relics = 0 }
+    for _, row in ipairs(State.PointLines(draft)) do groups[row.group] = groups[row.group] + row.cost end
+    return groups
 end
 
 function State.TotalPoints(draft)
@@ -75,7 +110,9 @@ function State.PageBudget(draft, page)
 end
 
 function State.FindMember(members, id)
-    for _, member in ipairs(members) do if member.id == id then return member end end
+    for _, member in ipairs(type(members) == "table" and members or {}) do
+        if type(member) == "table" and member.id == id then return member end
+    end
     return nil
 end
 
@@ -86,7 +123,7 @@ function State.Generation(members, memberId, visited)
     if visited[memberId] then return 1 end
     visited[memberId] = true
     local generation = 1
-    for _, parentId in ipairs(member.parents or {}) do
+    for _, parentId in ipairs(type(member.parents) == "table" and member.parents or {}) do
         generation = math.max(generation, State.Generation(members, parentId, visited) + 1)
     end
     visited[memberId] = nil
@@ -97,15 +134,35 @@ local function HasCycle(members, member, targetId, visited)
     if member.id == targetId then return true end
     if visited[member.id] then return false end
     visited[member.id] = true
-    for _, parentId in ipairs(member.parents or {}) do
+    for _, parentId in ipairs(type(member.parents) == "table" and member.parents or {}) do
         local parent = State.FindMember(members, parentId)
         if parent and HasCycle(members, parent, targetId, visited) then return true end
     end
     return false
 end
 
+function State.ValidName(name)
+    if type(name) ~= "string" then return false end
+    local length = utf8.len(name)
+    if not length or length < 1 or length > 20 then return false end
+    local visible = false
+    for _, code in utf8.codes(name) do
+        if code < 32 or code == 127 then return false end
+        if code ~= 32 and code ~= 0x3000 and code ~= 0xA0 then visible = true end
+    end
+    return visible
+end
+
+local function List(value)
+    return type(value) == "table" and value or {}
+end
+
 function State.ValidateDraft(draft, profile, allowOverBudget)
+    if type(draft) ~= "table" then return { "草案结构无效。" } end
+    profile = type(profile) == "table" and profile or {}
+    local unlockedRelicIds = type(profile.unlockedRelicIds) == "table" and profile.unlockedRelicIds or {}
     local issues, ids = {}, {}
+    if draft.worldId ~= "mortal" then table.insert(issues, "当前仅支持凡世开局。") end
     local period = Data.Period(draft.periodId)
     if not period then table.insert(issues, "请选择有效时期。")
     else
@@ -114,44 +171,66 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
         if not validYear then table.insert(issues, "年份必须属于当前时期。") end
     end
     if not Data.Origin(draft.originId) or not Data.Place(draft.placeId) then table.insert(issues, "来历或地区无效。") end
-    if #draft.members == 0 then table.insert(issues, "至少需要一位族人。") end
-    for _, member in ipairs(draft.members) do
-        if ids[member.id] then table.insert(issues, "成员编号重复：" .. tostring(member.id)) end
-        ids[member.id] = true
-        if type(member.age) ~= "number" or member.age < 0 or member.age > 92 or member.age ~= math.floor(member.age) then table.insert(issues, member.name .. "的年龄无效。") end
+    if not State.ValidName(draft.family) then table.insert(issues, "家族称谓须为 1–20 字，不能留空或包含换行。") end
+    if not Data.Home(draft.homeId) or not Data.Habit(draft.habitId) or not Data.Tie(draft.tieId) then table.insert(issues, "住宅、家风或关系无效。") end
+    local members = List(draft.members)
+    if #members == 0 then table.insert(issues, "至少需要一位族人。") end
+    for _, member in ipairs(members) do
+        if type(member) ~= "table" then table.insert(issues, "成员数据无效。") member = {} end
+        local name = type(member.name) == "string" and member.name or "成员"
+        if not State.ValidName(member.name) then table.insert(issues, "成员姓名须为 1–20 字，不能留空或包含换行。") end
+        if member.sex ~= "男" and member.sex ~= "女" then table.insert(issues, "成员性别无效。") end
+        if not Data.FocusNames[member.focus] then table.insert(issues, "成员偏向无效。") end
+        if type(member.id) ~= "number" or member.id < 1 or member.id ~= math.floor(member.id) then
+            table.insert(issues, name .. "的成员编号无效。")
+        elseif ids[member.id] then
+            table.insert(issues, "成员编号重复：" .. tostring(member.id))
+        else
+            ids[member.id] = true
+        end
+        if type(member.age) ~= "number" or member.age < 0 or member.age > 92 or member.age ~= math.floor(member.age) then table.insert(issues, name .. "的年龄无效。") end
         local experience, job = Data.Experience(member.experienceId), Data.Jobs[member.jobId]
         if not Data.Talents[member.talent] or not experience or not job then
-            table.insert(issues, member.name .. "的数据不完整。")
+            table.insert(issues, name .. "的数据不完整。")
+        elseif job.exam then
+            table.insert(issues, name .. "须在本局通过应试后才能任职。")
         elseif member.age < job.min then
-            table.insert(issues, member.name .. "的当前安排年龄不足。")
+            table.insert(issues, name .. "的当前安排年龄不足。")
         elseif member.age < 18 and member.experienceId ~= "none" and member.experienceId ~= "basic" then
             table.insert(issues, "未成年族人只能选择“尚未专精”或“略通一二”。")
         elseif member.age < 8 and member.experienceId ~= "none" then
             table.insert(issues, "8 岁前不能带入已有本领。")
         elseif job.req and (experience.values[job.req[1]] or 0) < job.req[2] then
-            table.insert(issues, member.name .. "的当前安排尚未满足能力要求。")
+            table.insert(issues, name .. "的当前安排尚未满足能力要求。")
         end
     end
-    for _, member in ipairs(draft.members) do
+    for _, member in ipairs(members) do
+        if type(member) ~= "table" then member = {} end
         if member.spouseId then
             local spouse = State.FindMember(draft.members, member.spouseId)
-            if not spouse or spouse.spouseId ~= member.id or member.age < 18 or spouse.age < 18 then table.insert(issues, member.name .. "的婚配关系无效。") end
+            if not spouse or spouse.id == member.id or spouse.spouseId ~= member.id or type(member.age) ~= "number" or type(spouse.age) ~= "number" or member.age < 18 or spouse.age < 18 then table.insert(issues, tostring(member.name or "成员") .. "的婚配关系无效。") end
         end
-        for _, parentId in ipairs(member.parents or {}) do
-            local parent = State.FindMember(draft.members, parentId)
-            if not parent or parent.age - member.age < 18 then table.insert(issues, member.name .. "的亲缘关系无效。") end
-            if parent and HasCycle(draft.members, parent, member.id, {}) then table.insert(issues, "亲缘关系不能形成循环。") end
+        local parents = List(member.parents)
+        if #parents > 2 then table.insert(issues, tostring(member.name or "成员") .. "最多两位父母/养亲。") end
+        local seenParents = {}
+        for _, parentId in ipairs(parents) do
+            if seenParents[parentId] then table.insert(issues, "父母/养亲不能重复。") end
+            seenParents[parentId] = true
+            local parent = State.FindMember(members, parentId)
+            if not parent or type(parent.age) ~= "number" or type(member.age) ~= "number" or parent.age - member.age < 18 then table.insert(issues, tostring(member.name or "成员") .. "的亲缘关系无效。") end
+            if parent and HasCycle(members, parent, member.id, {}) then table.insert(issues, "亲缘关系不能形成循环。") end
         end
     end
-    local leader = State.FindMember(draft.members, draft.leaderId)
-    if not leader or leader.age < 18 then table.insert(issues, "需要指定一位成年首任族长。") end
+    local leader = State.FindMember(members, draft.leaderId)
+    if not leader or type(leader.age) ~= "number" or leader.age < 18 then table.insert(issues, "需要指定一位成年首任族长。") end
     local relicSeen = {}
-    for _, relicId in ipairs(draft.selectedRelicIds) do
+    for _, relicId in ipairs(List(draft.selectedRelicIds)) do
         if relicSeen[relicId] then table.insert(issues, "同一件信物不能重复带入。") end
         relicSeen[relicId] = true
-        if not profile.unlockedRelicIds[relicId] then table.insert(issues, "尚未解锁信物：" .. tostring(relicId)) end
+        if not Data.Relic(relicId) then table.insert(issues, "信物不存在。") end
+        if not unlockedRelicIds[relicId] then table.insert(issues, "尚未解锁信物：" .. tostring(relicId)) end
     end
-    if draft.money < 0 or draft.grain < 0 or draft.land < 0 then table.insert(issues, "家底不能为负。") end
+    if type(draft.money) ~= "number" or type(draft.grain) ~= "number" or type(draft.land) ~= "number" or draft.money < 0 or draft.grain < 0 or draft.land < 0 then table.insert(issues, "家底不能为负。") end
     if not allowOverBudget and State.TotalPoints(draft) > Data.LIMIT then table.insert(issues, "总分超过 100，不能开始。") end
     return issues
 end
@@ -186,11 +265,11 @@ function State.NewRun(draft, profile)
     end
     local relicInstances = {}
     for index, relicId in ipairs(draft.selectedRelicIds) do table.insert(relicInstances, { instanceId = "relic-" .. tostring(index), definitionId = relicId, status = "held", custodianId = draft.leaderId, stage = "idle" }) end
-    local reputation = origin.id == "gentry" and 25 or (draft.tieId == "neighbor" and 12 or 0)
+    local reputation = (origin.id == "gentry" and 25 or 0) + (draft.tieId == "neighbor" and 12 or 0)
     if draft.homeId == "estate" then reputation = reputation + 8 end
     return {
         runId = "run-" .. tostring(os.time()), schemaVersion = 1, rulesVersion = Data.RULES_VERSION,
-        openingSnapshot = State.Copy(draft), yearIndex = 0, calendar = draft.calendar, eraId = period.era, eraSinceYear = 0,
+        openingSnapshot = State.Copy(draft), worldId = draft.worldId, yearIndex = 0, calendar = draft.calendar, eraId = period.era, eraSinceYear = 0,
         placeId = draft.placeId, originId = draft.originId, habitId = draft.habitId, tieId = draft.tieId,
         members = members, leaderId = draft.leaderId, leaderTerms = { { memberId = draft.leaderId, startYear = 0, endYear = nil, effective = false, reason = "开局任命" } },
         money = draft.money, grain = draft.grain, land = draft.land, homeId = draft.homeId, workshop = draft.workshop, shop = draft.shop,

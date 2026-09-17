@@ -65,9 +65,10 @@ local function fixture(kind)
     if kind == "history" then app.gameTab = "history"
     elseif kind == "member" then app.gameTab = "people"
     elseif kind == "collection" then
-        app:PrepareNewRun(); app:ToggleRelic("plan"); app.draft.money = 0
+        app:PrepareNewRun(); app.draft = State.NewDraft() -- 明确冻结 97 点夹具，玩家默认仍由生成器产生。
+        app:ToggleRelic("plan"); app.draft.money = 0
         assert(State.TotalPoints(app.draft) == 99)
-        app.openingPage = "relics"
+        app:BeginOpeningEdit("relics")
     elseif kind == "failure" then
         shortWrite = true
         app:RunAction(function() return Sim.AidCommunity(app.run) end)

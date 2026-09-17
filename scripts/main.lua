@@ -15,7 +15,7 @@ function Start()
     })
     app_ = App.New()
     app_:Render()
-    print("《家业》已启动：本地单人存档、五步开局与凡世家族循环已就绪。")
+    print("《家业》已启动：生成家庭、开局摘要、可选五步编辑与凡世家族循环已就绪。")
 end
 
 function Stop()
