@@ -325,8 +325,7 @@ end
 
 function View.Build(app)
     local view=app.openingView or "summary"
-    local content,footer,title
-    title=view=="summary" and "家业 · 凡世王朝" or "家业 · 开局草案"
+    local content,footer
     if view=="summary" then content=View.Summary(app)
     elseif view=="ledger" then content=ledgerView(app)
     elseif view=="points" then content=pointsView(app)
@@ -362,7 +361,15 @@ function View.Build(app)
     else footer={button("返回这户家庭",function() app:ReturnOpeningDetail() end,true)} end
     local body={content}
     if app.openingFeedback~="" then table.insert(body,1,text(app.openingFeedback,14,C.warning)) end
-    local header={UI.Panel {flex=1,children={text(title,18)}}}
+    local header={
+        UI.Panel { width=34,height=34,justifyContent="center",alignItems="center",backgroundColor=C.green,borderRadius=6,children={
+            text("家",20,{255,255,255,255}),
+        } },
+        UI.Panel { flex=1,minWidth=0,gap=1,children={
+            text("家业",20),
+            text(view=="summary" and ("凡世王朝 · " .. Data.WORLD_NAME) or "开局草案",12,C.muted),
+        } },
+    }
     if app.previousDraft then table.insert(header,button("回原家谱",function() app:CancelNewRun() end,true)) end
     return UI.Panel {width="100%",height="100%",backgroundColor=C.paper,children={
         UI.Panel {padding=12,borderBottomWidth=1,borderBottomColor=C.line,flexShrink=0,children={row(header)}},

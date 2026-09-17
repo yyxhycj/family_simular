@@ -922,13 +922,14 @@ function Simulation.FinalizeEnding(run, ending, profile)
     for _, member in ipairs(run.members) do table.insert(memberIds, member.id) end
     local record = {
         id = ending.id, title = ending.title, type = ending.type, automatic = ending.automatic == true,
+        automaticTrigger = ending.automaticTrigger,
         year = run.calendar, summary = ending.desc, yearIndex = run.yearIndex, leaderId = run.leaderId,
         evidence = Simulation.EndingEvidence(run, ending.id), qualifiedEndingIds = QualifiedEndingIds(run),
         closingEventIds = closingEventIds,
     }
     local factText = record.automatic and (ending.automaticFact or "自然终局已写入家史。") or "选择“" .. ending.title .. "”作为这一局的主终章。"
     local fact = State.AddFact(run, "ending", factText, memberIds, {
-        endingId = record.id, automatic = record.automatic, evidence = record.evidence,
+        endingId = record.id, automatic = record.automatic, automaticTrigger = record.automaticTrigger, evidence = record.evidence,
         qualifiedEndingIds = record.qualifiedEndingIds, closingEventIds = closingEventIds,
     })
     record.factId = fact.id

@@ -1,0 +1,302 @@
+[
+  {
+    "actual": {
+      "cycleRejected": true,
+      "gates": [
+        {
+          "accepted": true,
+          "points": 97
+        },
+        {
+          "accepted": true,
+          "points": 100
+        },
+        {
+          "accepted": false,
+          "points": 101
+        }
+      ],
+      "lockedRejected": true,
+      "multiPoints": 91
+    },
+    "expected": "97/100 accepted; 101/cycle/locked rejected; multi-select accepted; exact openingSnapshot",
+    "id": "G01",
+    "status": "PASS",
+    "title": "97/100 可开、101/循环/锁定拒绝；三信物共享预算；草案原样入局"
+  },
+  {
+    "actual": {
+      "foodYears": 1,
+      "grain": 36,
+      "money": 74,
+      "stable": true,
+      "stableYears": 1,
+      "year": 1
+    },
+    "expected": "draft/RNG unchanged; stored opening matches; yearIndex=1",
+    "id": "G02",
+    "status": "PASS",
+    "title": "切页/计分/开始不重掷；存取往返；正常年度推进"
+  },
+  {
+    "actual": {
+      "count": 151,
+      "oldest": "entry-1"
+    },
+    "expected": "151 entries, oldest entry-1",
+    "id": "P01",
+    "status": "PASS",
+    "title": "151 条后首条日志可恢复"
+  },
+  {
+    "actual": {
+      "money": 180
+    },
+    "expected": "money=180",
+    "id": "P02",
+    "status": "PASS",
+    "title": "撤销世道不覆盖家底"
+  },
+  {
+    "actual": {
+      "ending": {
+        "automatic": true,
+        "automaticTrigger": "resources_exhausted",
+        "closingEventIds": {},
+        "evidence": [
+          {
+            "comparison": "equal",
+            "current": 0,
+            "label": "公库归零",
+            "measure": "当前",
+            "met": true,
+            "required": 0,
+            "source": {
+              "source": "公库"
+            }
+          },
+          {
+            "comparison": "equal",
+            "current": 0,
+            "label": "存粮归零",
+            "measure": "当前",
+            "met": true,
+            "required": 0,
+            "source": {
+              "source": "公库"
+            }
+          }
+        ],
+        "factId": "fact-7",
+        "id": "collapse",
+        "leaderId": 1,
+        "qualifiedEndingIds": {},
+        "summary": "公库与存粮一同耗尽，家人只得各自另谋生路。",
+        "title": "家道散尽",
+        "type": "natural",
+        "year": 73,
+        "yearIndex": 1
+      },
+      "grain": 0,
+      "ledger": {
+        "beforeGrain": 0,
+        "beforeMoney": 0,
+        "boughtGrain": 0,
+        "foodCost": 0,
+        "foodNeed": 2,
+        "foodSatisfied": false,
+        "foodShortfall": 2,
+        "grain": 0,
+        "grainSold": 0,
+        "income": 0,
+        "industryIncome": 0,
+        "landGrain": 0,
+        "livingExpense": 4,
+        "members": [
+          {
+            "grain": 0,
+            "job": "随家人生活",
+            "memberId": 1,
+            "money": 0,
+            "name": "林成"
+          }
+        ],
+        "money": 0,
+        "moneySatisfied": false,
+        "netGrain": 0,
+        "netMoney": 0,
+        "resourcesExhausted": true,
+        "saleIncome": 0,
+        "training": 0
+      },
+      "money": 0
+    },
+    "expected": "automatic collapse ending with exhausted ledger",
+    "id": "P03",
+    "status": "PASS",
+    "title": "钱粮俱尽写入家道终局"
+  },
+  {
+    "actual": {
+      "foodYears": 0,
+      "stable": 0
+    },
+    "expected": "foodYears=0; stable=0",
+    "id": "P04",
+    "status": "PASS",
+    "title": "钱粮俱尽归零连续粮年"
+  },
+  {
+    "actual": {
+      "occupationalGenerations": 1,
+      "recomputed": 2,
+      "spouseGeneration": 2
+    },
+    "expected": "one occupational generation",
+    "id": "P05",
+    "status": "PASS",
+    "title": "真实婚入的同辈夫妻只算一代教书"
+  },
+  {
+    "actual": {},
+    "expected": "house custody or living member",
+    "id": "P06",
+    "status": "PASS",
+    "title": "死亡保管人回收到家中或在世族人"
+  },
+  {
+    "actual": {
+      "invalid": false,
+      "nextYear": true,
+      "normal": true,
+      "repeated": false,
+      "terms": [
+        {
+          "effective": true,
+          "endYear": 1,
+          "factId": "fact-5",
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        },
+        {
+          "effective": false,
+          "factId": "fact-8",
+          "memberId": 2,
+          "reason": "前任离世",
+          "startYear": 1
+        }
+      ]
+    },
+    "expected": "invalid=false, valid=true, repeat=false, nextYear=true",
+    "id": "G03",
+    "status": "PASS",
+    "title": "事件入口继任可继续，非法和重复任命拒绝"
+  },
+  {
+    "actual": {
+      "advance": true,
+      "manual": true,
+      "pending": {},
+      "reason": "继任事件已失效。",
+      "resolve": false,
+      "terms": [
+        {
+          "effective": true,
+          "endYear": 1,
+          "factId": "fact-5",
+          "memberId": 1,
+          "reason": "开局任命",
+          "startYear": 0
+        },
+        {
+          "effective": false,
+          "factId": "fact-8",
+          "memberId": 2,
+          "reason": "主动交接",
+          "startYear": 1
+        }
+      ]
+    },
+    "expected": "one handover closes the event; a later event resolution is rejected; advance succeeds",
+    "id": "P07",
+    "status": "PASS",
+    "title": "人物入口继任同步关闭事件并可继续"
+  },
+  {
+    "actual": {
+      "points": 97,
+      "reputation": 37
+    },
+    "expected": "25+12=37 (current declared contributions)",
+    "id": "P08",
+    "status": "PASS",
+    "title": "两项已付费声望独立叠加"
+  },
+  {
+    "actual": {
+      "after": true,
+      "before": true,
+      "total": 97
+    },
+    "expected": "plan unlocked before and after restart/new run",
+    "id": "F01",
+    "status": "PASS",
+    "title": "重启直接新开保留已解锁营造图"
+  },
+  {
+    "actual": {
+      "historyCount": 6,
+      "money": 85,
+      "resell": false,
+      "restore": false,
+      "sold": true,
+      "status": "cancelled"
+    },
+    "expected": "cancelled event, no plan reward, no double sale, history retained",
+    "id": "G04",
+    "status": "PASS",
+    "title": "出售信物取消待决奖励、保留历史、重复不付"
+  },
+  {
+    "actual": {
+      "badStructureAccepted": false,
+      "exportNotice": {
+        "message": "备份写入或回读失败，未确认导出成功。",
+        "variant": "error"
+      },
+      "malformedRejected": true,
+      "oldPayloadUnchanged": true,
+      "openFailureReported": true,
+      "shortWriteAccepted": false
+    },
+    "expected": "reject invalid schema; report save/export/short-write failures; keep previous payload",
+    "id": "F02",
+    "status": "PASS",
+    "title": "坏结构/写失败不假报成功"
+  },
+  {
+    "actual": {
+      "actualTotal": 100,
+      "fresh100": true,
+      "previewBound": false,
+      "stale97": false
+    },
+    "expected": "100/100 visible in existing component tree",
+    "id": "F03",
+    "status": "PASS",
+    "title": "钱数回调后预算组件立即一致"
+  },
+  {
+    "actual": {
+      "money111Accepted": false,
+      "money111Points": 100,
+      "selfSpouseAccepted": false,
+      "unearnedOfficeAccepted": false
+    },
+    "expected": "all rejected; off-step resource rejected or accurately priced",
+    "id": "F04",
+    "status": "PASS",
+    "title": "未经应试/自婚/100.1 点输入拒绝"
+  }
+]

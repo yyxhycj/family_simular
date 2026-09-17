@@ -1,0 +1,26 @@
+[
+  {
+    "id": "t08_contract",
+    "status": "PASS",
+    "evidence": {
+      "uiHistory": true,
+      "collapse": {
+        "ending": "collapse",
+        "facts": 7,
+        "writes": 23,
+        "automaticTrigger": "resources_exhausted"
+      },
+      "development": {
+        "years": 10,
+        "ending": "peaceful",
+        "profileRecords": 1
+      },
+      "moneyOrGrainRemains": true
+    },
+    "restart": {
+      "ending": "collapse",
+      "trigger": "resources_exhausted",
+      "profileRecords": 1
+    }
+  }
+]

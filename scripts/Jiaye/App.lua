@@ -165,6 +165,7 @@ function App:Init()
     self.peopleFilter = "all"
     self.peopleQuery = ""
     self.peopleQueryDraft = ""
+    self.familyGeneration = 0
     self.historySection = "annals"
     self.openingFeedback = ""
     self.openingGenerationFailed = false
@@ -665,18 +666,40 @@ end
 
 function App:BuildCover()
     local actions = {
-        Label("家业", { fontSize = 42, fontWeight = "bold", fontColor = { 255, 254, 250, 255 } }),
-        Label("一部由选择写成的家谱", { fontSize = 18, fontColor = { 226, 235, 220, 255 } }),
-        Label("立一户人家，过一年算一年。有人出生、有人离去，手艺、声望与旧物都会留在家史里。", { fontSize = 15, fontColor = { 226, 235, 220, 255 }, whiteSpace = "normal", lineHeight = 1.65, marginTop = 12 }),
+        UI.Row { gap = 10, alignItems = "center", children = {
+            UI.Panel { width = 46, height = 46, justifyContent = "center", alignItems = "center", backgroundColor = C.green, borderRadius = 8, children = {
+                Label("家", { fontSize = 27, fontWeight = "bold", fontColor = { 255, 255, 255, 255 } }),
+            } },
+            UI.Panel { flex = 1, gap = 1, children = {
+                Label("家业", { fontSize = 29, fontWeight = "bold" }),
+                Label("凡世王朝 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.muted }),
+            } },
+        } },
+        Label("一部由选择写成的家谱", { fontSize = 18, fontColor = C.green, marginTop = 18 }),
+        Label("默认会生成一户完整且合法的人家。看清家底与首年预估，便能从这一家开始；五步配置随时可选。", { fontSize = 15, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.65 }),
+        UI.Panel { gap = 7, padding = 12, backgroundColor = C.card, borderWidth = 1, borderColor = C.line, borderRadius = 10, children = {
+            UI.Row { gap = 8, children = {
+                Label("完整家谱", { fontSize = 14, fontWeight = "bold", fontColor = C.green }),
+                Label("人口、亲缘与主业一并生成", { fontSize = 13, fontColor = C.muted }),
+            } },
+            UI.Row { gap = 8, children = {
+                Label("钱粮预估", { fontSize = 14, fontWeight = "bold", fontColor = C.green }),
+                Label("首年净变化和总分可直接核对", { fontSize = 13, fontColor = C.muted }),
+            } },
+            UI.Row { gap = 8, children = {
+                Label("家谱延续", { fontSize = 14, fontWeight = "bold", fontColor = C.green }),
+                Label("人生、信物与决定都会留下记录", { fontSize = 13, fontColor = C.muted }),
+            } },
+        } },
     }
     if self.openingGenerationFailed then
-        table.insert(actions, Label(self.openingFeedback, { fontSize = 14, fontColor = { 255, 207, 184, 255 }, whiteSpace = "normal", lineHeight = 1.5 }))
+        table.insert(actions, Label(self.openingFeedback, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal", lineHeight = 1.5 }))
     end
-    table.insert(actions, Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 20 }))
+    table.insert(actions, Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 10 }))
     table.insert(actions, Button("读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
     table.insert(actions, Button("导入备份", function() self:OpenImport() end, { height = 44, backgroundColor = C.pale, textColor = C.green }))
-    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.dark, justifyContent = "center", padding = 26, children = {
-        UI.Panel { gap = 16, children = actions },
+    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, justifyContent = "center", padding = 22, children = {
+        UI.Panel { gap = 14, children = actions },
     } }
 end
 
@@ -870,14 +893,62 @@ function App:BuildFamilyMap()
         table.insert(generations[generation], member)
     end
     table.sort(order)
+    local visibleGeneration = self.familyGeneration or 0
+    local generationButtons = {
+        Button("全代", function() self.familyGeneration = 0; self:Render() end, {
+            height = 34, fontSize = 12, backgroundColor = visibleGeneration == 0 and C.green or C.pale,
+            textColor = visibleGeneration == 0 and { 255, 255, 255, 255 } or C.green,
+        }),
+    }
+    for _, generation in ipairs(order) do
+        table.insert(generationButtons, Button("第 " .. tostring(generation) .. " 代", function()
+            self.familyGeneration = generation; self:Render()
+        end, {
+            height = 34, fontSize = 12, backgroundColor = visibleGeneration == generation and C.green or C.pale,
+            textColor = visibleGeneration == generation and { 255, 255, 255, 255 } or C.green,
+        }))
+    end
+    local relationshipRows, married = {}, {}
+    for _, member in ipairs(self.run.members) do
+        local generation = State.Generation(self.run.members, member.id)
+        if visibleGeneration == 0 or visibleGeneration == generation then
+            local parentNames = MemberNames(self.run, member.parents)
+            if parentNames ~= "未关联族人" then
+                table.insert(relationshipRows, UI.Panel { padding = 8, gap = 2, backgroundColor = C.paper, borderWidth = 1, borderColor = C.line, borderRadius = 7, children = {
+                    Label("亲子 · 第 " .. tostring(generation) .. " 代", { fontSize = 11, fontColor = C.muted }),
+                    Label(parentNames .. "  →  " .. member.name, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal" }),
+                } })
+            end
+            local spouse = member.spouseId and State.FindMember(self.run.members, member.spouseId)
+            if spouse then
+                local pairId = member.id < spouse.id and member.id .. ":" .. spouse.id or spouse.id .. ":" .. member.id
+                if not married[pairId] then
+                    married[pairId] = true
+                    table.insert(relationshipRows, UI.Panel { padding = 8, gap = 2, backgroundColor = C.paper, borderWidth = 1, borderColor = C.line, borderRadius = 7, children = {
+                        Label("婚配 · 第 " .. tostring(generation) .. " 代", { fontSize = 11, fontColor = C.muted }),
+                        Label(member.name .. "  ↔  " .. spouse.name, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal" }),
+                    } })
+                end
+            end
+        end
+    end
     local children = {
         UI.Row { justifyContent = "space-between", alignItems = "center", children = {
             SectionTitle("家谱", nil),
             Button("全体与筛选  ›", function() self.gameTab = "people"; self:Render() end, { height = 40, fontSize = 12, backgroundColor = C.pale, textColor = C.green }),
         } },
-        Label("每个人都可以查看人生与安排；已故族人仍保留在家史中。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+        Label("按代定位并查看亲缘。每个人都可以查看人生与安排；已故族人仍保留在家史中。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+        UI.Panel { flexDirection = "row", flexWrap = "wrap", gap = 6, children = generationButtons },
     }
+    if #relationshipRows > 0 then
+        table.insert(children, Card({
+            Label("亲缘脉络", { fontSize = 16, fontWeight = "bold" }),
+            Label("亲子以箭头相连，婚配以双向连结；点击下方族人可查看完整人生。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+            UI.Panel { gap = 6, children = relationshipRows },
+        }, { padding = 10, gap = 7, backgroundColor = { 244, 247, 237, 255 } }))
+    end
     for _, generation in ipairs(order) do
+        if visibleGeneration == 0 or visibleGeneration == generation then
         local nodes = {}
         for _, member in ipairs(generations[generation]) do
             local leader = member.id == self.run.leaderId
@@ -887,11 +958,13 @@ function App:BuildFamilyMap()
                 Label(member.name, { fontSize = 18, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted, textAlign = "center" }),
                 Label(tostring(member.age) .. " 岁 · " .. (member.alive and Data.Jobs[member.jobId].name or "生平封存"), { fontSize = 13, fontColor = C.muted, textAlign = "center", whiteSpace = "normal" }),
                 Label(state, { fontSize = 12, fontColor = leader and C.warning or (member.alive and C.green or C.muted), textAlign = "center" }),
+                Label(MemberRelationText(self.run, member), { fontSize = 11, fontColor = C.muted, textAlign = "center", whiteSpace = "normal", lineHeight = 1.35 }),
                 Button(member.alive and "查看与安排" or "阅读生平", function() self:OpenRunMember(member.id) end, { height = 40, fontSize = 12, backgroundColor = leader and C.green or C.pale, textColor = leader and { 255, 255, 255, 255 } or C.green }),
             }, { padding = 10, gap = 6, backgroundColor = leader and { 238, 244, 231, 255 } or C.card, borderColor = leader and { 151, 171, 118, 255 } or C.line }))
         end
         table.insert(children, Label("第 " .. tostring(generation) .. " 代 · " .. tostring(#generations[generation]) .. " 人", { fontSize = 14, fontWeight = "bold", marginTop = 4, fontColor = C.muted }))
         table.insert(children, UI.SimpleGrid { minColumnWidth = 155, gap = 10, children = nodes })
+        end
     end
     return Card(children, { padding = 11, gap = 9 })
 end

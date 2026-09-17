@@ -121,8 +121,8 @@ Data.Endings = {
     { id = "promise", title = "迟来的家书", desc = "前人的一句答应，终于被认真完成。", type = "development" },
     { id = "ruler", title = "木尺新纹", desc = "旧尺量过前人的屋，也量过后人的路。", type = "development" },
     { id = "reunion", title = "家谱再续", desc = "被折起的一页重新展开。", type = "development" },
-    { id = "last", title = "家谱落笔", desc = "直到最后一位家人离开，这一局自然写到结尾。", type = "natural", automatic = true, automaticHint = "全体在世族人归零后自动写入", automaticFact = "全员离世，家谱自然落笔。" },
-    { id = "collapse", title = "家道散尽", desc = "公库与存粮一同耗尽，家人只得各自另谋生路。", type = "natural", automatic = true, automaticHint = "年度结算后公库与存粮同时归零时自动写入", automaticFact = "公库与存粮同时耗尽，家人离散，家谱在此落笔。" },
+    { id = "last", title = "家谱落笔", desc = "直到最后一位家人离开，这一局自然写到结尾。", type = "natural", automatic = true, automaticTrigger = "living_members_exhausted", automaticHint = "全体在世族人归零后自动写入", automaticFact = "全员离世，家谱自然落笔。" },
+    { id = "collapse", title = "家道散尽", desc = "公库与存粮一同耗尽，家人只得各自另谋生路。", type = "natural", automatic = true, automaticTrigger = "resources_exhausted", automaticHint = "年度结算后公库与存粮同时归零时自动写入", automaticFact = "公库与存粮同时耗尽，家人离散，家谱在此落笔。" },
 }
 
 function Data.Find(list, id)

@@ -1,0 +1,7 @@
+[
+  {
+    "id": "t08_contract",
+    "status": "FAIL",
+    "error": "LuaError('[string \"<python>\"]:102: 钱粮仍有一项时错误写入家道终局。\\nstack traceback:\\n\\t[string \"<python>\"]:172: in function <[string \"<python>\"]:168>\\n\\t[string \"<python>\"]:102: in upvalue \\'checkResourceBoundary\\'\\n\\t[C]: in function \\'assert\\'')"
+  }
+]

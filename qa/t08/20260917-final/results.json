@@ -1,0 +1,46 @@
+[
+  {
+    "id": "t08_natural_restart",
+    "status": "PASS",
+    "evidence": {
+      "closedEvents": 1,
+      "automaticTrigger": "living_members_exhausted",
+      "ending": "last"
+    },
+    "restart": {
+      "trigger": "living_members_exhausted",
+      "closedEvents": 1,
+      "ending": "last"
+    }
+  },
+  {
+    "id": "t08_contract",
+    "status": "PASS",
+    "evidence": {
+      "collapse": {
+        "ending": "collapse",
+        "automaticTrigger": "resources_exhausted",
+        "facts": 7,
+        "writes": 23
+      },
+      "uiHistory": true,
+      "developmentProgress": 12,
+      "development": {
+        "years": 10,
+        "profileRecords": 1,
+        "ending": "peaceful"
+      },
+      "moneyOrGrainRemains": true,
+      "natural": {
+        "ending": "last",
+        "automaticTrigger": "living_members_exhausted",
+        "closedEvents": 1
+      }
+    },
+    "restart": {
+      "profileRecords": 1,
+      "trigger": "resources_exhausted",
+      "ending": "collapse"
+    }
+  }
+]
