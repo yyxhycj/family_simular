@@ -1,7 +1,0 @@
-[
-  {
-    "id": "t08_contract",
-    "status": "FAIL",
-    "error": "LuaError('[string \"<python>\"]:111: 钱粮归零年度无法结算。\\nstack traceback:\\n\\t[string \"<python>\"]:173: in function <[string \"<python>\"]:168>\\n\\t[string \"<python>\"]:111: in upvalue \\'checkCollapseAndReadOnly\\'\\n\\t[C]: in function \\'assert\\'')"
-  }
-]

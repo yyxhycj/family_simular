@@ -1,7 +1,0 @@
-[
-  {
-    "id": "t04_contract",
-    "status": "FAIL",
-    "error": "LuaError('[string \"<python>\"]:94: 封面没有使用家业与凡世王朝的纸面标题\\nstack traceback:\\n\\t[string \"<python>\"]:94: in function <[string \"<python>\"]:35>\\n\\t[C]: in function \\'assert\\'')"
-  }
-]

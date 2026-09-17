@@ -1,7 +1,0 @@
-[
-  {
-    "id": "t06_contract",
-    "status": "FAIL",
-    "error": "LuaError('[string \"<python>\"]:107: 家谱没有呈现可定位的亲缘脉络\\nstack traceback:\\n\\t[string \"<python>\"]:107: in function <[string \"<python>\"]:39>\\n\\t[C]: in function \\'assert\\'')"
-  }
-]
