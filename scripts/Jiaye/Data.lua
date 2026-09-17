@@ -101,18 +101,19 @@ Data.Relics = {
 }
 
 Data.Endings = {
-    { id = "peaceful", title = "炊烟未断", desc = "把安稳的日子接过了两任人手。" },
-    { id = "scholar", title = "书香传家", desc = "两代人都把书教给别人。" },
-    { id = "merchant", title = "商脉长存", desc = "另一代人稳稳接过账册。" },
-    { id = "craft", title = "百年手艺", desc = "技艺在不同的人手里继续生长。" },
-    { id = "medical", title = "杏林人家", desc = "药箱与耐心一起传给后来人。" },
-    { id = "grain", title = "四时有余", desc = "过冬时，孩子不必先说自己不饿。" },
-    { id = "community", title = "一村归心", desc = "几次真正伸出的手，留下了分量。" },
-    { id = "migration", title = "异乡生根", desc = "在陌生地方把家续了下去。" },
-    { id = "return", title = "归来有灯", desc = "走远的人仍有自己的位置。" },
-    { id = "promise", title = "迟来的家书", desc = "前人的一句答应，终于被认真完成。" },
-    { id = "ruler", title = "木尺新纹", desc = "旧尺量过前人的屋，也量过后人的路。" },
-    { id = "reunion", title = "家谱再续", desc = "被折起的一页重新展开。" },
+    { id = "peaceful", title = "炊烟未断", desc = "把安稳的日子接过了两任人手。", type = "development" },
+    { id = "scholar", title = "书香传家", desc = "两代人都把书教给别人。", type = "development" },
+    { id = "merchant", title = "商脉长存", desc = "另一代人稳稳接过账册。", type = "development" },
+    { id = "craft", title = "百年手艺", desc = "技艺在不同的人手里继续生长。", type = "development" },
+    { id = "medical", title = "杏林人家", desc = "药箱与耐心一起传给后来人。", type = "development" },
+    { id = "grain", title = "四时有余", desc = "过冬时，孩子不必先说自己不饿。", type = "development" },
+    { id = "community", title = "一村归心", desc = "几次真正伸出的手，留下了分量。", type = "development" },
+    { id = "migration", title = "异乡生根", desc = "在陌生地方把家续了下去。", type = "development" },
+    { id = "return", title = "归来有灯", desc = "走远的人仍有自己的位置。", type = "development" },
+    { id = "promise", title = "迟来的家书", desc = "前人的一句答应，终于被认真完成。", type = "development" },
+    { id = "ruler", title = "木尺新纹", desc = "旧尺量过前人的屋，也量过后人的路。", type = "development" },
+    { id = "reunion", title = "家谱再续", desc = "被折起的一页重新展开。", type = "development" },
+    { id = "last", title = "家谱落笔", desc = "直到最后一位家人离开，这一局自然写到结尾。", type = "natural", automatic = true },
 }
 
 function Data.Find(list, id)

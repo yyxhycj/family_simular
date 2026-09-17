@@ -59,6 +59,30 @@ local function HasId(values, id)
     return false
 end
 
+local function ProgressText(item)
+    local mark = item[6] == "at_most" and "≤" or "/"
+    return item[1] .. "（" .. tostring(item[4] or "当前") .. "） " .. tostring(item[2]) .. mark .. tostring(item[3])
+end
+
+local function EndingEvidenceText(run, item)
+    local source = TableValue(item.source)
+    local factIds = source.factIds or {}
+    local members = {}
+    for _, memberId in ipairs(source.memberIds or {}) do
+        local member = State.FindMember(run.members, memberId)
+        if member then table.insert(members, member.name) end
+    end
+    local references = #factIds > 0 and tostring(#factIds) .. " 条记录" or ""
+    if #members > 0 then references = references .. (#references > 0 and "、" or "") .. table.concat(members, "、") end
+    local suffix = #references > 0 and " · 依据：" .. references or ""
+    local mark = (item.comparison or item[6]) == "at_most" and "≤" or "/"
+    local label = item.label or item[1] or "终章条件"
+    local measure = item.measure or item[4] or "快照"
+    local current = item.current or item[2] or 0
+    local required = item.required or item[3] or 0
+    return tostring(label) .. "（" .. tostring(measure) .. "） " .. tostring(current) .. mark .. tostring(required) .. " · " .. tostring(source.source or "本局记录") .. suffix
+end
+
 function App.New()
     local self = setmetatable({}, App)
     self:Init()
@@ -385,6 +409,7 @@ function App:StartRun()
 end
 
 function App:RunAction(fn)
+    if self.run and self.run.ending then self:Notify("本局已落笔，只能回顾家史。", "warning"); return end
     if self.unsaved then self:Notify("上一项安排尚未保存，请重试保存；无需重复安排。", "warning"); return end
     if self.actionBusy then
         self:Notify("上一项安排正在写入，请勿重复操作。", "warning")
@@ -396,6 +421,30 @@ function App:RunAction(fn)
     if ok then
         if self:Save() then self:Notify(message, "success") end
     else self:Notify(message, "warning") end
+end
+
+function App:ConfirmEnding(endingId)
+    local ending = Data.Ending(endingId)
+    if not ending or ending.automatic then self:Notify("这条终章不能由家主确认。", "warning"); return end
+    if not Simulation.IsEndingReady(self.run, endingId) then self:Notify("条件尚未满足。", "warning"); return end
+    local conditionLines = {}
+    for _, item in ipairs(Simulation.EndingProgress(self.run, endingId)) do
+        table.insert(conditionLines, Label(ProgressText(item), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }))
+    end
+    local modal = UI.Modal { title = "确认落笔 · " .. ending.title, size = "fullscreen", backgroundColor = C.card, borderColor = C.line, titleTextColor = C.ink, closeIconColor = C.muted, closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end }
+    modal:AddContent(UI.Panel { padding = 14, gap = 9, children = {
+        Label(ending.desc, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.45 }),
+        Label("以下本局经历会作为终章条件快照写入家史。确认后，人物、家业、事件和信物将进入只读状态。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+        UI.Panel { gap = 5, children = conditionLines },
+    } })
+    modal:SetFooter(UI.Row { gap = 8, children = {
+        Button("继续经营", function() modal:Close() end, { flex = 1, height = 40, backgroundColor = C.pale, textColor = C.green }),
+        Button("确认落笔", function()
+            self:RunAction(function() return Simulation.ClaimEnding(self.run, endingId, self.profile) end)
+            modal:Close()
+        end, { flex = 1, height = 40 }),
+    } })
+    modal:Open()
 end
 
 function App:BuildHeader(title, subtitle)
@@ -590,15 +639,17 @@ function App:BuildFamilyRoutes()
 
     local routes = {}
     for order, ending in ipairs(Data.Endings) do
-        local progress, total, complete, score = Simulation.EndingProgress(self.run, ending["id"]), 0, 0, 0
-        for _, item in ipairs(progress) do
-            local current, required = math.max(0, item[2]), item[3]
-            total = total + 1
-            score = score + math.min(current / required, 1)
-            if current >= required then complete = complete + 1 end
+        if not ending.automatic then
+            local progress, total, complete, score = Simulation.EndingProgress(self.run, ending["id"]), 0, 0, 0
+            for _, item in ipairs(progress) do
+                local current, required = math.max(0, item[2]), item[3]
+                total = total + 1
+                score = score + math.min(current / required, 1)
+                if Simulation.IsProgressMet(item) then complete = complete + 1 end
+            end
+            local ready = complete == total and total > 0
+            table.insert(routes, { ending = ending, progress = progress, complete = complete, total = total, ready = ready, active = active[ending["id"]] == true, score = score, order = order })
         end
-        local ready = complete == total and total > 0
-        table.insert(routes, { ending = ending, progress = progress, complete = complete, total = total, ready = ready, active = active[ending["id"]] == true, score = score, order = order })
     end
     table.sort(routes, function(a, b)
         if a.ready ~= b.ready then return a.ready end
@@ -617,12 +668,13 @@ function App:BuildFamilyRoutes()
         local guidance = ROUTE_GUIDANCE[ending["id"]] or ROUTE_GUIDANCE.peaceful
         local progressLines, nextLine = {}, nil
         for _, item in ipairs(route.progress) do
-            table.insert(progressLines, item[1] .. " " .. tostring(item[2]) .. "/" .. tostring(item[3]))
-            if not nextLine and item[2] < item[3] then nextLine = item[1] .. " " .. tostring(item[2]) .. "/" .. tostring(item[3]) end
+            local text = ProgressText(item)
+            table.insert(progressLines, text)
+            if not nextLine and not Simulation.IsProgressMet(item) then nextLine = text end
         end
         local state = route.ready and "可落笔" or (route.active and "正在形成" or "可探索")
         local action = route.ready and Button("以此落笔", function()
-            self:RunAction(function() return Simulation.ClaimEnding(self.run, ending["id"], self.profile) end)
+            self:ConfirmEnding(ending["id"])
         end, { height = 32, fontSize = 11 }) or Button(guidance.button, function()
             self.gameTab = guidance.tab; self:Render()
         end, { height = 32, fontSize = 11, backgroundColor = C.pale, textColor = C.green })
@@ -653,7 +705,15 @@ function App:BuildFamilyTab()
     }, { backgroundColor = C.dark, borderColor = C.dark })
     local children = { hero }
     if self.run.ending then
-        table.insert(children, Card({ Label("本局已落笔", { fontSize = 17, fontWeight = "bold" }), Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }), Button("新立家谱", function() self:PrepareNewRun() end, { height = 36 }) }))
+        local evidenceLines = {}
+        for _, item in ipairs(completedEnding.evidence or {}) do table.insert(evidenceLines, Label(EndingEvidenceText(self.run, item), { fontSize = 11, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 })) end
+        table.insert(children, Card({
+            Label("本局已落笔 · " .. tostring(completedEnding.title or "家谱落笔"), { fontSize = 17, fontWeight = "bold" }),
+            Label(completedEnding.automatic and "自然终局：全体在世族人已归零。" or "主终章已由家主确认，家史现为只读。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
+            Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }),
+            UI.Panel { gap = 4, children = evidenceLines },
+            Button("新立家谱", function() self:PrepareNewRun() end, { height = 36 }),
+        }))
     else
         table.insert(children, self:BuildFamilyRoutes())
     end
@@ -689,7 +749,7 @@ function App:OpenRunMember(memberId)
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end }
     local content = UI.ScrollView { height = "70%", flexBasis = 0, padding = 14, children = { UI.Panel { gap = 9, children = {
         Label(member.alive and "当前主业：" .. Data.Jobs[member.jobId].name or "已故 · 生平可读", { fontSize = 17, fontWeight = "bold" }), Label("学识 " .. tostring(member.stats.learn) .. " · 手艺 " .. tostring(member.stats.skill) .. " · 医术 " .. tostring(member.stats.medicine) .. " · 经营 " .. tostring(member.stats.trade) .. " · 武艺 " .. tostring(member.stats.martial), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-        Label("人生安排", { fontSize = 16, fontWeight = "bold", marginTop = 6 }),
+        Label(self.run.ending and "人生记录" or "人生安排", { fontSize = 16, fontWeight = "bold", marginTop = 6 }),
     } } } }
     if member.alive and not self.run.ending then
         for jobId, job in pairs(Data.Jobs) do
@@ -703,9 +763,11 @@ function App:OpenRunMember(memberId)
             self:RunAction(function() return Simulation.SetBirthPlan(self.run, memberId, member.birthPlan == false) end); modal:Close()
         end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
         content:GetChildAt(1):AddChild(Button("任命为族长", function() self:RunAction(function() return Simulation.AppointLeader(self.run, memberId, "主动交接") end); modal:Close() end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
+    elseif self.run.ending then
+        content:GetChildAt(1):AddChild(Label("本局已落笔，人物经历与关系均可阅读。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }))
     end
     for _, relic in ipairs(self.run.relicInstances) do
-        if relic.status ~= "sold" and relic.custodianId ~= memberId and member.alive then
+        if relic.status ~= "sold" and relic.custodianId ~= memberId and member.alive and not self.run.ending then
             local definition = Data.Relic(relic.definitionId)
             content:GetChildAt(1):AddChild(Button("交由" .. member.name .. "保管 · " .. definition.name, function()
                 self:RunAction(function() return Simulation.TransferRelic(self.run, relic.instanceId, memberId) end); modal:Close()
@@ -768,25 +830,27 @@ function App:BuildPeopleTab()
     for _, member in ipairs(self.run.members) do
         local visible = self.peopleFilter == "all" or (self.peopleFilter == "alive" and member.alive) or (self.peopleFilter == "dead" and not member.alive)
         visible = visible and (self.peopleQuery == "" or string.find(member.name, self.peopleQuery, 1, true) ~= nil)
-        if visible then table.insert(cards, Card({ UI.Row { justifyContent = "space-between", children = { Label(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 17, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted }), Label(member.id == self.run.leaderId and "族长" or (member.alive and "" or "已故"), { fontSize = 12, fontColor = C.green }) } }, Label(member.alive and Data.Jobs[member.jobId].name or "生平已封存", { fontSize = 13, fontColor = C.muted }), Button(member.alive and "查看与安排" or "阅读生平", function() self:OpenRunMember(member.id) end, { height = 38 }) })) end
+        if visible then table.insert(cards, Card({ UI.Row { justifyContent = "space-between", children = { Label(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 17, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted }), Label(member.id == self.run.leaderId and "族长" or (member.alive and "" or "已故"), { fontSize = 12, fontColor = C.green }) } }, Label(member.alive and Data.Jobs[member.jobId].name or "生平已封存", { fontSize = 13, fontColor = C.muted }), Button(self.run.ending and "查看生平" or (member.alive and "查看与安排" or "阅读生平"), function() self:OpenRunMember(member.id) end, { height = 38 }) })) end
     end
     return UI.Panel { gap = 10, children = cards }
 end
 
 function App:BuildEstateTab()
     local placeButtons = {}
-    for _, place in ipairs(Data.Places) do
-        local placeId = place.id
-        table.insert(placeButtons, Button("迁居 " .. place.short .. "\n" .. place.desc .. " " .. place.burden, function()
-            self:RunAction(function() return Simulation.MoveFamily(self.run, placeId) end)
-        end, {
-            height = 66,
-            backgroundColor = self.run.placeId == placeId and C.green or C.pale,
-            textColor = self.run.placeId == placeId and { 255, 255, 255, 255 } or C.green,
-            textAlign = "left",
-            paddingHorizontal = 12,
-            fontSize = 12,
-        }))
+    if not self.run.ending then
+        for _, place in ipairs(Data.Places) do
+            local placeId = place.id
+            table.insert(placeButtons, Button("迁居 " .. place.short .. "\n" .. place.desc .. " " .. place.burden, function()
+                self:RunAction(function() return Simulation.MoveFamily(self.run, placeId) end)
+            end, {
+                height = 66,
+                backgroundColor = self.run.placeId == placeId and C.green or C.pale,
+                textColor = self.run.placeId == placeId and { 255, 255, 255, 255 } or C.green,
+                textAlign = "left",
+                paddingHorizontal = 12,
+                fontSize = 12,
+            }))
+        end
     end
     local prices = Data.RuntimeAssetCosts
     local purchaseActions = UI.Row { gap = 7, children = {
@@ -794,17 +858,22 @@ function App:BuildEstateTab()
         Button("作坊 " .. tostring(prices.workshop) .. " 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "workshop") end) end, { flex = 1, height = 38 }),
         Button("商铺 " .. tostring(prices.shop) .. " 两", function() self:RunAction(function() return Simulation.BuyAsset(self.run, "shop") end) end, { flex = 1, height = 38 }),
     } }
-    local estateCard = Card({
+    local estateChildren = {
         Label("家业与公库", { fontSize = 21, fontWeight = "bold" }),
         Label("银 " .. tostring(self.run.money) .. " 两 · 粮 " .. tostring(self.run.grain) .. " 石 · 田 " .. tostring(self.run.land) .. " 亩", { fontSize = 16 }),
         Label("作坊：" .. (self.run.workshop and "已有（需手艺人经营）" or "未置办") .. "\n商铺：" .. (self.run.shop and "已有（需经商者经营）" or "未置办"), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-        purchaseActions,
-        Button("接济邻里（15 两）", function() self:RunAction(function() return Simulation.AidCommunity(self.run) end) end, { height = 38, backgroundColor = C.pale, textColor = C.green }),
-    })
+    }
+    if self.run.ending then
+        table.insert(estateChildren, Label("本局已落笔，家业与公库数值已封存。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }))
+    else
+        table.insert(estateChildren, purchaseActions)
+        table.insert(estateChildren, Button("接济邻里（15 两）", function() self:RunAction(function() return Simulation.AidCommunity(self.run) end) end, { height = 38, backgroundColor = C.pale, textColor = C.green }))
+    end
+    local estateCard = Card(estateChildren)
     local moveCard = Card({
         Label("迁居", { fontSize = 18, fontWeight = "bold" }),
         Label("迁居会写入真实年份和费用，不会把家人折叠成不可操作支系。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-        UI.Panel { gap = 6, children = placeButtons },
+        self.run.ending and Label("迁居记录已封存，可在家史中回看。", { fontSize = 13, fontColor = C.muted }) or UI.Panel { gap = 6, children = placeButtons },
     })
     return UI.Panel { gap = 12, children = {
         estateCard,
@@ -831,7 +900,7 @@ function App:BuildRelicsTab()
         local custodian = State.FindMember(self.run.members, instance.custodianId)
         local executor = State.FindMember(self.run.members, instance.executorId)
         local actionChildren = {}
-        if instance.status ~= "sold" then
+        if instance.status ~= "sold" and not self.run.ending then
             if relic.basic then
                 if instance.status == "investigating" then
                     table.insert(actionChildren, Button("暂缓调查", function() self:RunAction(function() return Simulation.PauseRelicInvestigation(self.run, instance.instanceId) end) end, { height = 36, backgroundColor = C.pale, textColor = C.green }))
@@ -869,6 +938,7 @@ function App:BuildRelicsTab()
         if instance.dueYear then detail = detail .. "\n预计：第 " .. tostring(instance.dueYear) .. " 年后有消息" end
         if instance.remainingYears then detail = detail .. "\n暂存等待：约 " .. tostring(instance.remainingYears) .. " 年" end
         if instance.status == "sold" then table.insert(actionChildren, Label("已出售 · 本局效果停止；既有历史和下局资格仍保留。", { fontSize = 13, fontColor = C.warning })) end
+        if self.run.ending then table.insert(actionChildren, Label("本局已落笔，物件状态、保管人与调查记录均已封存。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" })) end
         table.insert(cards, Card({ Label(relic.name, { fontSize = 18, fontWeight = "bold" }), Label(relic.desc, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }), Label(detail, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }), UI.Panel { gap = 6, children = actionChildren } }))
     end
     if #self.run.relicInstances == 0 then table.insert(cards, Card({ Label("本局没有带入旧物。", { fontSize = 15, fontColor = C.muted }) })) end
@@ -887,18 +957,31 @@ end
 function App:BuildHistoryTab()
     local endingCards = {}
     for _, ending in ipairs(Data.Endings) do
-        local progress = Simulation.EndingProgress(self.run, ending.id); local lines, ready = {}, true
-        for _, item in ipairs(progress) do table.insert(lines, item[1] .. " " .. tostring(item[2]) .. "/" .. tostring(item[3])); if item[2] < item[3] then ready = false end end
+        ---@type table<string, any>
+        local endingData = ending
+        local currentEnding = self.run.ending --[[@as table<string, any>?]]
+        local progress = Simulation.EndingProgress(self.run, endingData.id)
+        local lines = {}
+        for _, item in ipairs(progress) do table.insert(lines, ProgressText(item)) end
         ---@type Widget
         local action = nil
-        action = Label(ready and "已达成资格" or "仍可探索", { fontSize = 12, fontColor = ready and C.green or C.muted })
-        if ready and not self.run.ending then
+        if endingData.automatic then
+            local autoDone = currentEnding and currentEnding.id == endingData.id
+            action = Label(autoDone and "已自然写入本局终章" or "全体在世族人归零后自动写入", { fontSize = 12, fontColor = autoDone and C.green or C.muted, whiteSpace = "normal" })
+        elseif currentEnding and currentEnding.id == endingData.id then
+            action = Label("已作为本局主终章写入家史", { fontSize = 12, fontColor = C.green })
+        elseif self.run.ending then
+            action = Label("本局已落笔，条件保留供回顾", { fontSize = 12, fontColor = C.muted })
+        elseif Simulation.IsEndingReady(self.run, endingData.id) then
             action = Button("以此落笔", function()
-                self:RunAction(function() return Simulation.ClaimEnding(self.run, ending.id, self.profile) end)
+                self:ConfirmEnding(endingData.id)
             end, { height = 36 })
+        else
+            action = Label("仍可探索", { fontSize = 12, fontColor = C.muted })
         end
         table.insert(endingCards, Card({
-            Label(ending.title, { fontSize = 17, fontWeight = "bold" }),
+            Label(endingData.title, { fontSize = 17, fontWeight = "bold" }),
+            Label(endingData.desc, { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
             Label(table.concat(lines, " · "), { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
             action,
         }))
@@ -943,6 +1026,16 @@ function App:BuildHistoryTab()
         }))
     end
     if #ledgerCards == 0 then table.insert(ledgerCards, Label("推进第一年后，这里会保留每一年的年初快照与结算分项。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" })) end
+    local endingOverview = {}
+    if self.run.ending then
+        local record = self.run.ending --[[@as table<string, any>]]
+        local snapshot = { Label("本局终章 · " .. tostring(record.title), { fontSize = 18, fontWeight = "bold" }), Label(record.automatic and "自然终局" or "确认的主终章", { fontSize = 12, fontColor = C.muted }) }
+        for _, item in ipairs(record.evidence or {}) do table.insert(snapshot, Label(EndingEvidenceText(self.run, item), { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 })) end
+        if #(record.closingEventIds or {}) > 0 then table.insert(snapshot, Label("终局时关闭 " .. tostring(#record.closingEventIds) .. " 个待决事件。", { fontSize = 12, fontColor = C.muted })) end
+        table.insert(endingOverview, Card(snapshot))
+    else
+        table.insert(endingOverview, Card({ Label("终章资格", { fontSize = 18, fontWeight = "bold" }), Label("条件达成后仍可继续经营；由家主确认一条发展终章才会封存本局。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }) }))
+    end
     return UI.Panel { gap = 12, children = {
         Card({ Label("家史", { fontSize = 21, fontWeight = "bold" }), Label("家史全量保留，按新到旧分页。", { fontSize = 13, fontColor = C.muted }),
             UI.Row { gap = 8, children = {
@@ -953,7 +1046,8 @@ function App:BuildHistoryTab()
         Card({ Label("历任族长", { fontSize = 18, fontWeight = "bold" }), Label("任期和人物经历引用同一份事实记录。", { fontSize = 12, fontColor = C.muted }), UI.Panel { gap = 8, children = termCards } }),
         Card({ Label("年度账本", { fontSize = 18, fontWeight = "bold" }), Label("每年结算冻结年初资源与收入、培养、生活、粮食分项。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }), UI.Panel { gap = 8, children = ledgerCards } }),
         Card({ Label("年鉴 · " .. tostring(#self.run.logs) .. " 条 · 第 " .. tostring(self.historyPage) .. "/" .. tostring(pageCount) .. " 页", { fontSize = 18, fontWeight = "bold" }), pager, UI.Panel { gap = 8, children = logCards } }),
-        Card({ Label("可探索的终章", { fontSize = 18, fontWeight = "bold" }), UI.Panel { gap = 8, children = endingCards } }),
+        UI.Panel { gap = 12, children = endingOverview },
+        Card({ Label("十三条原型终章", { fontSize = 18, fontWeight = "bold" }), Label("发展终章十二条；家谱落笔由全员离世自动写入。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }), UI.Panel { gap = 8, children = endingCards } }),
     } }
 end
 

@@ -145,7 +145,8 @@ function Simulation.GetJobReason(member, jobId)
 end
 
 function Simulation.SetJob(run, memberId, jobId)
-    if run.ending then return false, "本局已落笔，只能回顾家史。" end
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
     local member = State.FindMember(run.members, memberId)
     if not member or not member.alive then return false, "这位族人已无法安排。" end
     local ok, reason = State.CanUseJob(member, jobId)
@@ -194,7 +195,8 @@ local function CloseLeaderEvents(run, memberId)
 end
 
 function Simulation.AppointLeader(run, memberId, reason)
-    if run.ending then return false, "本局已落笔。" end
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
     local target = State.FindMember(run.members, memberId)
     if not target or not target.alive or target.age < 18 then return false, "族长必须是在世成年族人。" end
     if run.leaderId == memberId then
@@ -227,7 +229,8 @@ function Simulation.AppointLeader(run, memberId, reason)
 end
 
 function Simulation.Marry(run, memberId)
-    if run.ending then return false, "本局已落笔。" end
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
     local member = State.FindMember(run.members, memberId)
     if not member or not member.alive or member.age < 18 then return false, "需要一位在世成年族人。" end
     if member.spouseId then return false, "此人已有配偶。" end
@@ -244,7 +247,8 @@ function Simulation.Marry(run, memberId)
 end
 
 function Simulation.Adopt(run, guardianId)
-    if run.ending then return false, "本局已落笔。" end
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
     local guardian = State.FindMember(run.members, guardianId)
     if not guardian or not guardian.alive or guardian.age < 18 then return false, "需要一位在世成年监护人。" end
     if run.money < 8 then return false, "收养安置需要 8 两。" end
@@ -264,7 +268,7 @@ function Simulation.MoveFamily(run, placeId)
     local fee = 18 + place.cost * 2
     if run.money < fee then return false, "迁居需要 " .. tostring(fee) .. " 两安置费。" end
     run.money = run.money - fee; run.placeId = placeId; run.metrics.migrations = run.metrics.migrations + 1; run.metrics.lastMove = run.yearIndex
-    State.AddLog(run, "全家迁居至" .. place.short .. "，花费 " .. tostring(fee) .. " 两。")
+    State.AddFact(run, "migration", "全家迁居至" .. place.short .. "，花费 " .. tostring(fee) .. " 两。", {}, { placeId = placeId, fee = fee, migrationCount = run.metrics.migrations })
     return true, "迁居已记入家史。"
 end
 
@@ -707,7 +711,8 @@ local function HandleLeadership(run)
 end
 
 function Simulation.AdvanceYear(run, profile)
-    if run.ending then return false, "本局已落笔，不能再推进。" end
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
     if #Simulation.PendingEvents(run) > 0 then return false, "请先处理待决事件。" end
     local living = Living(run)
     if #living == 0 then return false, "家谱已经落笔。" end
@@ -730,8 +735,9 @@ function Simulation.AdvanceYear(run, profile)
     end
     QueueRoutineEvents(run)
     if #Living(run) == 0 then
-        run.ending = { id = "last", title = "家谱落笔", automatic = true, year = run.calendar, summary = "直到最后一位家人离开，这一局自然写到结尾。" }
-        State.AddLog(run, "全员离世，家谱自然落笔。")
+        local ending = Data.Ending("last")
+        if not ending then return false, "自然终章定义缺失。" end
+        Simulation.FinalizeEnding(run, ending, profile)
     else
         State.AddLog(run, "大晟历 " .. tostring(run.calendar) .. " 年结算完成。")
     end
@@ -740,6 +746,8 @@ function Simulation.AdvanceYear(run, profile)
 end
 
 function Simulation.ResolveLeaderEvent(run, eventId, memberId)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
     local event = nil; for _, item in ipairs(run.events) do if item.instanceId == eventId then event = item end end
     if not event or event.type ~= "leader" or event.status ~= "pending" then return false, "继任事件已失效。" end
     return Simulation.AppointLeader(run, memberId, "前任离世")
@@ -750,48 +758,145 @@ function Simulation.AidCommunity(run)
     if closed then return false, message end
     if run.money < 15 then return false, "接济邻里需要 15 两。" end
     run.money = run.money - 15; run.reputation = run.reputation + 12 + (run.tieId == "neighbor" and 2 or 0); run.metrics.aid = run.metrics.aid + 1
-    State.AddLog(run, "家中接济了邻里，声望提升。")
+    State.AddFact(run, "community_aid", "家中接济了邻里，声望提升。", {}, { aidCount = run.metrics.aid, cost = 15, reputation = run.reputation })
     return true, "援助已被记入家史。"
 end
 
+local function FactIds(run, kind)
+    local ids = {}
+    for _, fact in ipairs(run.facts or {}) do if fact.kind == kind then table.insert(ids, fact.id) end end
+    return ids
+end
+
+local function JobMemberIds(run, jobId, years)
+    local ids = {}
+    for _, member in ipairs(run.members) do
+        if (member.jobYears[jobId] or 0) >= years then table.insert(ids, member.id) end
+    end
+    return ids
+end
+
+local function EffectiveHandoverFactIds(run)
+    local ids = {}
+    for _, term in ipairs(run.leaderTerms or {}) do
+        if term.effective and term.factId then table.insert(ids, term.factId) end
+    end
+    return ids
+end
+
+local function MemberIds(members)
+    local ids = {}
+    for _, member in ipairs(members) do table.insert(ids, member.id) end
+    return ids
+end
+
+local function Progress(label, current, required, measure, source, comparison)
+    return { label, current, required, measure, source, comparison or "at_least" }
+end
+
+function Simulation.IsProgressMet(item)
+    if item[6] == "at_most" then return item[2] <= item[3] end
+    return item[2] >= item[3]
+end
+
 function Simulation.EndingProgress(run, endingId)
+    local ledgers = FactIds(run, "annual_ledger")
+    local leadership = EffectiveHandoverFactIds(run)
+    local returnMembers = {}
+    for _, member in ipairs(run.members) do if member.hadHomeAfterGuard then table.insert(returnMembers, member.id) end end
+    local living = Living(run)
     local progress = {
-        peaceful = { { "实际经营十年", run.yearIndex, 10 }, { "连续五年生活充足", run.metrics.stable, 5 }, { "真实交接", EffectiveHandovers(run), 1 } },
-        scholar = { { "两代教书", JobGenerations(run, "teach", 2), 2 }, { "积蓄", run.money, 200 }, { "真实交接", EffectiveHandovers(run), 1 } },
-        merchant = { { "两代经商", JobGenerations(run, "trade", 3), 2 }, { "积蓄", run.money, 300 }, { "真实交接", EffectiveHandovers(run), 1 } },
-        craft = { { "两代手艺", JobGenerations(run, "craft", 3), 2 }, { "作坊有人经营", run.workshop and JobYears(run, "craft") > 0 and 1 or 0, 1 }, { "真实交接", EffectiveHandovers(run), 1 } },
-        medical = { { "两代行医", JobGenerations(run, "doctor", 2), 2 }, { "行医人年", JobYears(run, "doctor"), 12 }, { "真实交接", EffectiveHandovers(run), 1 } },
-        grain = { { "实际经营", run.yearIndex, 15 }, { "连续生活充足", run.metrics.foodYears, 10 }, { "存粮", run.grain, 80 } },
-        community = { { "实际经营", run.yearIndex, 12 }, { "援助邻里", run.metrics.aid, 3 }, { "声望", run.reputation, 70 } },
-        migration = { { "实际迁居", run.metrics.migrations, 1 }, { "迁居后年数", run.yearIndex - run.metrics.lastMove, 8 }, { "连续生活充足", run.metrics.stable, 5 } },
-        ["return"] = { { "护卫后返家", (function() for _, m in ipairs(run.members) do if m.hadHomeAfterGuard then return 1 end end return 0 end)(), 1 }, { "实际经营", run.yearIndex, 8 }, { "真实交接", EffectiveHandovers(run), 1 } },
-        promise = { { "完成旧约", run.flags.promiseKept and 1 or 0, 1 }, { "实际经营", run.yearIndex, 6 }, { "连续生活充足", run.metrics.stable, 3 } },
-        ruler = { { "修复旧尺", run.flags.rulerRestored and 1 or 0, 1 }, { "手艺人年", JobYears(run, "craft"), 8 }, { "真实交接", EffectiveHandovers(run), 1 } },
-        reunion = { { "重修族谱", run.flags.bookRestored and 1 or 0, 1 }, { "实际经营", run.yearIndex, 6 }, { "真实交接", EffectiveHandovers(run), 1 } },
+        peaceful = { Progress("实际经营十年", run.yearIndex, 10, "累计", { source = "年度账本", factIds = ledgers }), Progress("连续五年生活充足", run.metrics.stable, 5, "连续", { source = "年度账本", factIds = ledgers }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        scholar = { Progress("两代教书", JobGenerations(run, "teach", 2), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "teach", 2) }), Progress("积蓄", run.money, 200, "当前", { source = "公库" }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        merchant = { Progress("两代经商", JobGenerations(run, "trade", 3), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "trade", 3) }), Progress("积蓄", run.money, 300, "当前", { source = "公库" }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        craft = { Progress("两代手艺", JobGenerations(run, "craft", 3), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "craft", 3) }), Progress("作坊有人经营", run.workshop and JobYears(run, "craft") > 0 and 1 or 0, 1, "当前", { source = "家业与人物" }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        medical = { Progress("两代行医", JobGenerations(run, "doctor", 2), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "doctor", 2) }), Progress("行医人年", JobYears(run, "doctor"), 12, "累计", { source = "家谱人物", memberIds = JobMemberIds(run, "doctor", 1) }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        grain = { Progress("实际经营", run.yearIndex, 15, "累计", { source = "年度账本", factIds = ledgers }), Progress("连续生活充足", run.metrics.foodYears, 10, "连续", { source = "年度账本", factIds = ledgers }), Progress("存粮", run.grain, 80, "当前", { source = "公库" }) },
+        community = { Progress("实际经营", run.yearIndex, 12, "累计", { source = "年度账本", factIds = ledgers }), Progress("援助邻里", run.metrics.aid, 3, "累计", { source = "援助记录", factIds = FactIds(run, "community_aid") }), Progress("声望", run.reputation, 70, "当前", { source = "家族声望" }) },
+        migration = { Progress("实际迁居", run.metrics.migrations, 1, "累计", { source = "迁居记录", factIds = FactIds(run, "migration") }), Progress("迁居后年数", math.max(0, run.yearIndex - run.metrics.lastMove), 8, "累计", { source = "迁居记录与年度账本", factIds = ledgers }), Progress("连续生活充足", run.metrics.stable, 5, "连续", { source = "年度账本", factIds = ledgers }) },
+        ["return"] = { Progress("护卫后返家", #returnMembers, 1, "历史", { source = "家谱人物", memberIds = returnMembers }), Progress("实际经营", run.yearIndex, 8, "累计", { source = "年度账本", factIds = ledgers }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        promise = { Progress("完成旧约", run.flags.promiseKept and 1 or 0, 1, "历史", { source = "信物经历", factIds = FactIds(run, "relic") }), Progress("实际经营", run.yearIndex, 6, "累计", { source = "年度账本", factIds = ledgers }), Progress("连续生活充足", run.metrics.stable, 3, "连续", { source = "年度账本", factIds = ledgers }) },
+        ruler = { Progress("修复旧尺", run.flags.rulerRestored and 1 or 0, 1, "历史", { source = "信物经历", factIds = FactIds(run, "relic") }), Progress("手艺人年", JobYears(run, "craft"), 8, "累计", { source = "家谱人物", memberIds = JobMemberIds(run, "craft", 1) }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        reunion = { Progress("重修族谱", run.flags.bookRestored and 1 or 0, 1, "历史", { source = "信物经历", factIds = FactIds(run, "relic") }), Progress("实际经营", run.yearIndex, 6, "累计", { source = "年度账本", factIds = ledgers }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        last = { Progress("在世族人归零", #living, 0, "当前", { source = "家谱人物", memberIds = MemberIds(living) }, "at_most") },
     }
     return progress[endingId] or {}
+end
+
+function Simulation.EndingEvidence(run, endingId)
+    local evidence = {}
+    for _, item in ipairs(Simulation.EndingProgress(run, endingId)) do
+        table.insert(evidence, { label = item[1], current = item[2], required = item[3], measure = item[4], source = State.Copy(item[5]), comparison = item[6], met = Simulation.IsProgressMet(item) })
+    end
+    return evidence
+end
+
+function Simulation.IsEndingReady(run, endingId)
+    local ending = Data.Ending(endingId)
+    if not ending then return false end
+    for _, item in ipairs(Simulation.EndingProgress(run, endingId)) do
+        if not Simulation.IsProgressMet(item) then return false end
+    end
+    return true
 end
 
 function Simulation.AvailableEndings(run)
     local ready = {}
     for _, entry in ipairs(Data.Endings) do
-        local ending = entry --[[@as table<string, any>]]
-        local ok = true
-        for _, item in ipairs(Simulation.EndingProgress(run, ending["id"])) do if item[2] < item[3] then ok = false end end
-        if ok then table.insert(ready, ending) end
+        if not entry.automatic and Simulation.IsEndingReady(run, entry.id) then table.insert(ready, entry) end
     end
     return ready
 end
 
-function Simulation.ClaimEnding(run, endingId, profile)
+local function QualifiedEndingIds(run)
+    local ids = {}
+    for _, ending in ipairs(Simulation.AvailableEndings(run)) do table.insert(ids, ending.id) end
+    return ids
+end
+
+local function ClosePendingEvents(run, endingId)
+    local ids = {}
+    for _, event in ipairs(run.events) do
+        if event.status == "pending" then
+            event.status = "cancelled"
+            event.closedByEndingId = endingId
+            table.insert(ids, event.instanceId)
+        end
+    end
+    return ids
+end
+
+function Simulation.FinalizeEnding(run, ending, profile)
     if run.ending then return false, "本局已经有主终章。" end
+    if not ending then return false, "终章不存在。" end
+    profile.endingRecords = profile.endingRecords or {}
+    local closingEventIds = ClosePendingEvents(run, ending.id)
+    local memberIds = {}
+    for _, member in ipairs(run.members) do table.insert(memberIds, member.id) end
+    local record = {
+        id = ending.id, title = ending.title, type = ending.type, automatic = ending.automatic == true,
+        year = run.calendar, summary = ending.desc, yearIndex = run.yearIndex, leaderId = run.leaderId,
+        evidence = Simulation.EndingEvidence(run, ending.id), qualifiedEndingIds = QualifiedEndingIds(run),
+        closingEventIds = closingEventIds,
+    }
+    local fact = State.AddFact(run, "ending", (record.automatic and "全员离世，家谱自然落笔。" or "选择“" .. ending.title .. "”作为这一局的主终章。"), memberIds, {
+        endingId = record.id, automatic = record.automatic, evidence = record.evidence,
+        qualifiedEndingIds = record.qualifiedEndingIds, closingEventIds = closingEventIds,
+    })
+    record.factId = fact.id
+    run.ending = record
+    table.insert(profile.endingRecords, State.Copy(record))
+    return true, "家业已落笔；人物与家史仍可回顾。"
+end
+
+function Simulation.ClaimEnding(run, endingId, profile)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
     local ending = Data.Ending(endingId)
     if not ending then return false, "终章不存在。" end
-    local ready = false; for _, item in ipairs(Simulation.AvailableEndings(run)) do if item.id == endingId then ready = true end end
-    if not ready then return false, "条件尚未满足。" end
-    run.ending = { id = ending.id, title = ending.title, year = run.calendar, summary = ending.desc, yearIndex = run.yearIndex, leaderId = run.leaderId, evidence = Simulation.EndingProgress(run, endingId) }
-    table.insert(profile.endingRecords, State.Copy(run.ending)); State.AddLog(run, "选择“" .. ending.title .. "”作为这一局的主终章。")
-    return true, "家业已落笔；人物与家史仍可回顾。"
+    if ending.automatic then return false, "自然终章由全员离世后自动写入。" end
+    if not Simulation.IsEndingReady(run, endingId) then return false, "条件尚未满足。" end
+    return Simulation.FinalizeEnding(run, ending, profile)
 end
 
 return Simulation
