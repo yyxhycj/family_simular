@@ -274,7 +274,7 @@ local function memberView(app)
         end
         table.insert(children,quantityControl("年龄", m.age, 0, 92, 1, " 岁", function(v) change("age",v) end))
         table.insert(children,choose({{value="男",label="男"},{value="女",label="女"}},m.sex,function(v) change("sex",v) end))
-        table.insert(children,button(app.memberLeader==m.id and "✓ 首任族长" or "设为首任族长",function() app.memberLeader=m.id; app:Render() end,true,{disabled=m.age<18}))
+        table.insert(children,button(app.memberLeader==m.id and "✓ 首任族长" or "设为首任族长",function() app.memberLeader=m.id; app:Render() end,true,{disabled=m.age < Data.AgeRules.adult}))
     elseif app.memberSection=="skills" then
         local talents={}; for i,t in ipairs(Data.Talents) do table.insert(talents,{value=i,label=t.name .. " · " .. t.cost .. " 点"}) end
         table.insert(children,text("潜力资质")); table.insert(children,choose(talents,m.talent,function(v) change("talent",v) end))
@@ -282,7 +282,7 @@ local function memberView(app)
         table.insert(children,text("偏向 · 零点")); table.insert(children,choose(focuses,m.focus,function(v) change("focus",v) end))
         table.insert(children,text("已有本领"))
         local experiences=options(Data.Experiences)
-        for i,item in ipairs(Data.Experiences) do experiences[i].disabled=m.age<8 and item.id~="none" or m.age<18 and item.id~="none" and item.id~="basic" end
+        for i,item in ipairs(Data.Experiences) do experiences[i].disabled=m.age < Data.AgeRules.basicExperience and item.id~="none" or m.age < Data.AgeRules.adult and item.id~="none" and item.id~="basic" end
         table.insert(children,choose(experiences,m.experienceId,function(v) change("experienceId",v) end))
         local values=Data.Experience(m.experienceId).values
         table.insert(children,text("学识 " .. values.learn .. " / 手艺 " .. values.skill .. " / 医术 " .. values.medicine .. " / 经营 " .. values.trade .. " / 武艺 " .. values.martial,15,C.muted))

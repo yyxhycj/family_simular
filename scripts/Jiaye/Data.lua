@@ -12,10 +12,7 @@ Data.AgeRules = {
     training = 12,
     adult = 18,
     parentDifference = 18,
-    birth = {
-        female = { min = 21, max = 39 },
-        male = { min = 21, max = 60 },
-    },
+    birth = { min = 21, max = 60 },
 }
 Data.WORLD_NAME = "大晟"
 Data.RULES_VERSION = 1

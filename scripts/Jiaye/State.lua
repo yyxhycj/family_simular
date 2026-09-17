@@ -38,15 +38,14 @@ end
 
 function State.BirthAgeRange(member)
     if type(member) ~= "table" then return nil end
-    return member.sex == "女" and Data.AgeRules.birth.female or (member.sex == "男" and Data.AgeRules.birth.male or nil)
+    return Data.AgeRules.birth
 end
 
 function State.CanPlanBirth(member)
-    if type(member) ~= "table" or member.alive == false then return false, "只有在世族人可以安排生育计划。" end
+    if type(member) ~= "table" or member.alive == false then return false, "只有在世族人可以安排添丁计划。" end
     local range = State.BirthAgeRange(member)
-    if not range then return false, "族人性别无效，无法安排生育计划。" end
-    if member.age < range.min then return false, "生育计划需满 " .. tostring(range.min) .. " 岁。" end
-    if member.age > range.max then return false, "当前年龄已超过可生育范围。" end
+    if member.age < range.min then return false, "添丁计划需满 " .. tostring(range.min) .. " 岁。" end
+    if member.age > range.max then return false, "当前年龄已超过可安排窗口。" end
     return true, ""
 end
 

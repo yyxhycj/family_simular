@@ -69,22 +69,22 @@ local function run()
     local lineage, lineageProfile = fresh()
     lineage.money = 200
     lineage.members[1].sex, lineage.members[1].age = "女", 30
-    lineage.members[2].sex, lineage.members[2].age = "男", 30
+    lineage.members[2].sex, lineage.members[2].age = "女", 30
     lineage.rngState = 1
     assert(Simulation.AdvanceYear(lineage, lineageProfile))
     local born = lineage.members[#lineage.members]
     assert(born.age == 0 and born.generation == math.max(lineage.members[1].generation, lineage.members[2].generation) + 1 and factFor(lineage, born.id, "birth"),
-        "生亲没有按父母最大代际入谱或未写入事实")
+        "同性爱侣添丁没有按亲长最大代际入谱或未写入事实")
     local guardian = lineage.members[1]
     assert(Simulation.Adopt(lineage, guardian.id))
     local adopted = lineage.members[#lineage.members]
     assert(adopted.generation == guardian.generation + 1 and factFor(lineage, adopted.id, "adoption"), "收养代际或经历事实不一致")
     local sibling = lineage.members[3]
-    sibling.age = 24; sibling.spouseId = nil
+    sibling.age, sibling.sex, sibling.spouseId, lineage.rngState = 24, "女", nil, 1
     assert(Simulation.Marry(lineage, sibling.id))
     local spouse = lineage.members[#lineage.members]
     sibling.jobYears.teach, spouse.jobYears.teach = 2, 2
-    assert(spouse.generation == sibling.generation and Simulation.EndingProgress(lineage, "scholar")[1][2] == 1, "婚入配偶被误算成下一代")
+    assert(spouse.sex == sibling.sex and spouse.generation == sibling.generation and Simulation.EndingProgress(lineage, "scholar")[1][2] == 1, "同性爱侣婚入或代际记录错误")
 
     local handover, handoverProfile, handoverDraft = fresh()
     handover.members = { handover.members[1], handover.members[2] }
@@ -145,13 +145,13 @@ local function run()
     assert(State.CanUseJob(toddler, "apprentice") and State.CanUseJob(toddler, "medical") and State.CanUseJob(toddler, "train"), "少年培养安排没有在 12 岁开放")
     toddler.age = 18
     assert(State.CanUseJob(toddler, "farm") and State.IsAdult(toddler), "成年安排没有在 18 岁开放")
-    local mother, father = ages.members[2], ages.members[1]
-    mother.age, father.age = 20, 20
-    assert(not State.CanPlanBirth(mother) and not State.CanPlanBirth(father) and not Simulation.SetBirthPlan(ages, mother.id, true), "生育计划在法定年龄前可写入")
-    mother.age, father.age = 21, 21
-    assert(State.CanPlanBirth(mother) and State.CanPlanBirth(father) and Simulation.SetBirthPlan(ages, mother.id, true), "生育计划没有在窗口起点开放")
-    mother.age, father.age = 40, 61
-    assert(not State.CanPlanBirth(mother) and not State.CanPlanBirth(father), "生育计划超过年龄窗口仍可写入")
+    local parentA, parentB = ages.members[2], ages.members[1]
+    parentA.sex, parentB.sex, parentA.age, parentB.age = "女", "女", 20, 20
+    assert(not State.CanPlanBirth(parentA) and not State.CanPlanBirth(parentB) and not Simulation.SetBirthPlan(ages, parentA.id, true), "添丁计划在年龄前可写入")
+    parentA.age, parentB.age = 21, 21
+    assert(State.CanPlanBirth(parentA) and State.CanPlanBirth(parentB) and Simulation.SetBirthPlan(ages, parentA.id, true), "添丁计划没有在窗口起点开放")
+    parentA.age, parentB.age = 61, 61
+    assert(not State.CanPlanBirth(parentA) and not State.CanPlanBirth(parentB), "添丁计划超过年龄窗口仍可写入")
     toddler.age = 2
     local ageApp = App.New(); ageApp.profile, ageApp.draft, ageApp.run, ageApp.screen = agesProfile, agesDraft, ages, "game"
     ageApp:OpenRunMember(toddler.id)

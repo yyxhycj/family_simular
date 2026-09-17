@@ -1043,12 +1043,12 @@ function App:OpenRunMember(memberId)
             body:AddChild(Button("收养孩子（8 两）", function() self:ConfirmRunAction("确认收养 · " .. member.name, "成本：8 两安置费。结果：孩子加入家谱，拥有与其他族人同等的成长与继任资格。", function() return Simulation.Adopt(self.run, memberId) end, "确认收养", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
             local canPlanBirth, birthReason = State.CanPlanBirth(member)
             if canPlanBirth then
-                body:AddChild(Button(member.birthPlan == false and "愿意迎来孩子" or "暂不计划生育", function()
+                body:AddChild(Button(member.birthPlan == false and "愿意迎接孩子" or "暂缓迎接孩子", function()
                     local nextPlan = member.birthPlan == false
-                    self:ConfirmRunAction("确认生育计划 · " .. member.name, nextPlan and "结果：记录为愿意迎来孩子；是否出生仍由后续年度的真实家庭条件决定。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function() return Simulation.SetBirthPlan(self.run, memberId, nextPlan) end, "确认记录", modal)
+                    self:ConfirmRunAction("确认添丁计划 · " .. member.name, nextPlan and "结果：记录为愿意迎接孩子；是否添丁仍由后续年度的真实家庭条件决定。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function() return Simulation.SetBirthPlan(self.run, memberId, nextPlan) end, "确认记录", modal)
                 end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
             else
-                body:AddChild(Label("生育计划：" .. birthReason, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
+                body:AddChild(Label("添丁计划：" .. birthReason, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
             end
             body:AddChild(Button("任命为族长", function() self:ConfirmRunAction("确认交接 · " .. member.name, "结果：开始新的族长任期，现有安排与资产保持原样。", function() return Simulation.AppointLeader(self.run, memberId, "主动交接") end, "确认交接", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
             for _, relic in ipairs(self.run.relicInstances) do

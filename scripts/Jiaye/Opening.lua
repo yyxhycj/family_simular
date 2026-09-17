@@ -148,7 +148,6 @@ function Opening.Generate(profile, seed, worldId)
         local adult = add(roll(math.max(18, leader.age - 8), math.min(66, leader.age + 8)), roll(1, 3) == 1 and "family" or "external")
         local couple = adult.nameSource == "external"
         if couple then
-            adult.sex = leader.sex == "男" and "女" or "男"
             giveName(adult, draft.family, pick)
             leader.spouseId = adult.id; adult.spouseId = leader.id
         end

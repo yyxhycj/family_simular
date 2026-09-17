@@ -170,8 +170,8 @@ function Simulation.SetBirthPlan(run, memberId, enabled)
     local ok, reason = State.CanPlanBirth(member)
     if not ok then return false, reason end
     member.birthPlan = enabled
-    State.AddLog(run, member.name .. (enabled and "愿意迎来孩子。" or "决定暂不计划生育。"))
-    return true, enabled and "已记录生育计划。" or "已记录暂缓计划。"
+    State.AddLog(run, member.name .. (enabled and "愿意迎接孩子。" or "决定暂缓迎接孩子。"))
+    return true, enabled and "已记录添丁计划。" or "已记录暂缓计划。"
 end
 
 function Simulation.TakeExam(run, memberId)
@@ -241,7 +241,7 @@ function Simulation.Marry(run, memberId)
     if member.spouseId then return false, "此人已有配偶。" end
     if run.money < 12 then return false, "婚配需要 12 两安置费用。" end
     local spouseId = NextMemberId(run)
-    local spouseSex = member.sex == "男" and "女" or "男"
+    local spouseSex = State.Random(run, 0, 1) == 0 and "女" or "男"
     ---@type string[]
     local names = spouseSex == "男" and Data.GivenNames.male or Data.GivenNames.female
     local spouse = { id = spouseId, name = (spouseSex == "男" and "沈" or "顾") .. names[State.Random(run, 1, #names)], sex = spouseSex, age = math.max(Data.AgeRules.adult, member.age - State.Random(run, 0, 5)), parents = {}, spouseId = member.id, talent = 2, focus = "general", experienceId = "basic", trait = "安稳", jobId = "home", alive = true, health = 72, stats = State.Copy(Data.Experience("basic").values), jobYears = {}, biography = { "因婚配加入“" .. run.openingSnapshot.family .. "”家。" }, fertility = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false, generation = State.Generation(run.members, member.id) }
@@ -643,11 +643,11 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
 end
 
 local function TryBirths(run)
+    local range = Data.AgeRules.birth
     for _, parent in ipairs(run.members) do
-        local motherRange, fatherRange = Data.AgeRules.birth.female, Data.AgeRules.birth.male
-        if parent.alive and parent.sex == "女" and parent.age >= motherRange.min and parent.age <= motherRange.max and parent.birthPlan and parent.spouseId and run.yearIndex - (parent.lastBirthYear or -5) >= 4 and run.money >= 16 then
+        if parent.alive and parent.age >= range.min and parent.age <= range.max and parent.birthPlan and parent.spouseId and run.yearIndex - (parent.lastBirthYear or -5) >= 4 and run.money >= 16 then
             local spouse = State.FindMember(run.members, parent.spouseId)
-            if spouse and spouse.alive and spouse.age >= fatherRange.min and spouse.age <= fatherRange.max and spouse.birthPlan and State.Random(run) < 0.27 then
+            if spouse and spouse.id > parent.id and spouse.alive and spouse.age >= range.min and spouse.age <= range.max and spouse.birthPlan and State.Random(run) < 0.27 then
                 local childId = NextMemberId(run)
                 local sex = State.Random(run, 0, 1) == 0 and "女" or "男"
                 ---@type string[]
@@ -658,7 +658,7 @@ local function TryBirths(run)
                     trait = "初生", jobId = "play", alive = true, health = 76, stats = State.Copy(Data.Experience("none").values),
                     jobYears = {}, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false,
                     generation = math.max(parent.generation or 1, spouse.generation or 1) + 1,
-                    biography = { "大晟历 " .. tostring(run.calendar) .. " 年出生，父母是" .. parent.name .. "与" .. spouse.name .. "。" },
+                    biography = { "大晟历 " .. tostring(run.calendar) .. " 年出生，亲长是" .. parent.name .. "与" .. spouse.name .. "。" },
                 }
                 parent.lastBirthYear = run.yearIndex; spouse.lastBirthYear = run.yearIndex
                 table.insert(run.members, child)
