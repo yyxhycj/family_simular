@@ -96,7 +96,7 @@ end
 function View.Summary(app)
     local d = app.draft
     local ledger, run = preview(app)
-    local adults = 0; for _, member in ipairs(d.members) do if member.age >= 18 then adults = adults + 1 end end
+    local adults = 0; for _, member in ipairs(d.members) do if State.IsAdult(member) then adults = adults + 1 end end
     local children = {
         text("一家人的故事，从这里开始", 16, C.muted),
         row({ UI.Panel { flex = 1, minWidth = 0, children = { text(d.family .. "氏家族", 31) } },

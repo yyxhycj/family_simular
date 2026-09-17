@@ -32,10 +32,28 @@ function State.NewDraft()
     }
 end
 
+function State.IsAdult(member)
+    return type(member) == "table" and type(member.age) == "number" and member.age >= Data.AgeRules.adult
+end
+
+function State.BirthAgeRange(member)
+    if type(member) ~= "table" then return nil end
+    return member.sex == "女" and Data.AgeRules.birth.female or (member.sex == "男" and Data.AgeRules.birth.male or nil)
+end
+
+function State.CanPlanBirth(member)
+    if type(member) ~= "table" or member.alive == false then return false, "只有在世族人可以安排生育计划。" end
+    local range = State.BirthAgeRange(member)
+    if not range then return false, "族人性别无效，无法安排生育计划。" end
+    if member.age < range.min then return false, "生育计划需满 " .. tostring(range.min) .. " 岁。" end
+    if member.age > range.max then return false, "当前年龄已超过可生育范围。" end
+    return true, ""
+end
+
 function State.MemberBaseCost(member)
     local age = type(member) == "table" and member.age or nil
     if type(age) ~= "number" then return 0 end
-    if age < 18 then return 4 end
+    if age < Data.AgeRules.adult then return 4 end
     if age >= 55 then return 6 end
     return 8
 end
@@ -202,10 +220,10 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
             table.insert(issues, name .. "须在本局通过应试后才能任职。")
         elseif member.age < job.min then
             table.insert(issues, name .. "的当前安排年龄不足。")
-        elseif member.age < 18 and member.experienceId ~= "none" and member.experienceId ~= "basic" then
+        elseif member.age < Data.AgeRules.adult and member.experienceId ~= "none" and member.experienceId ~= "basic" then
             table.insert(issues, "未成年族人只能选择“尚未专精”或“略通一二”。")
-        elseif member.age < 8 and member.experienceId ~= "none" then
-            table.insert(issues, "8 岁前不能带入已有本领。")
+        elseif member.age < Data.AgeRules.basicExperience and member.experienceId ~= "none" then
+            table.insert(issues, tostring(Data.AgeRules.basicExperience) .. " 岁前不能带入已有本领。")
         elseif job.req and (experience.values[job.req[1]] or 0) < job.req[2] then
             table.insert(issues, name .. "的当前安排尚未满足能力要求。")
         end
@@ -214,7 +232,7 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
         if type(member) ~= "table" then member = {} end
         if member.spouseId then
             local spouse = State.FindMember(draft.members, member.spouseId)
-            if not spouse or spouse.id == member.id or spouse.spouseId ~= member.id or type(member.age) ~= "number" or type(spouse.age) ~= "number" or member.age < 18 or spouse.age < 18 then table.insert(issues, tostring(member.name or "成员") .. "的婚配关系无效。") end
+            if not spouse or spouse.id == member.id or spouse.spouseId ~= member.id or type(member.age) ~= "number" or type(spouse.age) ~= "number" or not State.IsAdult(member) or not State.IsAdult(spouse) then table.insert(issues, tostring(member.name or "成员") .. "的婚配关系无效。") end
         end
         local parents = List(member.parents)
         if #parents > 2 then table.insert(issues, tostring(member.name or "成员") .. "最多两位父母/养亲。") end
@@ -223,12 +241,12 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
             if seenParents[parentId] then table.insert(issues, "父母/养亲不能重复。") end
             seenParents[parentId] = true
             local parent = State.FindMember(members, parentId)
-            if not parent or type(parent.age) ~= "number" or type(member.age) ~= "number" or parent.age - member.age < 18 then table.insert(issues, tostring(member.name or "成员") .. "的亲缘关系无效。") end
+            if not parent or type(parent.age) ~= "number" or type(member.age) ~= "number" or parent.age - member.age < Data.AgeRules.parentDifference then table.insert(issues, tostring(member.name or "成员") .. "的亲缘关系无效。") end
             if parent and HasCycle(members, parent, member.id, {}) then table.insert(issues, "亲缘关系不能形成循环。") end
         end
     end
     local leader = State.FindMember(members, draft.leaderId)
-    if not leader or type(leader.age) ~= "number" or leader.age < 18 then table.insert(issues, "需要指定一位成年首任族长。") end
+    if not State.IsAdult(leader) then table.insert(issues, "需要指定一位成年首任族长。") end
     local relicSeen = {}
     if type(draft.selectedRelicIds) ~= "table" then table.insert(issues, "信物选择数据无效。") end
     for _, relicId in ipairs(List(draft.selectedRelicIds)) do
@@ -257,6 +275,7 @@ function State.CanUseJob(member, jobId)
     return true, ""
 end
 
+---@return table?, string[]?
 function State.NewRun(draft, profile)
     local issues = State.ValidateDraft(draft, profile, false)
     if #issues > 0 then return nil, issues end

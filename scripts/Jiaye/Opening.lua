@@ -75,7 +75,7 @@ local function configureMember(member, pick, roll)
     member.focus = pick({ "general", "learn", "skill", "medicine", "trade", "martial" })
     local experiences = {}
     for _, experience in ipairs(Data.Experiences) do
-        if member.age >= 18 or experience.id == "none" or (member.age >= 8 and experience.id == "basic") then
+        if State.IsAdult(member) or experience.id == "none" or (member.age >= Data.AgeRules.basicExperience and experience.id == "basic") then
             table.insert(experiences, experience)
         end
     end

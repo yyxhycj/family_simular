@@ -131,6 +131,36 @@ local function run()
     worker.stats.learn = 100
     assert(Simulation.TakeExam(career, worker.id) and factFor(career, worker.id, "exam"), "应试结果没有写入人物事实")
 
+    local ages, agesProfile, agesDraft = fresh()
+    local toddler = ages.members[4]
+    toddler.age, toddler.jobId = 2, "play"
+    ages.money = 100
+    assert(not State.CanUseJob(toddler, "study") and State.CanUseJob(toddler, "play") and State.CanUseJob(toddler, "rest"), "幼年岗位没有按年龄收紧")
+    assert(not Simulation.TakeExam(ages, toddler.id) and not Simulation.Marry(ages, toddler.id)
+        and not Simulation.Adopt(ages, toddler.id) and not Simulation.AppointLeader(ages, toddler.id)
+        and not Simulation.TransferRelic(ages, ages.relicInstances[1].instanceId, toddler.id), "幼年成员仍能执行成年家事")
+    toddler.age = 5
+    assert(State.CanUseJob(toddler, "study"), "读书没有在 5 岁开放")
+    toddler.age = 12
+    assert(State.CanUseJob(toddler, "apprentice") and State.CanUseJob(toddler, "medical") and State.CanUseJob(toddler, "train"), "少年培养安排没有在 12 岁开放")
+    toddler.age = 18
+    assert(State.CanUseJob(toddler, "farm") and State.IsAdult(toddler), "成年安排没有在 18 岁开放")
+    local mother, father = ages.members[2], ages.members[1]
+    mother.age, father.age = 20, 20
+    assert(not State.CanPlanBirth(mother) and not State.CanPlanBirth(father) and not Simulation.SetBirthPlan(ages, mother.id, true), "生育计划在法定年龄前可写入")
+    mother.age, father.age = 21, 21
+    assert(State.CanPlanBirth(mother) and State.CanPlanBirth(father) and Simulation.SetBirthPlan(ages, mother.id, true), "生育计划没有在窗口起点开放")
+    mother.age, father.age = 40, 61
+    assert(not State.CanPlanBirth(mother) and not State.CanPlanBirth(father), "生育计划超过年龄窗口仍可写入")
+    toddler.age = 2
+    local ageApp = App.New(); ageApp.profile, ageApp.draft, ageApp.run, ageApp.screen = agesProfile, agesDraft, ages, "game"
+    ageApp:OpenRunMember(toddler.id)
+    local arrangementTab = assert(find(UI.modal, "安排"), "人物页缺少安排入口")
+    arrangementTab.onClick(arrangementTab)
+    assert(find(UI.modal, "幼年 · 2 岁") and find(UI.modal, "随家人生活") and find(UI.modal, "休养")
+        and not find(UI.modal, "应试（10 两）") and not find(UI.modal, "安排婚配（12 两）")
+        and not find(UI.modal, "收养孩子（8 两）") and not find(UI.modal, "任命为族长"), "幼年人物页仍展示成年行动")
+
     assert(State.Save(careerProfile, careerDraft, career))
     local loaded = assert(State.Load())
     assert(#loaded.run.annualLedgers >= 1 and #loaded.run.facts >= 1, "年度账本或人物事实没有被保存")
@@ -141,7 +171,7 @@ local function run()
     assert(dead and not dead.alive and factFor(handover, dead.id, "death"), "已故成员不可回看其离世事实")
     return {
         annualLedgerFrozen = true, hungerResets = true, collapseReadOnly = true, collapseUI = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },
-        custodyRecovered = true, factsPersisted = true, historyEntrances = true,
+        custodyRecovered = true, factsPersisted = true, historyEntrances = true, ageRules = true,
     }
 end
 

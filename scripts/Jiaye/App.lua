@@ -488,7 +488,10 @@ function App:StartRun()
         if submitted or self.run ~= previousRun then return end
         submitted = true
         local candidate, errors = State.NewRun(self.draft, self.profile)
-        if not candidate then self:Notify(table.concat(errors, " "), "error"); return end
+        if type(candidate) ~= "table" then
+            self:Notify(type(errors) == "table" and table.concat(errors, " ") or "开局草案无效。", "error")
+            return
+        end
         -- 先验证写入，再切换当前局；失败时旧 run、收藏和正在展示的草案都在。
         local ok, message = State.Save(self.profile, self.draft, candidate)
         if not ok then
@@ -623,7 +626,7 @@ function App:GetRunOverview()
     for _, member in ipairs(self.run.members) do
         if member.alive then
             living = living + 1
-            foodNeed = foodNeed + (member.age >= 18 and 2 or 1)
+            foodNeed = foodNeed + (State.IsAdult(member) and 2 or 1)
         end
     end
     return living, foodNeed
@@ -714,7 +717,7 @@ function App:BuildPendingEvent(event)
         }, { borderColor = C.green })
     end
     if event.type == "leader" then
-        local choices = {}; for _, member in ipairs(self.run.members) do if member.alive and member.age >= 18 then table.insert(choices, Button("任命 " .. member.name, function() self:ConfirmRunAction("确认继任 · " .. member.name, "参与人：" .. member.name .. "\n处理结果：开始新的族长任期，其他族人的主业保持原样。", function() return Simulation.ResolveLeaderEvent(self.run, event.instanceId, member.id) end, "确认任命") end, { height = 44 })) end end
+        local choices = {}; for _, member in ipairs(self.run.members) do if member.alive and State.IsAdult(member) then table.insert(choices, Button("任命 " .. member.name, function() self:ConfirmRunAction("确认继任 · " .. member.name, "参与人：" .. member.name .. "\n处理结果：开始新的族长任期，其他族人的主业保持原样。", function() return Simulation.ResolveLeaderEvent(self.run, event.instanceId, member.id) end, "确认任命") end, { height = 44 })) end end
         return Card({ Label("族长之位空缺", { fontSize = 19, fontWeight = "bold" }), Label("家族仍可继续，但需要从在世成年族人中选任族长。", { fontSize = 14, whiteSpace = "normal" }), UI.Panel { gap = 6, children = choices } }, { borderColor = C.warning })
     end
     if event.type == "growth" then
@@ -999,7 +1002,7 @@ function App:OpenRunMember(memberId)
             Label(member.alive and currentJob.desc or "已故族人的关系和经历仍可查阅。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
             member.alive and not self.run.ending and Button("调整安排  →", function() section = "arrangement"; renderSection() end, { height = 44, backgroundColor = C.pale, textColor = C.green }) or Label(self.run.ending and "本局已落笔，安排已封存。" or "已故成员不再安排新的主业。", { fontSize = 13, fontColor = C.muted }),
         }))
-        if member.alive and not self.run.ending then
+        if member.alive and not self.run.ending and State.IsAdult(member) then
             body:AddChild(Button("任命为族长", function()
                 self:ConfirmRunAction("确认交接 · " .. member.name, "结果：开始新的族长任期，现有安排与资产保持原样。", function() return Simulation.AppointLeader(self.run, memberId, "主动交接") end, "确认交接", modal)
             end, { height = 44, backgroundColor = C.pale, textColor = C.green }))
@@ -1013,27 +1016,48 @@ function App:OpenRunMember(memberId)
         end
         body:AddChild(SectionTitle("目前的安排", "确认后写入家史"))
         body:AddChild(Card({ Label(Data.Jobs[member.jobId].name, { fontSize = 20, fontWeight = "bold" }), Label(Data.Jobs[member.jobId].desc, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }) }, { backgroundColor = C.pale, borderColor = {151,171,118,255} }))
+        local ageRules = Data.AgeRules
+        local stage, stageDetail
+        if member.age < ageRules.study then
+            stage, stageDetail = "幼年", "当前可安排随家人生活或休养；" .. tostring(ageRules.study) .. " 岁起可读书。"
+        elseif member.age < ageRules.training then
+            stage, stageDetail = "启蒙", "可读书求学；" .. tostring(ageRules.training) .. " 岁起可学艺、学医或习武。"
+        elseif not State.IsAdult(member) then
+            stage, stageDetail = "少年", "可读书、学艺、学医或习武；" .. tostring(ageRules.adult) .. " 岁起可承担家事与家业。"
+        else
+            stage, stageDetail = "成年", "可承担家业与家事；具体资格和费用会在操作前核对。"
+        end
+        body:AddChild(Card({ Label(stage .. " · " .. tostring(member.age) .. " 岁", { fontSize = 18, fontWeight = "bold" }), Label(stageDetail, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }) }, { backgroundColor = C.paper }))
         body:AddChild(Label("选择新的安排", { fontSize = 18, fontWeight = "bold" }))
         body:AddChild(Label("先查看资格、年度收入或培养费用与成长，再确认写入。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
         for _, jobId in ipairs(Data.JobOrder) do
             local job = Data.Jobs[jobId]
-            local ok, reason = Simulation.GetJobReason(member, jobId)
-            body:AddChild(Button(job.name .. (ok and "" or " · " .. reason), function() self:ConfirmRunJob(memberId, jobId, modal) end, { height = 44, backgroundColor = ok and (member.jobId == jobId and C.green or C.pale) or { 235, 229, 224, 255 }, textColor = ok and (member.jobId == jobId and { 255, 255, 255, 255 } or C.green) or C.warning, fontSize = 13, textAlign = "left", paddingHorizontal = 12 }))
+            if member.age >= job.min then
+                local ok, reason = Simulation.GetJobReason(member, jobId)
+                body:AddChild(Button(job.name .. (ok and "" or " · " .. reason), function() if ok then self:ConfirmRunJob(memberId, jobId, modal) end end, { height = 44, disabled = not ok, backgroundColor = ok and (member.jobId == jobId and C.green or C.pale) or { 235, 229, 224, 255 }, textColor = ok and (member.jobId == jobId and { 255, 255, 255, 255 } or C.green) or C.warning, fontSize = 13, textAlign = "left", paddingHorizontal = 12 }))
+            end
         end
-        body:AddChild(Button("应试（10 两）", function() self:ConfirmRunAction("确认应试 · " .. member.name, "成本：10 两盘缠。结果由本人的学识与本局随机结果共同决定，并完整写入人生经历。", function() return Simulation.TakeExam(self.run, memberId) end, "确认应试", modal) end, { height = 46 }))
-        body:AddChild(Button("安排婚配（12 两）", function() self:ConfirmRunAction("确认婚配 · " .. member.name, "成本：12 两安置费。结果：新配偶加入家谱，原有族人资料保持不变。", function() return Simulation.Marry(self.run, memberId) end, "确认婚配", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
-        body:AddChild(Button("收养孩子（8 两）", function() self:ConfirmRunAction("确认收养 · " .. member.name, "成本：8 两安置费。结果：孩子加入家谱，拥有与其他族人同等的成长与继任资格。", function() return Simulation.Adopt(self.run, memberId) end, "确认收养", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
-        body:AddChild(Button(member.birthPlan == false and "愿意迎来孩子" or "暂不计划生育", function()
-            local nextPlan = member.birthPlan == false
-            self:ConfirmRunAction("确认生育计划 · " .. member.name, nextPlan and "结果：记录为愿意迎来孩子；是否出生仍由后续年度的真实家庭条件决定。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function() return Simulation.SetBirthPlan(self.run, memberId, nextPlan) end, "确认记录", modal)
-        end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
-        body:AddChild(Button("任命为族长", function() self:ConfirmRunAction("确认交接 · " .. member.name, "结果：开始新的族长任期，现有安排与资产保持原样。", function() return Simulation.AppointLeader(self.run, memberId, "主动交接") end, "确认交接", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
-        for _, relic in ipairs(self.run.relicInstances) do
-            if relic.status ~= "sold" and relic.custodianId ~= memberId then
-                local definition = Data.Relic(relic.definitionId)
-                body:AddChild(Button("交由" .. member.name .. "保管 · " .. definition.name, function()
-                    self:ConfirmRunAction("确认更换保管人", "物件：" .. definition.name .. "\n结果：保管人改为" .. member.name .. "，当前调查进度保持不变。", function() return Simulation.TransferRelic(self.run, relic.instanceId, memberId) end, "确认托付", modal)
-                end, { height = 44, backgroundColor = C.pale, textColor = C.green, fontSize = 13 }))
+        if State.IsAdult(member) then
+            body:AddChild(Button("应试（10 两）", function() self:ConfirmRunAction("确认应试 · " .. member.name, "成本：10 两盘缠。结果由本人的学识与本局随机结果共同决定，并完整写入人生经历。", function() return Simulation.TakeExam(self.run, memberId) end, "确认应试", modal) end, { height = 46 }))
+            body:AddChild(Button("安排婚配（12 两）", function() self:ConfirmRunAction("确认婚配 · " .. member.name, "成本：12 两安置费。结果：新配偶加入家谱，原有族人资料保持不变。", function() return Simulation.Marry(self.run, memberId) end, "确认婚配", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+            body:AddChild(Button("收养孩子（8 两）", function() self:ConfirmRunAction("确认收养 · " .. member.name, "成本：8 两安置费。结果：孩子加入家谱，拥有与其他族人同等的成长与继任资格。", function() return Simulation.Adopt(self.run, memberId) end, "确认收养", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+            local canPlanBirth, birthReason = State.CanPlanBirth(member)
+            if canPlanBirth then
+                body:AddChild(Button(member.birthPlan == false and "愿意迎来孩子" or "暂不计划生育", function()
+                    local nextPlan = member.birthPlan == false
+                    self:ConfirmRunAction("确认生育计划 · " .. member.name, nextPlan and "结果：记录为愿意迎来孩子；是否出生仍由后续年度的真实家庭条件决定。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function() return Simulation.SetBirthPlan(self.run, memberId, nextPlan) end, "确认记录", modal)
+                end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+            else
+                body:AddChild(Label("生育计划：" .. birthReason, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
+            end
+            body:AddChild(Button("任命为族长", function() self:ConfirmRunAction("确认交接 · " .. member.name, "结果：开始新的族长任期，现有安排与资产保持原样。", function() return Simulation.AppointLeader(self.run, memberId, "主动交接") end, "确认交接", modal) end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+            for _, relic in ipairs(self.run.relicInstances) do
+                if relic.status ~= "sold" and relic.custodianId ~= memberId then
+                    local definition = Data.Relic(relic.definitionId)
+                    body:AddChild(Button("交由" .. member.name .. "保管 · " .. definition.name, function()
+                        self:ConfirmRunAction("确认更换保管人", "物件：" .. definition.name .. "\n结果：保管人改为" .. member.name .. "，当前调查进度保持不变。", function() return Simulation.TransferRelic(self.run, relic.instanceId, memberId) end, "确认托付", modal)
+                    end, { height = 44, backgroundColor = C.pale, textColor = C.green, fontSize = 13 }))
+                end
             end
         end
     end
@@ -1261,14 +1285,14 @@ function App:BuildRelicsTab()
             end
             local executorButtons = {}
             for _, member in ipairs(self.run.members) do
-                if member.alive and member.age >= 18 and member.id ~= instance.executorId then
+                if member.alive and State.IsAdult(member) and member.id ~= instance.executorId then
                     table.insert(executorButtons, Button("由" .. member.name .. "办理", function() self:RunAction(function() return Simulation.AssignRelicExecutor(self.run, instance.instanceId, member.id) end) end, { height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }))
                 end
             end
             if #executorButtons > 0 then table.insert(actionChildren, Label("指定执行人", { fontSize = 12, fontColor = C.muted })); table.insert(actionChildren, UI.Panel { gap = 5, children = executorButtons }) end
             local custodianButtons = {}
             for _, member in ipairs(self.run.members) do
-                if member.alive and member.id ~= instance.custodianId then
+                if member.alive and State.IsAdult(member) and member.id ~= instance.custodianId then
                     table.insert(custodianButtons, Button("交由" .. member.name .. "保管", function() self:RunAction(function() return Simulation.TransferRelic(self.run, instance.instanceId, member.id) end) end, { height = 32, backgroundColor = C.pale, textColor = C.green, fontSize = 11 }))
                 end
             end

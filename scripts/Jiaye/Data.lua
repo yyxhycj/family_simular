@@ -6,6 +6,17 @@ Data.OpeningCosts = { moneyUnit = 10, grainUnit = 4, land = 4, workshop = 14, sh
 Data.RuntimeAssetCosts = { land = 30, workshop = 80, shop = 120 }
 Data.FocusNames = { general = "均衡", learn = "学识", skill = "手艺", medicine = "医术", trade = "经营", martial = "武艺" }
 Data.JobOrder = { "play", "study", "farm", "apprentice", "craft", "trade", "teach", "medical", "doctor", "train", "guard", "official", "home", "rest" }
+Data.AgeRules = {
+    basicExperience = 8,
+    study = 5,
+    training = 12,
+    adult = 18,
+    parentDifference = 18,
+    birth = {
+        female = { min = 21, max = 39 },
+        male = { min = 21, max = 60 },
+    },
+}
 Data.WORLD_NAME = "大晟"
 Data.RULES_VERSION = 1
 
@@ -57,18 +68,18 @@ Data.Experiences = {
 
 Data.Jobs = {
     play = { name = "随家人生活", min = 0, money = 0, desc = "没有收入，也不花培养费用。" },
-    study = { name = "读书求学", min = 5, money = -6, stat = "learn", gain = 5, desc = "每年花费 6 两，积累学识。" },
-    farm = { name = "耕作谋生", min = 18, money = 8, grain = 6, desc = "每年收入 8 两、收粮 6 石。" },
-    apprentice = { name = "学一门手艺", min = 12, money = -4, stat = "skill", gain = 7, desc = "每年花费 4 两，手艺成长。" },
-    craft = { name = "手艺谋生", min = 18, money = 22, stat = "skill", gain = 2, req = { "skill", 35 }, desc = "手艺达到 35 后可谋生。" },
-    trade = { name = "外出经商", min = 18, money = 24, stat = "trade", gain = 3, desc = "往来商路，收入受地点与关系影响。" },
-    teach = { name = "教书", min = 18, money = 20, stat = "learn", gain = 2, req = { "learn", 50 }, desc = "学识达到 50 后可教书。" },
-    medical = { name = "随师学医", min = 12, money = -8, stat = "medicine", gain = 7, desc = "每年花费 8 两，学习医术。" },
-    doctor = { name = "行医问诊", min = 18, money = 26, stat = "medicine", gain = 3, req = { "medicine", 40 }, desc = "医术达到 40 后可行医。" },
-    train = { name = "习武", min = 12, money = -5, stat = "martial", gain = 7, desc = "每年花费 5 两，锤炼武艺。" },
-    guard = { name = "担任护卫", min = 18, money = 22, stat = "martial", gain = 3, req = { "martial", 35 }, desc = "武艺达到 35 后可护卫。" },
-    official = { name = "地方任职", min = 18, money = 32, stat = "learn", gain = 1, exam = true, desc = "应试通过后可任职，提升声望。" },
-    home = { name = "料理家事", min = 18, money = 0, desc = "照料全家，减少开支并恢复体魄。" },
+    study = { name = "读书求学", min = Data.AgeRules.study, money = -6, stat = "learn", gain = 5, desc = "每年花费 6 两，积累学识。" },
+    farm = { name = "耕作谋生", min = Data.AgeRules.adult, money = 8, grain = 6, desc = "每年收入 8 两、收粮 6 石。" },
+    apprentice = { name = "学一门手艺", min = Data.AgeRules.training, money = -4, stat = "skill", gain = 7, desc = "每年花费 4 两，手艺成长。" },
+    craft = { name = "手艺谋生", min = Data.AgeRules.adult, money = 22, stat = "skill", gain = 2, req = { "skill", 35 }, desc = "手艺达到 35 后可谋生。" },
+    trade = { name = "外出经商", min = Data.AgeRules.adult, money = 24, stat = "trade", gain = 3, desc = "往来商路，收入受地点与关系影响。" },
+    teach = { name = "教书", min = Data.AgeRules.adult, money = 20, stat = "learn", gain = 2, req = { "learn", 50 }, desc = "学识达到 50 后可教书。" },
+    medical = { name = "随师学医", min = Data.AgeRules.training, money = -8, stat = "medicine", gain = 7, desc = "每年花费 8 两，学习医术。" },
+    doctor = { name = "行医问诊", min = Data.AgeRules.adult, money = 26, stat = "medicine", gain = 3, req = { "medicine", 40 }, desc = "医术达到 40 后可行医。" },
+    train = { name = "习武", min = Data.AgeRules.training, money = -5, stat = "martial", gain = 7, desc = "每年花费 5 两，锤炼武艺。" },
+    guard = { name = "担任护卫", min = Data.AgeRules.adult, money = 22, stat = "martial", gain = 3, req = { "martial", 35 }, desc = "武艺达到 35 后可护卫。" },
+    official = { name = "地方任职", min = Data.AgeRules.adult, money = 32, stat = "learn", gain = 1, exam = true, desc = "应试通过后可任职，提升声望。" },
+    home = { name = "料理家事", min = Data.AgeRules.adult, money = 0, desc = "照料全家，减少开支并恢复体魄。" },
     rest = { name = "休养", min = 0, money = 0, stat = "health", gain = 5, desc = "恢复体魄，衰老仍会继续。" },
 }
 

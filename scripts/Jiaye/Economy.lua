@@ -60,7 +60,7 @@ local function ResolveLivingCosts(run, living, period, place)
     local home = Data.Home(run.homeId)
     local baseExpense, carers = home.upkeep, 0
     for _, member in ipairs(living) do
-        baseExpense = baseExpense + (member.age >= 18 and 4 or 2)
+        baseExpense = baseExpense + (State.IsAdult(member) and 4 or 2)
         if member.jobId == "home" then carers = carers + 1 end
     end
     local expense = math.floor(baseExpense * period.expense * (place.expenseMultiplier or 1))
@@ -69,7 +69,7 @@ local function ResolveLivingCosts(run, living, period, place)
     ledger.livingExpense = expense
     run.money = run.money - expense
     local foodNeed = 0
-    for _, member in ipairs(living) do foodNeed = foodNeed + (member.age >= 18 and 2 or 1) end
+    for _, member in ipairs(living) do foodNeed = foodNeed + (State.IsAdult(member) and 2 or 1) end
     ledger.foodNeed = foodNeed; ledger.foodShortfall = math.max(0, foodNeed - run.grain)
     ledger.foodSatisfied = run.grain >= foodNeed
     if ledger.foodSatisfied then run.grain = run.grain - foodNeed else

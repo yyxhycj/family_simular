@@ -1,0 +1,25 @@
+{
+  "captured_at": "2026-09-17T11:39:20.644327+00:00",
+  "base_sha": "2044b86476265cdc8e609370d03ce0400031b2da",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "lupa": "2.6",
+  "lua": "Lua 5.4",
+  "layer": "production State and Simulation with disk-backed UrhoX File boundary; fresh VM restart",
+  "engine": false,
+  "real_device": false,
+  "sources": {
+    "scripts/Jiaye/App.lua": "33f3b070b3afddd5fbaded0b75973471283f5bbea2a6a965dcc36a2bc5ce848b",
+    "scripts/Jiaye/Data.lua": "65ac7636dc52410852ab6c8ecb3c49b571c7545c2d1434e91c0f563074aba127",
+    "scripts/Jiaye/Economy.lua": "35ec0c18505838a9d849a4f314703a77d73b31c03ba84fb778c739dc7630064d",
+    "scripts/Jiaye/Opening.lua": "41130bc62f6190e40e01c4011b956b0de492e58dc5a42351968b61a73b1a037c",
+    "scripts/Jiaye/OpeningView.lua": "f4b8052921671b6dd1cdcfbe97ec04d7b784ef07ca81734a9fca1fd36c7cd16e",
+    "scripts/Jiaye/Simulation.lua": "2e49a58957ca26f7611fdf3b8ec814f037100a18f950e5a68ed01af52755286e",
+    "scripts/Jiaye/State.lua": "72607c25c66080bb6f14223a433235fb545157f35a81d28ed0685b646b275041",
+    "tests/t10/README.md": "75d14689a622cf816dfc60496c564b37e9a196e5551374eaa7b28dae14c2ad3b",
+    "tests/t10/boundary.lua": "da1a52a2b8f47be9fb43e4043a06288aac4c122064125084da3d1e21ad279d2b",
+    "tests/t10/contract.lua": "c7ede4367d8afad7a344d6f1014b2e415d49030a478726cd7766427c66bdd78a",
+    "tests/t10/run.py": "9723e247127a4d08aa91f745afc1fd12f697dd04dd799f8f0993510ebd8a8145"
+  },
+  "passed": 5,
+  "failed": 0
+}
