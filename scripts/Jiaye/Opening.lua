@@ -71,7 +71,7 @@ local function giveName(member, family, pick)
 end
 
 local function configureMember(member, pick, roll)
-    member.avatarId = member.avatarId or ((member.age or 0) < 18 and (member.sex == "女" and "Jiaye/V7/girl.webp" or "Jiaye/V7/boy.webp") or (member.sex == "女" and "Jiaye/V7/young-woman.webp" or "Jiaye/V7/adult-man.webp"))
+    member.avatarId = member.avatarId or ((member.age or 0) < 18 and (member.sex == "女" and "Jiaye/V7/girl.png" or "Jiaye/V7/boy.png") or (member.sex == "女" and "Jiaye/V7/young-woman.png" or "Jiaye/V7/adult-man.png"))
     member.talent = roll(1, #Data.Talents)
     member.focus = pick({ "general", "learn", "skill", "medicine", "trade", "martial" })
     local experiences = {}

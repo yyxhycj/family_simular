@@ -13,17 +13,17 @@ V7.Colors = {
 }
 
 V7.Images = {
-    courtyard = "Jiaye/V7/courtyard.webp",
-    manor = "Jiaye/V7/manor.webp",
-    rural = "Jiaye/V7/rural.webp",
-    street = "Jiaye/V7/street.webp",
-    ruler = "Jiaye/V7/ruler.webp",
-    adultMan = "Jiaye/V7/adult-man.webp",
-    adultWoman = "Jiaye/V7/adult-woman.webp",
-    youngWoman = "Jiaye/V7/young-woman.webp",
-    elderMan = "Jiaye/V7/elder-man.webp",
-    boy = "Jiaye/V7/boy.webp",
-    girl = "Jiaye/V7/girl.webp",
+    courtyard = "Jiaye/V7/courtyard.png",
+    manor = "Jiaye/V7/manor.png",
+    rural = "Jiaye/V7/rural.png",
+    street = "Jiaye/V7/street.png",
+    ruler = "Jiaye/V7/ruler.png",
+    adultMan = "Jiaye/V7/adult-man.png",
+    adultWoman = "Jiaye/V7/adult-woman.png",
+    youngWoman = "Jiaye/V7/young-woman.png",
+    elderMan = "Jiaye/V7/elder-man.png",
+    boy = "Jiaye/V7/boy.png",
+    girl = "Jiaye/V7/girl.png",
 }
 
 function V7.HomeImage(homeId)
