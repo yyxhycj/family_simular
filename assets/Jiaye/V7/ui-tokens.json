@@ -1,0 +1,11 @@
+{
+  "purpose": "V7 visual implementation reference, not an UrhoX API schema",
+  "colors": {"paper":"#f7f0df","paperLight":"#fff9eb","ink":"#293f37","secondary":"#737466","primary":"#355c49","selected":"#e2e8d8","gold":"#a48b58","rule":"#d5c7a7","danger":"#a2533b"},
+  "type": {"pageTitle":29,"sheetTitle":23,"storyText":16,"controlText":15,"secondaryText":13,"metadata":11},
+  "spacing": {"pageInset":17,"sheetInset":19,"sectionGap":14,"inlineGap":8},
+  "touch": {"primaryHeight":48,"standardControlHeight":44,"smallMetadataTargetRequiresReview":true},
+  "geometry": {"portrait":51,"detailPortrait":90,"borderWidth":1,"primaryRadius":3,"largeSheetTopRadius":12},
+  "referenceViewports": [{"width":360,"height":780},{"width":390,"height":844},{"width":430,"height":900}],
+  "backgrounds": {"paperNoiseOpacity":0.095,"conceptCropsAreFinalAssets":false},
+  "rules": ["100 points shared by the entire draft","No five-page mandatory flow","No separately purchased opening family-habit","No meaningless focus choice","Origin contacts are not charged twice","Member experience is separate from current job","Only user-approved saves commit object edits","No resource-exhaustion automatic ending"]
+}

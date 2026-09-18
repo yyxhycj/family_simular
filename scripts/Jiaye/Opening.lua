@@ -71,6 +71,7 @@ local function giveName(member, family, pick)
 end
 
 local function configureMember(member, pick, roll)
+    member.avatarId = member.avatarId or ((member.age or 0) < 18 and (member.sex == "女" and "Jiaye/V7/girl.webp" or "Jiaye/V7/boy.webp") or (member.sex == "女" and "Jiaye/V7/young-woman.webp" or "Jiaye/V7/adult-man.webp"))
     member.talent = roll(1, #Data.Talents)
     member.focus = pick({ "general", "learn", "skill", "medicine", "trade", "martial" })
     local experiences = {}
@@ -136,7 +137,7 @@ function Opening.Generate(profile, seed, worldId)
     local source, roll, pick = randomSource(seed)
     for _ = 1, 512 do
         local draft = State.NewDraft()
-        draft.generatorVersion = 1; draft.family = pick(Data.Surnames); draft.members = {}
+        draft.generatorVersion = 2; draft.family = pick(Data.Surnames); draft.members = {}
         local function add(age, sourceName, parents)
             local member = { id = #draft.members + 1, age = age, sex = pick({ "男", "女" }),
                 parents = parents or {}, nameSource = sourceName }
@@ -162,6 +163,8 @@ function Opening.Generate(profile, seed, worldId)
         end
         draft.nextId = #draft.members + 1; draft.leaderId = leader.id
         for _, page in ipairs({ "world", "estate", "relics" }) do randomPage(draft, page, profile, roll, pick) end
+        draft.habitId = "none"
+        draft.tieId = "none"
         if #State.ValidateDraft(draft, profile, false) == 0 then
             draft.rngSeed = source.rngState
             draft.nameSeed = draft.rngSeed

@@ -4,14 +4,15 @@ local State = require "Jiaye.State"
 local Simulation = require "Jiaye.Simulation"
 local Opening = require "Jiaye.Opening"
 local OpeningView = require "Jiaye.OpeningView"
+local V7 = require "Jiaye.V7"
 
 local App = {}
 App.__index = App
 
 local C = {
-    paper = { 248, 247, 239, 255 }, card = { 255, 254, 248, 255 }, ink = { 35, 66, 53, 255 },
-    muted = { 95, 113, 102, 255 }, line = { 207, 216, 196, 255 }, green = { 53, 100, 77, 255 },
-    dark = { 38, 75, 58, 255 }, pale = { 228, 237, 215, 255 }, warning = { 174, 83, 59, 255 }, gold = { 157, 134, 96, 255 },
+    paper = V7.Colors.paper, card = V7.Colors.paperLight, ink = V7.Colors.ink,
+    muted = V7.Colors.secondary, line = V7.Colors.rule, green = V7.Colors.primary,
+    dark = { 38, 57, 48, 255 }, pale = V7.Colors.selected, warning = V7.Colors.danger, gold = V7.Colors.gold,
 }
 
 local ROUTE_GUIDANCE = {
@@ -72,8 +73,8 @@ local function MemberSeal(member, leader)
         width = 64, height = 64, borderRadius = 32, borderWidth = 2,
         borderColor = leader and C.green or C.gold,
         backgroundColor = leader and C.pale or { 247, 243, 230, 255 },
-        justifyContent = "center", alignItems = "center",
-        children = { Label(LastGlyph(member.name), { fontSize = 28, fontColor = leader and C.green or C.gold }) },
+        justifyContent = "center", alignItems = "center", overflow = "hidden",
+        children = { UI.Avatar { src = V7.AvatarId(member), name = member.name, size = 60, shape = "circle", showBorder = false } },
     }
 end
 
@@ -559,6 +560,7 @@ function App:ConfirmEventChoice(event, label, detail, choice)
         titleTextColor = C.ink, closeIconColor = C.muted, closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end }
     modal:AddContent(UI.Panel { padding = 14, gap = 13, children = {
         Label("家 族 事 件", { fontSize = 13, fontColor = C.muted, textAlign = "center" }),
+        UI.Panel { height = 132, backgroundImage = V7.EventImage(event.type), backgroundFit = "cover", borderWidth = 1, borderColor = C.gold },
         Label(event.title, { fontSize = 29, fontWeight = "bold", textAlign = "center", whiteSpace = "normal", lineHeight = 1.25 }),
         Card({
             UI.Row { gap = 11, alignItems = "center", children = {
@@ -916,7 +918,11 @@ function App:BuildFamilyMap()
             if parentNames ~= "未关联族人" then
                 table.insert(relationshipRows, UI.Panel { padding = 8, gap = 2, backgroundColor = C.paper, borderWidth = 1, borderColor = C.line, borderRadius = 7, children = {
                     Label("亲子 · 第 " .. tostring(generation) .. " 代", { fontSize = 11, fontColor = C.muted }),
-                    Label(parentNames .. "  →  " .. member.name, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal" }),
+                    UI.Row { gap = 6, alignItems = "center", children = {
+                        Label(parentNames, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal", flexShrink = 1 }),
+                        UI.Panel { width = 28, height = 1, backgroundColor = C.gold },
+                        Label(member.name, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal", flexShrink = 1 }),
+                    } },
                 } })
             end
             local spouse = member.spouseId and State.FindMember(self.run.members, member.spouseId)
@@ -926,7 +932,11 @@ function App:BuildFamilyMap()
                     married[pairId] = true
                     table.insert(relationshipRows, UI.Panel { padding = 8, gap = 2, backgroundColor = C.paper, borderWidth = 1, borderColor = C.line, borderRadius = 7, children = {
                         Label("婚配 · 第 " .. tostring(generation) .. " 代", { fontSize = 11, fontColor = C.muted }),
-                        Label(member.name .. "  ↔  " .. spouse.name, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal" }),
+                        UI.Row { gap = 6, alignItems = "center", children = {
+                            Label(member.name, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal", flexShrink = 1 }),
+                            UI.Panel { width = 28, height = 1, backgroundColor = C.gold },
+                            Label(spouse.name, { fontSize = 14, fontWeight = "bold", whiteSpace = "normal", flexShrink = 1 }),
+                        } },
                     } })
                 end
             end

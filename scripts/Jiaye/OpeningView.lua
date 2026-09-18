@@ -4,9 +4,10 @@ local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Opening = require "Jiaye.Opening"
 local Economy = require "Jiaye.Economy"
+local V7 = require "Jiaye.V7"
 local View = {}
-local C = { paper = {248,247,239,255}, card = {255,254,248,255}, ink = {35,66,53,255},
-    muted = {95,113,102,255}, line = {207,216,196,255}, green = {53,100,77,255}, pale = {228,237,215,255}, warning = {174,83,59,255}, gold = {157,134,96,255} }
+local C = { paper = V7.Colors.paper, card = V7.Colors.paperLight, ink = V7.Colors.ink,
+    muted = V7.Colors.secondary, line = V7.Colors.rule, green = V7.Colors.primary, pale = V7.Colors.selected, warning = V7.Colors.danger, gold = V7.Colors.gold }
 local function text(value, size, color)
     return UI.Label { text = value, fontSize = size or 15, fontColor = color or C.ink, whiteSpace = "normal", flexShrink = 0 }
 end
@@ -84,13 +85,17 @@ end
 local function memberTile(app, member)
     local job = Data.Jobs[member.jobId]
     local leader = member.id == app.draft.leaderId
-    return button(lastGlyph(member.name) .. "\n" .. member.name .. "\n" .. tostring(member.age) .. "岁 · " .. (job and job.name or "待安排"), function()
-        app:OpenDraftMember(member.id)
-    end, true, {
-        height = 108, fontSize = 13, textAlign = "center", paddingHorizontal = 4,
+    return UI.Button { text = "", onClick = function() app:OpenDraftMember(member.id) end,
+        height = 122, flex = 1, minWidth = 0, gap = 4, padding = 7, flexDirection = "column",
         backgroundColor = leader and C.pale or C.card, borderWidth = 1,
         borderColor = leader and {143,163,111,255} or C.line,
-    })
+        children = {
+            UI.Avatar { src = V7.AvatarId(member), name = member.name, size = 52, shape = "circle", showBorder = true, borderColor = leader and C.green or C.gold },
+            text(member.name, 13, C.ink),
+            text(tostring(member.age) .. "岁 · " .. (job and job.name or "待安排"), 11, C.muted),
+            leader and text("朱印 · 首任族长", 10, C.warning) or UI.Panel { width = 0, height = 0 },
+        },
+    }
 end
 
 function View.Summary(app)
@@ -110,6 +115,11 @@ function View.Summary(app)
         UI.Panel { padding = 13, backgroundColor = {239,243,231,255}, borderLeftWidth = 3, borderLeftColor = C.gold, borderRadius = 7, children = {
             text(Data.Origin(d.originId).desc, 17, C.ink),
         } },
+        UI.Panel { height = 142, backgroundImage = V7.HomeImage(d.homeId), backgroundFit = "cover", borderWidth = 1, borderColor = C.gold,
+            children = { UI.Panel { flex = 1, justifyContent = "flex-end", padding = 10, imageTint = {255,255,255,190}, children = {
+                text("家宅 · " .. Data.Home(d.homeId).name, 16, C.ink),
+            } } },
+        },
     }
     local metrics = {}
     for _, metric in ipairs({ {"现银", d.money .. " 两"}, {"存粮", d.grain .. " 石"}, {"田地", d.land .. " 亩"}, {"声望",run and tostring(run.reputation) or "待校验"} }) do
@@ -231,8 +241,7 @@ local function editor(app)
         for _, item in ipairs({{"workshop","木工作坊",Data.OpeningCosts.workshop},{"shop","小商铺",Data.OpeningCosts.shop}}) do
             local key=item[1]; table.insert(children,button((d[key] and "✓ " or "") .. item[2] .. " · " .. item[3] .. " 点",function() app:SetDraftField(page,key,not d[key]) end,not d[key]))
         end
-        choice("家风","habitId",options(Data.Habits),d.habitId,Data.Habit(d.habitId).desc)
-        choice("往来关系","tieId",options(Data.Ties),d.tieId,Data.Tie(d.tieId).desc)
+        table.insert(children, text("家风与旧识会在局内经历中形成，开局不单独购买。", 14, C.muted))
     elseif page=="relics" then table.insert(children,relicView(app,true))
     else
         table.insert(children,pointsView(app)); table.insert(children,ledgerView(app))
@@ -278,8 +287,6 @@ local function memberView(app)
     elseif app.memberSection=="skills" then
         local talents={}; for i,t in ipairs(Data.Talents) do table.insert(talents,{value=i,label=t.name .. " · " .. t.cost .. " 点"}) end
         table.insert(children,text("潜力资质")); table.insert(children,choose(talents,m.talent,function(v) change("talent",v) end))
-        local focuses={}; for _,id in ipairs({"general","learn","skill","medicine","trade","martial"}) do table.insert(focuses,{value=id,label=Data.FocusNames[id]}) end
-        table.insert(children,text("偏向 · 零点")); table.insert(children,choose(focuses,m.focus,function(v) change("focus",v) end))
         table.insert(children,text("已有本领"))
         local experiences=options(Data.Experiences)
         for i,item in ipairs(Data.Experiences) do experiences[i].disabled=m.age < Data.AgeRules.basicExperience and item.id~="none" or m.age < Data.AgeRules.adult and item.id~="none" and item.id~="basic" end
