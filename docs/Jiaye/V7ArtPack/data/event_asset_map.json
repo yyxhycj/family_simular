@@ -1,0 +1,148 @@
+{
+  "version": "1.0.0",
+  "reference": "V7 + history review 2540b6e; not a fresh review of main",
+  "routes": [
+    {
+      "eventType": "relic_resolution",
+      "relicId": "ruler",
+      "artId": "ruler",
+      "file": "assets/events/ruler.png",
+      "source": "assets/events/ruler.svg"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "book",
+      "artId": "book",
+      "file": "assets/events/book.png",
+      "source": "assets/events/book.svg"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "letter",
+      "artId": "letter",
+      "file": "assets/events/letter.png",
+      "source": "assets/events/letter.svg"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "plan",
+      "artId": "repair",
+      "file": "assets/events/repair.png",
+      "source": "assets/events/repair.svg"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "newbook",
+      "artId": "reunion",
+      "file": "assets/events/reunion.png",
+      "source": "assets/events/reunion.svg"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "jade",
+      "artId": "jade",
+      "file": "assets/events/jade.png",
+      "source": "assets/events/jade.svg"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "notes",
+      "artId": "medical",
+      "file": "assets/events/medical.png",
+      "source": "assets/events/medical.svg"
+    },
+    {
+      "eventType": "medical_find",
+      "artId": "medical",
+      "scope": "existing event type",
+      "file": "assets/events/medical.png",
+      "source": "assets/events/medical.svg"
+    },
+    {
+      "eventType": "notes_choice",
+      "artId": "medical",
+      "scope": "existing event type",
+      "file": "assets/events/medical.png",
+      "source": "assets/events/medical.svg"
+    },
+    {
+      "eventType": "plan_work",
+      "artId": "repair",
+      "scope": "existing event type",
+      "file": "assets/events/repair.png",
+      "source": "assets/events/repair.svg"
+    },
+    {
+      "eventType": "community_request",
+      "artId": "neighbors",
+      "scope": "existing event type",
+      "file": "assets/events/neighbors.png",
+      "source": "assets/events/neighbors.svg"
+    },
+    {
+      "eventType": "school",
+      "artId": "school",
+      "scope": "existing event type",
+      "file": "assets/events/school.png",
+      "source": "assets/events/school.svg"
+    },
+    {
+      "eventType": "roof",
+      "artId": "roof",
+      "scope": "existing event type",
+      "file": "assets/events/roof.png",
+      "source": "assets/events/roof.svg"
+    },
+    {
+      "eventType": "jade_search",
+      "artId": "jade",
+      "scope": "existing event type",
+      "file": "assets/events/jade.png",
+      "source": "assets/events/jade.svg"
+    },
+    {
+      "eventType": "leader",
+      "artId": "leadership",
+      "scope": "existing event type",
+      "file": "assets/events/leadership.png",
+      "source": "assets/events/leadership.svg"
+    },
+    {
+      "eventType": "migration",
+      "artId": "migration",
+      "scope": "fact/action display only",
+      "file": "assets/events/migration.png",
+      "source": "assets/events/migration.svg"
+    },
+    {
+      "eventType": "invite_branch",
+      "artId": "reunion",
+      "scope": "fact/action display only",
+      "file": "assets/events/reunion.png",
+      "source": "assets/events/reunion.svg"
+    },
+    {
+      "eventType": "growth",
+      "jobId": "doctor",
+      "artId": "medical",
+      "file": "assets/events/medical.png",
+      "source": "assets/events/medical.svg"
+    },
+    {
+      "eventType": "growth",
+      "jobId": "craft",
+      "artId": "repair",
+      "file": "assets/events/repair.png",
+      "source": "assets/events/repair.svg"
+    },
+    {
+      "eventType": "growth",
+      "artId": "school",
+      "scope": "generic visual fallback",
+      "file": "assets/events/school.png",
+      "source": "assets/events/school.svg"
+    }
+  ],
+  "unknownFallback": null,
+  "unknownBehavior": "plain paper and actual story text, not an unrelated picture"
+}

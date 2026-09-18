@@ -1,0 +1,49 @@
+{
+  "scope": "EXAMPLES ONLY; not the player save and not a fixed starting family",
+  "characters": [
+    {
+      "memberId": "sample-run-a:member-101",
+      "name": "顾砚舟",
+      "age": 42,
+      "sex": "男",
+      "role": "木匠／示例族长",
+      "artId": "portrait_m01",
+      "stage": "adult",
+      "avatar": "assets/characters/portrait_m01/adult_normal_256.png",
+      "detail": "assets/characters/portrait_m01/adult_detail.png"
+    },
+    {
+      "memberId": "sample-run-a:member-102",
+      "name": "闻素宁",
+      "age": 39,
+      "sex": "女",
+      "role": "医者／示例成员",
+      "artId": "portrait_f01",
+      "stage": "adult",
+      "avatar": "assets/characters/portrait_f01/adult_normal_256.png",
+      "detail": "assets/characters/portrait_f01/adult_detail.png"
+    },
+    {
+      "memberId": "sample-run-a:member-103",
+      "name": "顾知远",
+      "age": 20,
+      "sex": "男",
+      "role": "求学／示例成员",
+      "artId": "portrait_m02",
+      "stage": "young",
+      "avatar": "assets/characters/portrait_m02/young_normal_256.png",
+      "detail": "assets/characters/portrait_m02/young_detail.png"
+    },
+    {
+      "memberId": "sample-run-a:member-104",
+      "name": "顾清禾",
+      "age": 10,
+      "sex": "女",
+      "role": "启蒙／示例成员",
+      "artId": "portrait_f02",
+      "stage": "child",
+      "avatar": "assets/characters/portrait_f02/child_normal_256.png",
+      "detail": "assets/characters/portrait_f02/child_detail.png"
+    }
+  ]
+}

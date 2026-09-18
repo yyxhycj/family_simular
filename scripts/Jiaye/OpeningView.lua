@@ -14,8 +14,13 @@ end
 local function button(label, action, secondary, extra)
     local props = extra or {}
     props.text = label; props.onClick = action; props.height = props.height or 44; props.fontSize = 15
-    props.backgroundColor = secondary and C.pale or C.green; props.textColor = secondary and C.ink or {255,255,255,255}
-    props.borderRadius = 8; props.flexShrink = 0
+    local role = secondary and "secondary" or "primary"
+    props.backgroundImage = props.backgroundImage or V7.ButtonImage(role, "default")
+    props.pressedBackgroundImage = props.pressedBackgroundImage or V7.ButtonImage(role, "pressed")
+    props.disabledBackgroundImage = props.disabledBackgroundImage or V7.ButtonImage(role, "disabled")
+    props.backgroundFit = "sliced"; props.backgroundSlice = { 9, 9, 9, 9 }
+    props.textColor = secondary and C.ink or {255,255,255,255}
+    props.borderRadius = 3; props.flexShrink = 0
     return UI.Button(props)
 end
 local function panel(children, card)
@@ -144,7 +149,7 @@ function View.Summary(app)
     local firstRelic = d.selectedRelicIds[1] and Data.Relic(d.selectedRelicIds[1]) or nil
     table.insert(children, panel({
         UI.Row { gap = 12, alignItems = "center", children = {
-            UI.Panel { width = 58, height = 58, justifyContent = "center", alignItems = "center", backgroundColor = {244,239,222,255}, borderWidth = 2, borderColor = C.gold, children = { text(firstRelic and lastGlyph(firstRelic.name) or "物", 27, C.gold) } },
+            UI.Panel { width = 58, height = 58, justifyContent = "center", alignItems = "center", backgroundColor = {244,239,222,255}, borderWidth = 2, borderColor = C.gold, children = { UI.Panel { width = 44, height = 44, backgroundImage = firstRelic and V7.Art.Relic(firstRelic.id) or nil, backgroundFit = "contain", children = firstRelic and nil or { text("物", 27, C.gold) } } } },
             UI.Panel { flex = 1, minWidth = 0, children = { text(firstRelic and firstRelic.name or "本局未带入旧物", 20), text(relicSummary(app), 14, C.muted) } },
             button("›", function() app:OpenOpeningDetail("relics") end, true, { id = "opening-relic-detail", width = 42, height = 52, fontSize = 28 }),
         } },
@@ -378,7 +383,7 @@ function View.Build(app)
         } },
     }
     if app.previousDraft then table.insert(header,button("回原家谱",function() app:CancelNewRun() end,true)) end
-    return UI.Panel {width="100%",height="100%",backgroundColor=C.paper,children={
+    return UI.Panel {width="100%",height="100%",backgroundColor=C.paper,backgroundImage=V7.Images.paperTexture,backgroundImageOpacity=0.18,backgroundFit="cover",children={
         UI.Panel {padding=12,borderBottomWidth=1,borderBottomColor=C.line,flexShrink=0,children={row(header)}},
         UI.ScrollView {flexGrow=1,flexBasis=0,minHeight=0,padding=12,children={panel(body)}},
         UI.Panel {padding=12,gap=6,backgroundColor=C.card,flexShrink=0,borderTopWidth=1,borderTopColor=C.line,children=footer},

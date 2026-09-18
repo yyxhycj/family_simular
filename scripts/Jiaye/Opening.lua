@@ -1,6 +1,7 @@
 -- 开局命令只修改草案；渲染、预估、创建均不调用生成器。
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
+local Art = require "Jiaye.Art"
 local Opening = {}
 Opening.Fields = {
     world = { "worldId", "periodId", "calendar", "originId", "placeId" },
@@ -71,7 +72,6 @@ local function giveName(member, family, pick)
 end
 
 local function configureMember(member, pick, roll)
-    member.avatarId = member.avatarId or ((member.age or 0) < 18 and (member.sex == "女" and "Jiaye/V7/girl.png" or "Jiaye/V7/boy.png") or (member.sex == "女" and "Jiaye/V7/young-woman.png" or "Jiaye/V7/adult-man.png"))
     member.talent = roll(1, #Data.Talents)
     member.focus = pick({ "general", "learn", "skill", "medicine", "trade", "martial" })
     local experiences = {}
@@ -163,6 +163,8 @@ function Opening.Generate(profile, seed, worldId)
         end
         draft.nextId = #draft.members + 1; draft.leaderId = leader.id
         for _, page in ipairs({ "world", "estate", "relics" }) do randomPage(draft, page, profile, roll, pick) end
+        draft.rngSeed = source.rngState
+        for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed) end
         draft.habitId = "none"
         draft.tieId = "none"
         if #State.ValidateDraft(draft, profile, false) == 0 then

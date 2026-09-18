@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "colors": {
+    "paper": "#f7f0df",
+    "paperLight": "#fff9eb",
+    "ink": "#293f37",
+    "secondary": "#737466",
+    "primary": "#355c49",
+    "selected": "#e2e8d8",
+    "gold": "#a48b58",
+    "rule": "#d5c7a7",
+    "danger": "#a2533b",
+    "pressed": "#264738",
+    "disabledSurface": "#dfddcf",
+    "disabledInk": "#77796d"
+  },
+  "geometry": {
+    "border": 1,
+    "doubleFrameGap": 3,
+    "iconStrokeAt24": 1.65,
+    "buttonRadius": 3,
+    "panelRadius": 10,
+    "sheetTopRadius": 12,
+    "primaryHeight": 48,
+    "touchMin": 44,
+    "pageInset": 17,
+    "sectionGap": 14
+  },
+  "shadow": {
+    "color": "#142b21",
+    "opacity": 0.055,
+    "y": 2,
+    "blur": 6
+  },
+  "texture": {
+    "paper": "assets/textures/paper_subtle_512.png",
+    "paperOpacity": 1,
+    "alternativeAlpha": "assets/textures/paper_fiber_alpha_512.png",
+    "alternativeOpacity": 0.35,
+    "doNotStackAtFullStrength": true
+  },
+  "seal": {
+    "color": "#a2533b",
+    "displaySize": [
+      20,
+      28
+    ],
+    "symbol": "abstract house, no fixed surname baked in"
+  },
+  "fontFilesBundled": false,
+  "type": {
+    "title": 29,
+    "panelTitle": 23,
+    "body": 16,
+    "control": 15,
+    "secondary": 13,
+    "bodyLineHeight": 1.75
+  },
+  "bodyFallback": [
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "PingFang SC",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    "sans-serif"
+  ],
+  "headingFallback": [
+    "Songti SC",
+    "STSong",
+    "SimSun",
+    "serif"
+  ],
+  "alpha": "straight RGBA, sRGB",
+  "note": "V7 visual continuation; geometry and age-stage advice are not gameplay rules."
+}

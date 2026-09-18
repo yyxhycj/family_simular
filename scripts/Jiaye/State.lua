@@ -1,4 +1,5 @@
 local Data = require "Jiaye.Data"
+local Art = require "Jiaye.Art"
 ---@diagnostic disable: undefined-global -- UrhoX runtime injects File/fileSystem/cjson.
 
 local State = {}
@@ -24,10 +25,10 @@ function State.NewDraft()
         money = 80, grain = 24, land = 1, homeId = "simple", workshop = false, shop = false,
         selectedRelicIds = { "ruler" }, leaderId = 1, rngSeed = 72831, nextId = 5,
         members = {
-            { id = 1, name = "林成", sex = "男", age = 42, parents = {}, spouseId = 2, talent = 2, focus = "skill", experienceId = "craft", trait = "踏实", jobId = "craft" },
-            { id = 2, name = "许青", sex = "女", age = 40, parents = {}, spouseId = 1, talent = 2, focus = "general", experienceId = "basic", trait = "细致", jobId = "farm" },
-            { id = 3, name = "林芸", sex = "女", age = 18, parents = { 1, 2 }, spouseId = nil, talent = 3, focus = "medicine", experienceId = "none", trait = "仁厚", jobId = "medical" },
-            { id = 4, name = "林安", sex = "男", age = 10, parents = { 1, 2 }, spouseId = nil, talent = 3, focus = "learn", experienceId = "none", trait = "好奇", jobId = "study" },
+            { id = 1, name = "林成", sex = "男", age = 42, artId = "portrait_m01", parents = {}, spouseId = 2, talent = 2, focus = "skill", experienceId = "craft", trait = "踏实", jobId = "craft" },
+            { id = 2, name = "许青", sex = "女", age = 40, artId = "portrait_f01", parents = {}, spouseId = 1, talent = 2, focus = "general", experienceId = "basic", trait = "细致", jobId = "farm" },
+            { id = 3, name = "林芸", sex = "女", age = 18, artId = "portrait_f02", parents = { 1, 2 }, spouseId = nil, talent = 3, focus = "medicine", experienceId = "none", trait = "仁厚", jobId = "medical" },
+            { id = 4, name = "林安", sex = "男", age = 10, artId = "portrait_m02", parents = { 1, 2 }, spouseId = nil, talent = 3, focus = "learn", experienceId = "none", trait = "好奇", jobId = "study" },
         },
     }
 end
@@ -397,7 +398,8 @@ local function MapLegacyMember(member, family, runtime)
     if type(member) ~= "table" then return nil, "旧档成员结构无效。" end
     local mapped = {
         id = member.id, name = member.name, nameSource = member.nameSource or LegacyNameSource(family, member.name), sex = member.sex,
-        age = member.age, parents = State.Copy(member.parents or {}), spouseId = member.spouseId or member.spouse,
+        age = member.age, artId = member.artId, artVersion = member.artVersion, ageAtDeath = member.ageAtDeath, artStageAtDeath = member.artStageAtDeath,
+        parents = State.Copy(member.parents or {}), spouseId = member.spouseId or member.spouse,
         talent = member.talent, focus = member.focus, experienceId = member.experienceId or member.experience,
         trait = member.trait, jobId = member.jobId or member.job,
     }
@@ -625,12 +627,17 @@ local function NormalizeCurrentPayload(value)
         run.metrics = run.metrics or {}
         run.metrics.stable = run.metrics.stable or 0; run.metrics.foodYears = run.metrics.foodYears or 0
         run.metrics.aid = run.metrics.aid or 0; run.metrics.migrations = run.metrics.migrations or 0; run.metrics.lastMove = run.metrics.lastMove or 0
+        for _, member in ipairs(run.openingSnapshot.members or {}) do Art.Assign(member, run.runId or "run") end
         for _, member in ipairs(run.members or {}) do
+            Art.Assign(member, run.runId or "run")
             member.factIds = member.factIds or {}
             member.biography = member.biography or {}
             member.stats = member.stats or State.Copy((Data.Experience(member.experienceId) or Data.Experience("none")).values)
             member.jobYears = member.jobYears or {}
         end
+    end
+    if candidate.draft then
+        for _, member in ipairs(candidate.draft.members or {}) do Art.Assign(member, candidate.draft.rngSeed or "draft") end
     end
     return candidate
 end

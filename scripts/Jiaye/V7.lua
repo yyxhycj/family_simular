@@ -1,4 +1,5 @@
-local V7 = {}
+local Art = require "Jiaye.Art"
+local V7 = { Art = Art }
 
 V7.Colors = {
     paper = {247, 240, 223, 255},
@@ -10,43 +11,31 @@ V7.Colors = {
     gold = {164, 139, 88, 255},
     rule = {213, 199, 167, 255},
     danger = {162, 83, 59, 255},
+    pressed = {38, 71, 56, 255},
+    disabledSurface = {223, 221, 207, 255},
+    disabledInk = {119, 121, 109, 255},
 }
 
 V7.Images = {
-    courtyard = "Jiaye/V7/courtyard.png",
-    manor = "Jiaye/V7/manor.png",
-    rural = "Jiaye/V7/rural.png",
-    street = "Jiaye/V7/street.png",
-    ruler = "Jiaye/V7/ruler.png",
-    adultMan = "Jiaye/V7/adult-man.png",
-    adultWoman = "Jiaye/V7/adult-woman.png",
-    youngWoman = "Jiaye/V7/young-woman.png",
-    elderMan = "Jiaye/V7/elder-man.png",
-    boy = "Jiaye/V7/boy.png",
-    girl = "Jiaye/V7/girl.png",
+    paperTexture = Art.Texture("paper_subtle_512"),
+    paperFiber = Art.Texture("paper_fiber_alpha_512"),
+    seal = "Jiaye/V7/decor/seal_square.png",
 }
 
-function V7.HomeImage(homeId)
-    if homeId == "estate" then return V7.Images.manor end
-    if homeId == "courtyard" or homeId == "simple" then return V7.Images.courtyard end
-    return V7.Images.rural
+function V7.HomeImage(homeId, state)
+    return Art.House(homeId, state or "normal")
 end
 
 function V7.AvatarId(member)
-    if type(member) ~= "table" then return V7.Images.adultMan end
-    if type(member.avatarId) == "string" and member.avatarId ~= "" then return member.avatarId end
-    if (member.age or 0) >= 60 then return V7.Images.elderMan end
-    if (member.age or 0) < 18 then return member.sex == "女" and V7.Images.girl or V7.Images.boy end
-    if member.sex == "女" then
-        return (member.id or 0) % 2 == 0 and V7.Images.adultWoman or V7.Images.youngWoman
-    end
-    return V7.Images.adultMan
+    return Art.Portrait(member, "normal")
 end
 
-function V7.EventImage(eventType)
-    if eventType == "relic_resolution" or eventType == "plan_work" or eventType == "roof" then return V7.Images.ruler end
-    if eventType == "community_request" or eventType == "medical_find" then return V7.Images.rural end
-    return V7.Images.street
+function V7.EventImage(event, relicId)
+    return Art.Event(event, relicId)
+end
+
+function V7.ButtonImage(role, state)
+    return Art.Button(role, state)
 end
 
 return V7

@@ -1,0 +1,14 @@
+:root{
+ --jy-paper:#f7f0df;
+ --jy-paperLight:#fff9eb;
+ --jy-ink:#293f37;
+ --jy-secondary:#737466;
+ --jy-primary:#355c49;
+ --jy-selected:#e2e8d8;
+ --jy-gold:#a48b58;
+ --jy-rule:#d5c7a7;
+ --jy-danger:#a2533b;
+ --jy-pressed:#264738;
+ --jy-disabledSurface:#dfddcf;
+ --jy-disabledInk:#77796d;
+}

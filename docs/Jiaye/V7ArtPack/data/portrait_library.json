@@ -1,0 +1,229 @@
+{
+  "version": "1.0.0",
+  "artIds": {
+    "portrait_m01": {
+      "sexPresentation": "男",
+      "identityAnchors": "方下颌、平眉、右眼外侧小痣、青灰衣",
+      "stages": {
+        "infant": {
+          "detail": "assets/characters/portrait_m01/infant_detail.png",
+          "source": "assets/characters/portrait_m01/infant_detail.svg",
+          "detail_sick": "assets/characters/portrait_m01/infant_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m01/infant_detail_deceased.png",
+          "normal": "assets/characters/portrait_m01/infant_normal_256.png",
+          "sick": "assets/characters/portrait_m01/infant_sick_256.png",
+          "deceased": "assets/characters/portrait_m01/infant_deceased_256.png",
+          "selected": "assets/characters/portrait_m01/infant_selected_256.png"
+        },
+        "child": {
+          "detail": "assets/characters/portrait_m01/child_detail.png",
+          "source": "assets/characters/portrait_m01/child_detail.svg",
+          "detail_sick": "assets/characters/portrait_m01/child_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m01/child_detail_deceased.png",
+          "normal": "assets/characters/portrait_m01/child_normal_256.png",
+          "sick": "assets/characters/portrait_m01/child_sick_256.png",
+          "deceased": "assets/characters/portrait_m01/child_deceased_256.png",
+          "selected": "assets/characters/portrait_m01/child_selected_256.png"
+        },
+        "young": {
+          "detail": "assets/characters/portrait_m01/young_detail.png",
+          "source": "assets/characters/portrait_m01/young_detail.svg",
+          "detail_sick": "assets/characters/portrait_m01/young_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m01/young_detail_deceased.png",
+          "normal": "assets/characters/portrait_m01/young_normal_256.png",
+          "sick": "assets/characters/portrait_m01/young_sick_256.png",
+          "deceased": "assets/characters/portrait_m01/young_deceased_256.png",
+          "selected": "assets/characters/portrait_m01/young_selected_256.png"
+        },
+        "adult": {
+          "detail": "assets/characters/portrait_m01/adult_detail.png",
+          "source": "assets/characters/portrait_m01/adult_detail.svg",
+          "detail_sick": "assets/characters/portrait_m01/adult_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m01/adult_detail_deceased.png",
+          "normal": "assets/characters/portrait_m01/adult_normal_256.png",
+          "sick": "assets/characters/portrait_m01/adult_sick_256.png",
+          "deceased": "assets/characters/portrait_m01/adult_deceased_256.png",
+          "selected": "assets/characters/portrait_m01/adult_selected_256.png"
+        },
+        "elder": {
+          "detail": "assets/characters/portrait_m01/elder_detail.png",
+          "source": "assets/characters/portrait_m01/elder_detail.svg",
+          "detail_sick": "assets/characters/portrait_m01/elder_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m01/elder_detail_deceased.png",
+          "normal": "assets/characters/portrait_m01/elder_normal_256.png",
+          "sick": "assets/characters/portrait_m01/elder_sick_256.png",
+          "deceased": "assets/characters/portrait_m01/elder_deceased_256.png",
+          "selected": "assets/characters/portrait_m01/elder_selected_256.png"
+        }
+      }
+    },
+    "portrait_m02": {
+      "sexPresentation": "男",
+      "identityAnchors": "长椭圆脸、细长眼、左眉外挑、灰蓝衣",
+      "stages": {
+        "infant": {
+          "detail": "assets/characters/portrait_m02/infant_detail.png",
+          "source": "assets/characters/portrait_m02/infant_detail.svg",
+          "detail_sick": "assets/characters/portrait_m02/infant_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m02/infant_detail_deceased.png",
+          "normal": "assets/characters/portrait_m02/infant_normal_256.png",
+          "sick": "assets/characters/portrait_m02/infant_sick_256.png",
+          "deceased": "assets/characters/portrait_m02/infant_deceased_256.png",
+          "selected": "assets/characters/portrait_m02/infant_selected_256.png"
+        },
+        "child": {
+          "detail": "assets/characters/portrait_m02/child_detail.png",
+          "source": "assets/characters/portrait_m02/child_detail.svg",
+          "detail_sick": "assets/characters/portrait_m02/child_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m02/child_detail_deceased.png",
+          "normal": "assets/characters/portrait_m02/child_normal_256.png",
+          "sick": "assets/characters/portrait_m02/child_sick_256.png",
+          "deceased": "assets/characters/portrait_m02/child_deceased_256.png",
+          "selected": "assets/characters/portrait_m02/child_selected_256.png"
+        },
+        "young": {
+          "detail": "assets/characters/portrait_m02/young_detail.png",
+          "source": "assets/characters/portrait_m02/young_detail.svg",
+          "detail_sick": "assets/characters/portrait_m02/young_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m02/young_detail_deceased.png",
+          "normal": "assets/characters/portrait_m02/young_normal_256.png",
+          "sick": "assets/characters/portrait_m02/young_sick_256.png",
+          "deceased": "assets/characters/portrait_m02/young_deceased_256.png",
+          "selected": "assets/characters/portrait_m02/young_selected_256.png"
+        },
+        "adult": {
+          "detail": "assets/characters/portrait_m02/adult_detail.png",
+          "source": "assets/characters/portrait_m02/adult_detail.svg",
+          "detail_sick": "assets/characters/portrait_m02/adult_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m02/adult_detail_deceased.png",
+          "normal": "assets/characters/portrait_m02/adult_normal_256.png",
+          "sick": "assets/characters/portrait_m02/adult_sick_256.png",
+          "deceased": "assets/characters/portrait_m02/adult_deceased_256.png",
+          "selected": "assets/characters/portrait_m02/adult_selected_256.png"
+        },
+        "elder": {
+          "detail": "assets/characters/portrait_m02/elder_detail.png",
+          "source": "assets/characters/portrait_m02/elder_detail.svg",
+          "detail_sick": "assets/characters/portrait_m02/elder_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_m02/elder_detail_deceased.png",
+          "normal": "assets/characters/portrait_m02/elder_normal_256.png",
+          "sick": "assets/characters/portrait_m02/elder_sick_256.png",
+          "deceased": "assets/characters/portrait_m02/elder_deceased_256.png",
+          "selected": "assets/characters/portrait_m02/elder_selected_256.png"
+        }
+      }
+    },
+    "portrait_f01": {
+      "sexPresentation": "女",
+      "identityAnchors": "椭圆脸、弯眉、左耳青玉坠、素绿衣",
+      "stages": {
+        "infant": {
+          "detail": "assets/characters/portrait_f01/infant_detail.png",
+          "source": "assets/characters/portrait_f01/infant_detail.svg",
+          "detail_sick": "assets/characters/portrait_f01/infant_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f01/infant_detail_deceased.png",
+          "normal": "assets/characters/portrait_f01/infant_normal_256.png",
+          "sick": "assets/characters/portrait_f01/infant_sick_256.png",
+          "deceased": "assets/characters/portrait_f01/infant_deceased_256.png",
+          "selected": "assets/characters/portrait_f01/infant_selected_256.png"
+        },
+        "child": {
+          "detail": "assets/characters/portrait_f01/child_detail.png",
+          "source": "assets/characters/portrait_f01/child_detail.svg",
+          "detail_sick": "assets/characters/portrait_f01/child_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f01/child_detail_deceased.png",
+          "normal": "assets/characters/portrait_f01/child_normal_256.png",
+          "sick": "assets/characters/portrait_f01/child_sick_256.png",
+          "deceased": "assets/characters/portrait_f01/child_deceased_256.png",
+          "selected": "assets/characters/portrait_f01/child_selected_256.png"
+        },
+        "young": {
+          "detail": "assets/characters/portrait_f01/young_detail.png",
+          "source": "assets/characters/portrait_f01/young_detail.svg",
+          "detail_sick": "assets/characters/portrait_f01/young_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f01/young_detail_deceased.png",
+          "normal": "assets/characters/portrait_f01/young_normal_256.png",
+          "sick": "assets/characters/portrait_f01/young_sick_256.png",
+          "deceased": "assets/characters/portrait_f01/young_deceased_256.png",
+          "selected": "assets/characters/portrait_f01/young_selected_256.png"
+        },
+        "adult": {
+          "detail": "assets/characters/portrait_f01/adult_detail.png",
+          "source": "assets/characters/portrait_f01/adult_detail.svg",
+          "detail_sick": "assets/characters/portrait_f01/adult_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f01/adult_detail_deceased.png",
+          "normal": "assets/characters/portrait_f01/adult_normal_256.png",
+          "sick": "assets/characters/portrait_f01/adult_sick_256.png",
+          "deceased": "assets/characters/portrait_f01/adult_deceased_256.png",
+          "selected": "assets/characters/portrait_f01/adult_selected_256.png"
+        },
+        "elder": {
+          "detail": "assets/characters/portrait_f01/elder_detail.png",
+          "source": "assets/characters/portrait_f01/elder_detail.svg",
+          "detail_sick": "assets/characters/portrait_f01/elder_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f01/elder_detail_deceased.png",
+          "normal": "assets/characters/portrait_f01/elder_normal_256.png",
+          "sick": "assets/characters/portrait_f01/elder_sick_256.png",
+          "deceased": "assets/characters/portrait_f01/elder_deceased_256.png",
+          "selected": "assets/characters/portrait_f01/elder_selected_256.png"
+        }
+      }
+    },
+    "portrait_f02": {
+      "sexPresentation": "女",
+      "identityAnchors": "圆脸、额前碎发、米杏衣",
+      "stages": {
+        "infant": {
+          "detail": "assets/characters/portrait_f02/infant_detail.png",
+          "source": "assets/characters/portrait_f02/infant_detail.svg",
+          "detail_sick": "assets/characters/portrait_f02/infant_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f02/infant_detail_deceased.png",
+          "normal": "assets/characters/portrait_f02/infant_normal_256.png",
+          "sick": "assets/characters/portrait_f02/infant_sick_256.png",
+          "deceased": "assets/characters/portrait_f02/infant_deceased_256.png",
+          "selected": "assets/characters/portrait_f02/infant_selected_256.png"
+        },
+        "child": {
+          "detail": "assets/characters/portrait_f02/child_detail.png",
+          "source": "assets/characters/portrait_f02/child_detail.svg",
+          "detail_sick": "assets/characters/portrait_f02/child_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f02/child_detail_deceased.png",
+          "normal": "assets/characters/portrait_f02/child_normal_256.png",
+          "sick": "assets/characters/portrait_f02/child_sick_256.png",
+          "deceased": "assets/characters/portrait_f02/child_deceased_256.png",
+          "selected": "assets/characters/portrait_f02/child_selected_256.png"
+        },
+        "young": {
+          "detail": "assets/characters/portrait_f02/young_detail.png",
+          "source": "assets/characters/portrait_f02/young_detail.svg",
+          "detail_sick": "assets/characters/portrait_f02/young_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f02/young_detail_deceased.png",
+          "normal": "assets/characters/portrait_f02/young_normal_256.png",
+          "sick": "assets/characters/portrait_f02/young_sick_256.png",
+          "deceased": "assets/characters/portrait_f02/young_deceased_256.png",
+          "selected": "assets/characters/portrait_f02/young_selected_256.png"
+        },
+        "adult": {
+          "detail": "assets/characters/portrait_f02/adult_detail.png",
+          "source": "assets/characters/portrait_f02/adult_detail.svg",
+          "detail_sick": "assets/characters/portrait_f02/adult_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f02/adult_detail_deceased.png",
+          "normal": "assets/characters/portrait_f02/adult_normal_256.png",
+          "sick": "assets/characters/portrait_f02/adult_sick_256.png",
+          "deceased": "assets/characters/portrait_f02/adult_deceased_256.png",
+          "selected": "assets/characters/portrait_f02/adult_selected_256.png"
+        },
+        "elder": {
+          "detail": "assets/characters/portrait_f02/elder_detail.png",
+          "source": "assets/characters/portrait_f02/elder_detail.svg",
+          "detail_sick": "assets/characters/portrait_f02/elder_detail_sick.png",
+          "detail_deceased": "assets/characters/portrait_f02/elder_detail_deceased.png",
+          "normal": "assets/characters/portrait_f02/elder_normal_256.png",
+          "sick": "assets/characters/portrait_f02/elder_sick_256.png",
+          "deceased": "assets/characters/portrait_f02/elder_deceased_256.png",
+          "selected": "assets/characters/portrait_f02/elder_selected_256.png"
+        }
+      }
+    }
+  }
+}

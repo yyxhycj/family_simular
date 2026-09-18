@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "homes": {
+    "rented": {
+      "normal": "assets/houses/rented_normal.png",
+      "damaged": "assets/houses/rented_damaged.png",
+      "upgraded": "assets/houses/rented_upgraded.png",
+      "relocated": "assets/houses/rented_relocated.png"
+    },
+    "simple": {
+      "normal": "assets/houses/simple_normal.png",
+      "damaged": "assets/houses/simple_damaged.png",
+      "upgraded": "assets/houses/simple_upgraded.png",
+      "relocated": "assets/houses/simple_relocated.png"
+    },
+    "courtyard": {
+      "normal": "assets/houses/courtyard_normal.png",
+      "damaged": "assets/houses/courtyard_damaged.png",
+      "upgraded": "assets/houses/courtyard_upgraded.png",
+      "relocated": "assets/houses/courtyard_relocated.png"
+    },
+    "estate": {
+      "normal": "assets/houses/estate_normal.png",
+      "damaged": "assets/houses/estate_damaged.png",
+      "upgraded": "assets/houses/estate_upgraded.png",
+      "relocated": "assets/houses/estate_relocated.png"
+    }
+  }
+}

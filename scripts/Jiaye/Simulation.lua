@@ -1,6 +1,7 @@
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Economy = require "Jiaye.Economy"
+local Art = require "Jiaye.Art"
 
 local Simulation = {}
 
@@ -245,6 +246,7 @@ function Simulation.Marry(run, memberId)
     ---@type string[]
     local names = spouseSex == "男" and Data.GivenNames.male or Data.GivenNames.female
     local spouse = { id = spouseId, name = (spouseSex == "男" and "沈" or "顾") .. names[State.Random(run, 1, #names)], sex = spouseSex, age = math.max(Data.AgeRules.adult, member.age - State.Random(run, 0, 5)), parents = {}, spouseId = member.id, talent = 2, focus = "general", experienceId = "basic", trait = "安稳", jobId = "home", alive = true, health = 72, stats = State.Copy(Data.Experience("basic").values), jobYears = {}, biography = { "因婚配加入“" .. run.openingSnapshot.family .. "”家。" }, fertility = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false, generation = State.Generation(run.members, member.id) }
+    Art.Assign(spouse, run.runId)
     member.spouseId = spouseId; member.fertility = true; member.birthPlan = true; run.money = run.money - 12
     table.insert(run.members, spouse)
     State.AddFact(run, "marriage", member.name .. "与" .. spouse.name .. "成婚，新成员入谱。", { member.id, spouse.id })
@@ -259,6 +261,7 @@ function Simulation.Adopt(run, guardianId)
     if run.money < 8 then return false, "收养安置需要 8 两。" end
     local childId = NextMemberId(run)
     local child = { id = childId, name = run.openingSnapshot.family .. "小满", sex = State.Random(run, 0, 1) == 0 and "女" or "男", age = 6, parents = { guardian.id }, spouseId = nil, talent = 2, focus = "general", experienceId = "none", trait = "敏锐", jobId = "study", alive = true, health = 70, stats = State.Copy(Data.Experience("none").values), jobYears = {}, biography = { "大晟历 " .. tostring(run.calendar) .. " 年被收养，监护人为" .. guardian.name .. "。" }, adopted = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false, generation = State.Generation(run.members, guardian.id) + 1 }
+    Art.Assign(child, run.runId)
     run.money = run.money - 8; table.insert(run.members, child)
     State.AddFact(run, "adoption", guardian.name .. "收养了" .. child.name .. "，孩子获得与其他族人同等的成长和继任资格。", { guardian.id, child.id })
     return true, "收养已完成。"
@@ -368,6 +371,7 @@ function Simulation.InviteBranch(run, instanceId)
         hadHomeAfterGuard = false, generation = leader and leader.generation or 1,
         biography = { "因补完的族谱寻回旁支，于大晟历 " .. tostring(run.calendar) .. " 年归家。" }, branch = true,
     }
+    Art.Assign(member, run.runId)
     run.money = run.money - 12; run.flags.branchInvited = true; table.insert(run.members, member)
     State.AddFact(run, "relic", executor.name .. "依照补完的族谱寻回" .. member.name .. "，旁支正式归家。", { executor.id, member.id }, { action = "invite_branch", relicInstanceId = relic.instanceId })
     State.AddLog(run, member.name .. "作为成年旁支归家，名字被正式写回族谱。")
@@ -660,6 +664,7 @@ local function TryBirths(run)
                     generation = math.max(parent.generation or 1, spouse.generation or 1) + 1,
                     biography = { "大晟历 " .. tostring(run.calendar) .. " 年出生，亲长是" .. parent.name .. "与" .. spouse.name .. "。" },
                 }
+                Art.Assign(child, run.runId)
                 parent.lastBirthYear = run.yearIndex; spouse.lastBirthYear = run.yearIndex
                 table.insert(run.members, child)
                 State.AddFact(run, "birth", child.name .. "出生，家谱添了一页新名字。", { parent.id, spouse.id, child.id })

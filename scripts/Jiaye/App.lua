@@ -69,12 +69,13 @@ local function SectionTitle(title, detail)
 end
 
 local function MemberSeal(member, leader)
+    local portrait = V7.Art.Portrait(member, "normal", member.alive == false and "deceased" or (member.health and member.health < 35 and "sick" or nil))
     return UI.Panel {
         width = 64, height = 64, borderRadius = 32, borderWidth = 2,
         borderColor = leader and C.green or C.gold,
         backgroundColor = leader and C.pale or { 247, 243, 230, 255 },
         justifyContent = "center", alignItems = "center", overflow = "hidden",
-        children = { UI.Avatar { src = V7.AvatarId(member), name = member.name, size = 60, shape = "circle", showBorder = false } },
+        children = { UI.Avatar { src = portrait, name = member.name, size = 60, shape = "circle", showBorder = false } },
     }
 end
 
@@ -377,6 +378,7 @@ function App:AddMember()
     self.memberIsNew = true
     self.memberEditing = { id = id, name = self.draft.family .. "新", nameSource = "family", givenName = "新", sex = "女",
         age = 18, parents = {}, talent = 2, focus = "general", experienceId = "none", trait = "沉静", jobId = "farm" }
+    V7.Art.Assign(self.memberEditing, self.draft.rngSeed or "draft")
     self.memberLeader = self.draft.leaderId
     self.memberReturn = self.openingView
     self.memberSection = "base"; self.memberIssue = ""; self.removeConfirm = false; self.memberRemoving = false
@@ -556,29 +558,37 @@ end
 
 function App:ConfirmEventChoice(event, label, detail, choice)
     local participant = event.executorId and State.FindMember(self.run.members, event.executorId) or State.FindMember(self.run.members, event.memberId)
+    local relicId = nil
+    if event.relicInstanceId then
+        for _, instance in ipairs(self.run.relicInstances or {}) do
+            if instance.instanceId == event.relicInstanceId then relicId = instance.definitionId end
+        end
+    end
+    local eventImage = V7.EventImage(event, relicId)
+    local eventChildren = {
+        Label("家 族 事 件", { fontSize = 13, fontColor = C.muted, textAlign = "center" }),
+    }
+    if eventImage then table.insert(eventChildren, UI.Panel { height = 132, backgroundImage = eventImage, backgroundFit = "cover", borderWidth = 1, borderColor = C.gold }) end
+    table.insert(eventChildren, Label(event.title, { fontSize = 29, fontWeight = "bold", textAlign = "center", whiteSpace = "normal", lineHeight = 1.25 }))
+    table.insert(eventChildren, Card({
+        UI.Row { gap = 11, alignItems = "center", children = {
+            UI.Panel { width = 56, height = 56, justifyContent = "center", alignItems = "center", backgroundColor = {244,239,222,255}, borderWidth = 2, borderColor = C.gold, children = { UI.Panel { width = 32, height = 32, backgroundImage = V7.Art.Icon("info", "ink"), backgroundFit = "contain" } } },
+            UI.Panel { flex = 1, minWidth = 0, children = {
+                Label("来源 · " .. EventSourceText(event), { fontSize = 14, fontColor = C.muted }),
+                Label("参与人 · " .. (participant and participant.name or "全家"), { fontSize = 16, fontWeight = "bold" }),
+            } },
+        } },
+    }))
+    table.insert(eventChildren, Label(event.desc or "这件家事会随你的决定写入本局的年鉴与参与人的人生。", { fontSize = 16, whiteSpace = "normal", lineHeight = 1.6 }))
+    table.insert(eventChildren, Card({
+        Label("你准备这样决定", { fontSize = 13, fontColor = C.muted }),
+        Label(label, { fontSize = 21, fontWeight = "bold" }),
+        Label(detail, { fontSize = 15, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
+    }, { backgroundColor = C.pale, borderColor = {151,171,118,255} }))
+    table.insert(eventChildren, Label("确认前不会扣除费用，也不会改变任何安排。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }))
     local modal = UI.Modal { title = "家族事件", size = "fullscreen", backgroundColor = C.card, borderColor = C.line,
         titleTextColor = C.ink, closeIconColor = C.muted, closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end }
-    modal:AddContent(UI.Panel { padding = 14, gap = 13, children = {
-        Label("家 族 事 件", { fontSize = 13, fontColor = C.muted, textAlign = "center" }),
-        UI.Panel { height = 132, backgroundImage = V7.EventImage(event.type), backgroundFit = "cover", borderWidth = 1, borderColor = C.gold },
-        Label(event.title, { fontSize = 29, fontWeight = "bold", textAlign = "center", whiteSpace = "normal", lineHeight = 1.25 }),
-        Card({
-            UI.Row { gap = 11, alignItems = "center", children = {
-                UI.Panel { width = 56, height = 56, justifyContent = "center", alignItems = "center", backgroundColor = {244,239,222,255}, borderWidth = 2, borderColor = C.gold, children = { Label("事", { fontSize = 27, fontColor = C.gold }) } },
-                UI.Panel { flex = 1, minWidth = 0, children = {
-                    Label("来源 · " .. EventSourceText(event), { fontSize = 14, fontColor = C.muted }),
-                    Label("参与人 · " .. (participant and participant.name or "全家"), { fontSize = 16, fontWeight = "bold" }),
-                } },
-            } },
-        }),
-        Label(event.desc or "这件家事会随你的决定写入本局的年鉴与参与人的人生。", { fontSize = 16, whiteSpace = "normal", lineHeight = 1.6 }),
-        Card({
-            Label("你准备这样决定", { fontSize = 13, fontColor = C.muted }),
-            Label(label, { fontSize = 21, fontWeight = "bold" }),
-            Label(detail, { fontSize = 15, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
-        }, { backgroundColor = C.pale, borderColor = {151,171,118,255} }),
-        Label("确认前不会扣除费用，也不会改变任何安排。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-    } })
+    modal:AddContent(UI.Panel { padding = 14, gap = 13, children = eventChildren })
     modal:SetFooter(UI.Row { gap = 8, children = {
         Button("返回", function() modal:Close() end, { flex = 1, height = 48, backgroundColor = C.pale, textColor = C.green }),
         Button("确认这个决定", function()
@@ -710,9 +720,16 @@ function App:BuildOpening()
 end
 
 function App:BuildGameNav()
-    local tabs = { { id = "family", text = "⌂\n家族" }, { id = "people", text = "人\n族人" }, { id = "estate", text = "田\n家业" }, { id = "relics", text = "匣\n藏阁" }, { id = "history", text = "册\n家史" } }
+    local tabs = { { id = "family", text = "家族", icon = "family" }, { id = "people", text = "族人", icon = "people" }, { id = "estate", text = "家业", icon = "estate" }, { id = "relics", text = "藏阁", icon = "relics" }, { id = "history", text = "家史", icon = "history" } }
     local children = {}
-    for _, tab in ipairs(tabs) do table.insert(children, Button(tab.text, function() self.gameTab = tab.id; self:Render() end, { flex = 1, height = 58, fontSize = 12, backgroundColor = self.gameTab == tab.id and C.pale or C.card, textColor = self.gameTab == tab.id and C.green or C.muted, borderRadius = 7 })) end
+    for _, tab in ipairs(tabs) do
+        local active = self.gameTab == tab.id
+        table.insert(children, UI.Button { flex = 1, height = 58, padding = 4, gap = 2, flexDirection = "column", alignItems = "center", justifyContent = "center",
+            backgroundColor = active and C.pale or C.card, textColor = active and C.green or C.muted, borderRadius = 7,
+            onClick = function() self.gameTab = tab.id; self:Render() end,
+            children = { UI.Panel { width = 22, height = 22, backgroundImage = V7.Art.Icon(tab.icon, active and "ink" or "muted"), backgroundFit = "contain" }, Label(tab.text, { fontSize = 12, fontColor = active and C.green or C.muted }) },
+        })
+    end
     return UI.Panel { padding = 5, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = { UI.Row { gap = 3, children = children } } }
 end
 
@@ -1049,7 +1066,7 @@ function App:OpenRunMember(memberId)
     local function overview()
         body:AddChild(tabs())
         body:AddChild(UI.Panel { flexDirection = "row", gap = 14, alignItems = "center", children = {
-            MemberSeal(member, member.id == self.run.leaderId),
+            UI.Panel { width = 118, height = 118, backgroundImage = V7.Art.Portrait(member, "detail", member.alive == false and "deceased" or (member.health and member.health < 35 and "sick" or nil)), backgroundFit = "contain", borderWidth = 1, borderColor = C.gold },
             UI.Panel { flex = 1, minWidth = 0, children = {
                 Label(member.name, { fontSize = 29, fontWeight = "bold" }),
                 Label(member.sex .. " · " .. tostring(member.age) .. " 岁 · 第 " .. tostring(State.Generation(self.run.members, member.id)) .. " 代", { fontSize = 15, fontColor = C.muted }),
@@ -1549,7 +1566,7 @@ function App:BuildGame()
     local annualFooter = self:BuildAnnualFooter()
     if annualFooter then table.insert(children, annualFooter) end
     table.insert(children, self:BuildGameNav())
-    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, flexDirection = "column", children = children }
+    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, backgroundImage = V7.Images.paperTexture, backgroundImageOpacity = 0.18, backgroundFit = "cover", flexDirection = "column", children = children }
 end
 
 function App:Render()
@@ -1569,6 +1586,9 @@ function App:Render()
         width = "100%",
         height = "100%",
         backgroundColor = C.paper,
+        backgroundImage = V7.Images.paperTexture,
+        backgroundImageOpacity = 0.18,
+        backgroundFit = "cover",
         overflow = "hidden",
         flexDirection = "column",
         children = children,

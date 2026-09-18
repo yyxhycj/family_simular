@@ -1,0 +1,1355 @@
+{
+  "version": "1.0.0",
+  "roles": {
+    "primary": {
+      "default": {
+        "svg": "assets/ui/buttons/primary_default.svg",
+        "png": "assets/ui/buttons/primary_default@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": null
+      },
+      "pressed": {
+        "svg": "assets/ui/buttons/primary_pressed.svg",
+        "png": "assets/ui/buttons/primary_pressed@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": null
+      },
+      "selected": {
+        "svg": "assets/ui/buttons/primary_selected.svg",
+        "png": "assets/ui/buttons/primary_selected@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": "check"
+      },
+      "disabled": {
+        "svg": "assets/ui/buttons/primary_disabled.svg",
+        "png": "assets/ui/buttons/primary_disabled@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#77796d",
+        "glyph": null
+      },
+      "focus": {
+        "svg": "assets/ui/buttons/primary_focus.svg",
+        "png": "assets/ui/buttons/primary_focus@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": null
+      },
+      "confirm": {
+        "svg": "assets/ui/buttons/primary_confirm.svg",
+        "png": "assets/ui/buttons/primary_confirm@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": "check"
+      },
+      "busy": {
+        "svg": "assets/ui/buttons/primary_busy.svg",
+        "png": "assets/ui/buttons/primary_busy@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": "loading"
+      }
+    },
+    "secondary": {
+      "default": {
+        "svg": "assets/ui/buttons/secondary_default.svg",
+        "png": "assets/ui/buttons/secondary_default@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#293f37",
+        "glyph": null
+      },
+      "pressed": {
+        "svg": "assets/ui/buttons/secondary_pressed.svg",
+        "png": "assets/ui/buttons/secondary_pressed@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#293f37",
+        "glyph": null
+      },
+      "selected": {
+        "svg": "assets/ui/buttons/secondary_selected.svg",
+        "png": "assets/ui/buttons/secondary_selected@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#293f37",
+        "glyph": "check"
+      },
+      "disabled": {
+        "svg": "assets/ui/buttons/secondary_disabled.svg",
+        "png": "assets/ui/buttons/secondary_disabled@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#77796d",
+        "glyph": null
+      },
+      "focus": {
+        "svg": "assets/ui/buttons/secondary_focus.svg",
+        "png": "assets/ui/buttons/secondary_focus@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#293f37",
+        "glyph": null
+      },
+      "confirm": {
+        "svg": "assets/ui/buttons/secondary_confirm.svg",
+        "png": "assets/ui/buttons/secondary_confirm@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#293f37",
+        "glyph": "check"
+      },
+      "busy": {
+        "svg": "assets/ui/buttons/secondary_busy.svg",
+        "png": "assets/ui/buttons/secondary_busy@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#293f37",
+        "glyph": "loading"
+      }
+    },
+    "danger": {
+      "default": {
+        "svg": "assets/ui/buttons/danger_default.svg",
+        "png": "assets/ui/buttons/danger_default@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": null
+      },
+      "pressed": {
+        "svg": "assets/ui/buttons/danger_pressed.svg",
+        "png": "assets/ui/buttons/danger_pressed@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": null
+      },
+      "selected": {
+        "svg": "assets/ui/buttons/danger_selected.svg",
+        "png": "assets/ui/buttons/danger_selected@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": "check"
+      },
+      "disabled": {
+        "svg": "assets/ui/buttons/danger_disabled.svg",
+        "png": "assets/ui/buttons/danger_disabled@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#77796d",
+        "glyph": null
+      },
+      "focus": {
+        "svg": "assets/ui/buttons/danger_focus.svg",
+        "png": "assets/ui/buttons/danger_focus@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": null
+      },
+      "confirm": {
+        "svg": "assets/ui/buttons/danger_confirm.svg",
+        "png": "assets/ui/buttons/danger_confirm@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": "check"
+      },
+      "busy": {
+        "svg": "assets/ui/buttons/danger_busy.svg",
+        "png": "assets/ui/buttons/danger_busy@2x.png",
+        "svgViewBox": [
+          240,
+          96
+        ],
+        "pixelSize": [
+          480,
+          192
+        ],
+        "referenceLogicalSize": [
+          120,
+          48
+        ],
+        "nineSlicePixels": [
+          36,
+          36,
+          36,
+          36
+        ],
+        "logicalCornerSize": 9,
+        "textInsetLogical": [
+          19,
+          9,
+          19,
+          9
+        ],
+        "textColor": "#fff9eb",
+        "glyph": "loading"
+      }
+    }
+  },
+  "controls": {
+    "radio_default": {
+      "svg": "assets/ui/controls/radio_default.svg",
+      "png": "assets/ui/controls/radio_default@2x.png"
+    },
+    "checkbox_default": {
+      "svg": "assets/ui/controls/checkbox_default.svg",
+      "png": "assets/ui/controls/checkbox_default@2x.png"
+    },
+    "input_selected": {
+      "svg": "assets/ui/controls/input_selected.svg",
+      "png": "assets/ui/controls/input_selected@2x.png"
+    },
+    "toggle_disabled": {
+      "svg": "assets/ui/controls/toggle_disabled.svg",
+      "png": "assets/ui/controls/toggle_disabled@2x.png"
+    },
+    "checkbox_invalid": {
+      "svg": "assets/ui/controls/checkbox_invalid.svg",
+      "png": "assets/ui/controls/checkbox_invalid@2x.png"
+    },
+    "input_default": {
+      "svg": "assets/ui/controls/input_default.svg",
+      "png": "assets/ui/controls/input_default@2x.png"
+    },
+    "toggle_on": {
+      "svg": "assets/ui/controls/toggle_on.svg",
+      "png": "assets/ui/controls/toggle_on@2x.png"
+    },
+    "radio_selected": {
+      "svg": "assets/ui/controls/radio_selected.svg",
+      "png": "assets/ui/controls/radio_selected@2x.png"
+    },
+    "input_disabled": {
+      "svg": "assets/ui/controls/input_disabled.svg",
+      "png": "assets/ui/controls/input_disabled@2x.png"
+    },
+    "checkbox_disabled": {
+      "svg": "assets/ui/controls/checkbox_disabled.svg",
+      "png": "assets/ui/controls/checkbox_disabled@2x.png"
+    },
+    "toggle_off": {
+      "svg": "assets/ui/controls/toggle_off.svg",
+      "png": "assets/ui/controls/toggle_off@2x.png"
+    },
+    "radio_invalid": {
+      "svg": "assets/ui/controls/radio_invalid.svg",
+      "png": "assets/ui/controls/radio_invalid@2x.png"
+    },
+    "input_invalid": {
+      "svg": "assets/ui/controls/input_invalid.svg",
+      "png": "assets/ui/controls/input_invalid@2x.png"
+    },
+    "checkbox_selected": {
+      "svg": "assets/ui/controls/checkbox_selected.svg",
+      "png": "assets/ui/controls/checkbox_selected@2x.png"
+    },
+    "radio_disabled": {
+      "svg": "assets/ui/controls/radio_disabled.svg",
+      "png": "assets/ui/controls/radio_disabled@2x.png"
+    }
+  },
+  "icons": {
+    "family": {
+      "ink": {
+        "svg": "assets/icons/family_ink.svg",
+        "png24": "assets/icons/family_ink@1x.png",
+        "png48": "assets/icons/family_ink@2x.png",
+        "png72": "assets/icons/family_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/family_paper.svg",
+        "png24": "assets/icons/family_paper@1x.png",
+        "png48": "assets/icons/family_paper@2x.png",
+        "png72": "assets/icons/family_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/family_muted.svg",
+        "png24": "assets/icons/family_muted@1x.png",
+        "png48": "assets/icons/family_muted@2x.png",
+        "png72": "assets/icons/family_muted@3x.png"
+      }
+    },
+    "people": {
+      "ink": {
+        "svg": "assets/icons/people_ink.svg",
+        "png24": "assets/icons/people_ink@1x.png",
+        "png48": "assets/icons/people_ink@2x.png",
+        "png72": "assets/icons/people_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/people_paper.svg",
+        "png24": "assets/icons/people_paper@1x.png",
+        "png48": "assets/icons/people_paper@2x.png",
+        "png72": "assets/icons/people_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/people_muted.svg",
+        "png24": "assets/icons/people_muted@1x.png",
+        "png48": "assets/icons/people_muted@2x.png",
+        "png72": "assets/icons/people_muted@3x.png"
+      }
+    },
+    "estate": {
+      "ink": {
+        "svg": "assets/icons/estate_ink.svg",
+        "png24": "assets/icons/estate_ink@1x.png",
+        "png48": "assets/icons/estate_ink@2x.png",
+        "png72": "assets/icons/estate_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/estate_paper.svg",
+        "png24": "assets/icons/estate_paper@1x.png",
+        "png48": "assets/icons/estate_paper@2x.png",
+        "png72": "assets/icons/estate_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/estate_muted.svg",
+        "png24": "assets/icons/estate_muted@1x.png",
+        "png48": "assets/icons/estate_muted@2x.png",
+        "png72": "assets/icons/estate_muted@3x.png"
+      }
+    },
+    "relics": {
+      "ink": {
+        "svg": "assets/icons/relics_ink.svg",
+        "png24": "assets/icons/relics_ink@1x.png",
+        "png48": "assets/icons/relics_ink@2x.png",
+        "png72": "assets/icons/relics_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/relics_paper.svg",
+        "png24": "assets/icons/relics_paper@1x.png",
+        "png48": "assets/icons/relics_paper@2x.png",
+        "png72": "assets/icons/relics_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/relics_muted.svg",
+        "png24": "assets/icons/relics_muted@1x.png",
+        "png48": "assets/icons/relics_muted@2x.png",
+        "png72": "assets/icons/relics_muted@3x.png"
+      }
+    },
+    "history": {
+      "ink": {
+        "svg": "assets/icons/history_ink.svg",
+        "png24": "assets/icons/history_ink@1x.png",
+        "png48": "assets/icons/history_ink@2x.png",
+        "png72": "assets/icons/history_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/history_paper.svg",
+        "png24": "assets/icons/history_paper@1x.png",
+        "png48": "assets/icons/history_paper@2x.png",
+        "png72": "assets/icons/history_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/history_muted.svg",
+        "png24": "assets/icons/history_muted@1x.png",
+        "png48": "assets/icons/history_muted@2x.png",
+        "png72": "assets/icons/history_muted@3x.png"
+      }
+    },
+    "money": {
+      "ink": {
+        "svg": "assets/icons/money_ink.svg",
+        "png24": "assets/icons/money_ink@1x.png",
+        "png48": "assets/icons/money_ink@2x.png",
+        "png72": "assets/icons/money_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/money_paper.svg",
+        "png24": "assets/icons/money_paper@1x.png",
+        "png48": "assets/icons/money_paper@2x.png",
+        "png72": "assets/icons/money_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/money_muted.svg",
+        "png24": "assets/icons/money_muted@1x.png",
+        "png48": "assets/icons/money_muted@2x.png",
+        "png72": "assets/icons/money_muted@3x.png"
+      }
+    },
+    "grain": {
+      "ink": {
+        "svg": "assets/icons/grain_ink.svg",
+        "png24": "assets/icons/grain_ink@1x.png",
+        "png48": "assets/icons/grain_ink@2x.png",
+        "png72": "assets/icons/grain_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/grain_paper.svg",
+        "png24": "assets/icons/grain_paper@1x.png",
+        "png48": "assets/icons/grain_paper@2x.png",
+        "png72": "assets/icons/grain_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/grain_muted.svg",
+        "png24": "assets/icons/grain_muted@1x.png",
+        "png48": "assets/icons/grain_muted@2x.png",
+        "png72": "assets/icons/grain_muted@3x.png"
+      }
+    },
+    "land": {
+      "ink": {
+        "svg": "assets/icons/land_ink.svg",
+        "png24": "assets/icons/land_ink@1x.png",
+        "png48": "assets/icons/land_ink@2x.png",
+        "png72": "assets/icons/land_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/land_paper.svg",
+        "png24": "assets/icons/land_paper@1x.png",
+        "png48": "assets/icons/land_paper@2x.png",
+        "png72": "assets/icons/land_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/land_muted.svg",
+        "png24": "assets/icons/land_muted@1x.png",
+        "png48": "assets/icons/land_muted@2x.png",
+        "png72": "assets/icons/land_muted@3x.png"
+      }
+    },
+    "relationship": {
+      "ink": {
+        "svg": "assets/icons/relationship_ink.svg",
+        "png24": "assets/icons/relationship_ink@1x.png",
+        "png48": "assets/icons/relationship_ink@2x.png",
+        "png72": "assets/icons/relationship_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/relationship_paper.svg",
+        "png24": "assets/icons/relationship_paper@1x.png",
+        "png48": "assets/icons/relationship_paper@2x.png",
+        "png72": "assets/icons/relationship_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/relationship_muted.svg",
+        "png24": "assets/icons/relationship_muted@1x.png",
+        "png48": "assets/icons/relationship_muted@2x.png",
+        "png72": "assets/icons/relationship_muted@3x.png"
+      }
+    },
+    "lock": {
+      "ink": {
+        "svg": "assets/icons/lock_ink.svg",
+        "png24": "assets/icons/lock_ink@1x.png",
+        "png48": "assets/icons/lock_ink@2x.png",
+        "png72": "assets/icons/lock_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/lock_paper.svg",
+        "png24": "assets/icons/lock_paper@1x.png",
+        "png48": "assets/icons/lock_paper@2x.png",
+        "png72": "assets/icons/lock_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/lock_muted.svg",
+        "png24": "assets/icons/lock_muted@1x.png",
+        "png48": "assets/icons/lock_muted@2x.png",
+        "png72": "assets/icons/lock_muted@3x.png"
+      }
+    },
+    "unlock": {
+      "ink": {
+        "svg": "assets/icons/unlock_ink.svg",
+        "png24": "assets/icons/unlock_ink@1x.png",
+        "png48": "assets/icons/unlock_ink@2x.png",
+        "png72": "assets/icons/unlock_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/unlock_paper.svg",
+        "png24": "assets/icons/unlock_paper@1x.png",
+        "png48": "assets/icons/unlock_paper@2x.png",
+        "png72": "assets/icons/unlock_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/unlock_muted.svg",
+        "png24": "assets/icons/unlock_muted@1x.png",
+        "png48": "assets/icons/unlock_muted@2x.png",
+        "png72": "assets/icons/unlock_muted@3x.png"
+      }
+    },
+    "back": {
+      "ink": {
+        "svg": "assets/icons/back_ink.svg",
+        "png24": "assets/icons/back_ink@1x.png",
+        "png48": "assets/icons/back_ink@2x.png",
+        "png72": "assets/icons/back_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/back_paper.svg",
+        "png24": "assets/icons/back_paper@1x.png",
+        "png48": "assets/icons/back_paper@2x.png",
+        "png72": "assets/icons/back_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/back_muted.svg",
+        "png24": "assets/icons/back_muted@1x.png",
+        "png48": "assets/icons/back_muted@2x.png",
+        "png72": "assets/icons/back_muted@3x.png"
+      }
+    },
+    "forward": {
+      "ink": {
+        "svg": "assets/icons/forward_ink.svg",
+        "png24": "assets/icons/forward_ink@1x.png",
+        "png48": "assets/icons/forward_ink@2x.png",
+        "png72": "assets/icons/forward_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/forward_paper.svg",
+        "png24": "assets/icons/forward_paper@1x.png",
+        "png48": "assets/icons/forward_paper@2x.png",
+        "png72": "assets/icons/forward_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/forward_muted.svg",
+        "png24": "assets/icons/forward_muted@1x.png",
+        "png48": "assets/icons/forward_muted@2x.png",
+        "png72": "assets/icons/forward_muted@3x.png"
+      }
+    },
+    "random": {
+      "ink": {
+        "svg": "assets/icons/random_ink.svg",
+        "png24": "assets/icons/random_ink@1x.png",
+        "png48": "assets/icons/random_ink@2x.png",
+        "png72": "assets/icons/random_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/random_paper.svg",
+        "png24": "assets/icons/random_paper@1x.png",
+        "png48": "assets/icons/random_paper@2x.png",
+        "png72": "assets/icons/random_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/random_muted.svg",
+        "png24": "assets/icons/random_muted@1x.png",
+        "png48": "assets/icons/random_muted@2x.png",
+        "png72": "assets/icons/random_muted@3x.png"
+      }
+    },
+    "edit": {
+      "ink": {
+        "svg": "assets/icons/edit_ink.svg",
+        "png24": "assets/icons/edit_ink@1x.png",
+        "png48": "assets/icons/edit_ink@2x.png",
+        "png72": "assets/icons/edit_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/edit_paper.svg",
+        "png24": "assets/icons/edit_paper@1x.png",
+        "png48": "assets/icons/edit_paper@2x.png",
+        "png72": "assets/icons/edit_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/edit_muted.svg",
+        "png24": "assets/icons/edit_muted@1x.png",
+        "png48": "assets/icons/edit_muted@2x.png",
+        "png72": "assets/icons/edit_muted@3x.png"
+      }
+    },
+    "close": {
+      "ink": {
+        "svg": "assets/icons/close_ink.svg",
+        "png24": "assets/icons/close_ink@1x.png",
+        "png48": "assets/icons/close_ink@2x.png",
+        "png72": "assets/icons/close_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/close_paper.svg",
+        "png24": "assets/icons/close_paper@1x.png",
+        "png48": "assets/icons/close_paper@2x.png",
+        "png72": "assets/icons/close_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/close_muted.svg",
+        "png24": "assets/icons/close_muted@1x.png",
+        "png48": "assets/icons/close_muted@2x.png",
+        "png72": "assets/icons/close_muted@3x.png"
+      }
+    },
+    "check": {
+      "ink": {
+        "svg": "assets/icons/check_ink.svg",
+        "png24": "assets/icons/check_ink@1x.png",
+        "png48": "assets/icons/check_ink@2x.png",
+        "png72": "assets/icons/check_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/check_paper.svg",
+        "png24": "assets/icons/check_paper@1x.png",
+        "png48": "assets/icons/check_paper@2x.png",
+        "png72": "assets/icons/check_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/check_muted.svg",
+        "png24": "assets/icons/check_muted@1x.png",
+        "png48": "assets/icons/check_muted@2x.png",
+        "png72": "assets/icons/check_muted@3x.png"
+      }
+    },
+    "plus": {
+      "ink": {
+        "svg": "assets/icons/plus_ink.svg",
+        "png24": "assets/icons/plus_ink@1x.png",
+        "png48": "assets/icons/plus_ink@2x.png",
+        "png72": "assets/icons/plus_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/plus_paper.svg",
+        "png24": "assets/icons/plus_paper@1x.png",
+        "png48": "assets/icons/plus_paper@2x.png",
+        "png72": "assets/icons/plus_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/plus_muted.svg",
+        "png24": "assets/icons/plus_muted@1x.png",
+        "png48": "assets/icons/plus_muted@2x.png",
+        "png72": "assets/icons/plus_muted@3x.png"
+      }
+    },
+    "minus": {
+      "ink": {
+        "svg": "assets/icons/minus_ink.svg",
+        "png24": "assets/icons/minus_ink@1x.png",
+        "png48": "assets/icons/minus_ink@2x.png",
+        "png72": "assets/icons/minus_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/minus_paper.svg",
+        "png24": "assets/icons/minus_paper@1x.png",
+        "png48": "assets/icons/minus_paper@2x.png",
+        "png72": "assets/icons/minus_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/minus_muted.svg",
+        "png24": "assets/icons/minus_muted@1x.png",
+        "png48": "assets/icons/minus_muted@2x.png",
+        "png72": "assets/icons/minus_muted@3x.png"
+      }
+    },
+    "info": {
+      "ink": {
+        "svg": "assets/icons/info_ink.svg",
+        "png24": "assets/icons/info_ink@1x.png",
+        "png48": "assets/icons/info_ink@2x.png",
+        "png72": "assets/icons/info_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/info_paper.svg",
+        "png24": "assets/icons/info_paper@1x.png",
+        "png48": "assets/icons/info_paper@2x.png",
+        "png72": "assets/icons/info_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/info_muted.svg",
+        "png24": "assets/icons/info_muted@1x.png",
+        "png48": "assets/icons/info_muted@2x.png",
+        "png72": "assets/icons/info_muted@3x.png"
+      }
+    },
+    "warning": {
+      "ink": {
+        "svg": "assets/icons/warning_ink.svg",
+        "png24": "assets/icons/warning_ink@1x.png",
+        "png48": "assets/icons/warning_ink@2x.png",
+        "png72": "assets/icons/warning_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/warning_paper.svg",
+        "png24": "assets/icons/warning_paper@1x.png",
+        "png48": "assets/icons/warning_paper@2x.png",
+        "png72": "assets/icons/warning_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/warning_muted.svg",
+        "png24": "assets/icons/warning_muted@1x.png",
+        "png48": "assets/icons/warning_muted@2x.png",
+        "png72": "assets/icons/warning_muted@3x.png"
+      }
+    },
+    "year": {
+      "ink": {
+        "svg": "assets/icons/year_ink.svg",
+        "png24": "assets/icons/year_ink@1x.png",
+        "png48": "assets/icons/year_ink@2x.png",
+        "png72": "assets/icons/year_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/year_paper.svg",
+        "png24": "assets/icons/year_paper@1x.png",
+        "png48": "assets/icons/year_paper@2x.png",
+        "png72": "assets/icons/year_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/year_muted.svg",
+        "png24": "assets/icons/year_muted@1x.png",
+        "png48": "assets/icons/year_muted@2x.png",
+        "png72": "assets/icons/year_muted@3x.png"
+      }
+    },
+    "save": {
+      "ink": {
+        "svg": "assets/icons/save_ink.svg",
+        "png24": "assets/icons/save_ink@1x.png",
+        "png48": "assets/icons/save_ink@2x.png",
+        "png72": "assets/icons/save_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/save_paper.svg",
+        "png24": "assets/icons/save_paper@1x.png",
+        "png48": "assets/icons/save_paper@2x.png",
+        "png72": "assets/icons/save_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/save_muted.svg",
+        "png24": "assets/icons/save_muted@1x.png",
+        "png48": "assets/icons/save_muted@2x.png",
+        "png72": "assets/icons/save_muted@3x.png"
+      }
+    },
+    "search": {
+      "ink": {
+        "svg": "assets/icons/search_ink.svg",
+        "png24": "assets/icons/search_ink@1x.png",
+        "png48": "assets/icons/search_ink@2x.png",
+        "png72": "assets/icons/search_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/search_paper.svg",
+        "png24": "assets/icons/search_paper@1x.png",
+        "png48": "assets/icons/search_paper@2x.png",
+        "png72": "assets/icons/search_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/search_muted.svg",
+        "png24": "assets/icons/search_muted@1x.png",
+        "png48": "assets/icons/search_muted@2x.png",
+        "png72": "assets/icons/search_muted@3x.png"
+      }
+    },
+    "leader": {
+      "ink": {
+        "svg": "assets/icons/leader_ink.svg",
+        "png24": "assets/icons/leader_ink@1x.png",
+        "png48": "assets/icons/leader_ink@2x.png",
+        "png72": "assets/icons/leader_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/leader_paper.svg",
+        "png24": "assets/icons/leader_paper@1x.png",
+        "png48": "assets/icons/leader_paper@2x.png",
+        "png72": "assets/icons/leader_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/leader_muted.svg",
+        "png24": "assets/icons/leader_muted@1x.png",
+        "png48": "assets/icons/leader_muted@2x.png",
+        "png72": "assets/icons/leader_muted@3x.png"
+      }
+    },
+    "sick": {
+      "ink": {
+        "svg": "assets/icons/sick_ink.svg",
+        "png24": "assets/icons/sick_ink@1x.png",
+        "png48": "assets/icons/sick_ink@2x.png",
+        "png72": "assets/icons/sick_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/sick_paper.svg",
+        "png24": "assets/icons/sick_paper@1x.png",
+        "png48": "assets/icons/sick_paper@2x.png",
+        "png72": "assets/icons/sick_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/sick_muted.svg",
+        "png24": "assets/icons/sick_muted@1x.png",
+        "png48": "assets/icons/sick_muted@2x.png",
+        "png72": "assets/icons/sick_muted@3x.png"
+      }
+    },
+    "deceased": {
+      "ink": {
+        "svg": "assets/icons/deceased_ink.svg",
+        "png24": "assets/icons/deceased_ink@1x.png",
+        "png48": "assets/icons/deceased_ink@2x.png",
+        "png72": "assets/icons/deceased_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/deceased_paper.svg",
+        "png24": "assets/icons/deceased_paper@1x.png",
+        "png48": "assets/icons/deceased_paper@2x.png",
+        "png72": "assets/icons/deceased_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/deceased_muted.svg",
+        "png24": "assets/icons/deceased_muted@1x.png",
+        "png48": "assets/icons/deceased_muted@2x.png",
+        "png72": "assets/icons/deceased_muted@3x.png"
+      }
+    },
+    "house": {
+      "ink": {
+        "svg": "assets/icons/house_ink.svg",
+        "png24": "assets/icons/house_ink@1x.png",
+        "png48": "assets/icons/house_ink@2x.png",
+        "png72": "assets/icons/house_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/house_paper.svg",
+        "png24": "assets/icons/house_paper@1x.png",
+        "png48": "assets/icons/house_paper@2x.png",
+        "png72": "assets/icons/house_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/house_muted.svg",
+        "png24": "assets/icons/house_muted@1x.png",
+        "png48": "assets/icons/house_muted@2x.png",
+        "png72": "assets/icons/house_muted@3x.png"
+      }
+    },
+    "restore": {
+      "ink": {
+        "svg": "assets/icons/restore_ink.svg",
+        "png24": "assets/icons/restore_ink@1x.png",
+        "png48": "assets/icons/restore_ink@2x.png",
+        "png72": "assets/icons/restore_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/restore_paper.svg",
+        "png24": "assets/icons/restore_paper@1x.png",
+        "png48": "assets/icons/restore_paper@2x.png",
+        "png72": "assets/icons/restore_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/restore_muted.svg",
+        "png24": "assets/icons/restore_muted@1x.png",
+        "png48": "assets/icons/restore_muted@2x.png",
+        "png72": "assets/icons/restore_muted@3x.png"
+      }
+    },
+    "more": {
+      "ink": {
+        "svg": "assets/icons/more_ink.svg",
+        "png24": "assets/icons/more_ink@1x.png",
+        "png48": "assets/icons/more_ink@2x.png",
+        "png72": "assets/icons/more_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/more_paper.svg",
+        "png24": "assets/icons/more_paper@1x.png",
+        "png48": "assets/icons/more_paper@2x.png",
+        "png72": "assets/icons/more_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/more_muted.svg",
+        "png24": "assets/icons/more_muted@1x.png",
+        "png48": "assets/icons/more_muted@2x.png",
+        "png72": "assets/icons/more_muted@3x.png"
+      }
+    },
+    "loading": {
+      "ink": {
+        "svg": "assets/icons/loading_ink.svg",
+        "png24": "assets/icons/loading_ink@1x.png",
+        "png48": "assets/icons/loading_ink@2x.png",
+        "png72": "assets/icons/loading_ink@3x.png"
+      },
+      "paper": {
+        "svg": "assets/icons/loading_paper.svg",
+        "png24": "assets/icons/loading_paper@1x.png",
+        "png48": "assets/icons/loading_paper@2x.png",
+        "png72": "assets/icons/loading_paper@3x.png"
+      },
+      "muted": {
+        "svg": "assets/icons/loading_muted.svg",
+        "png24": "assets/icons/loading_muted@1x.png",
+        "png48": "assets/icons/loading_muted@2x.png",
+        "png72": "assets/icons/loading_muted@3x.png"
+      }
+    }
+  },
+  "statePriority": [
+    "disabled",
+    "busy",
+    "pressed",
+    "confirm",
+    "selected",
+    "default"
+  ],
+  "focus": "orthogonal overlay; do not hide focus on selected controls"
+}
