@@ -75,7 +75,10 @@ local function MemberSeal(member, leader)
         borderColor = leader and C.green or C.gold,
         backgroundColor = leader and C.pale or { 247, 243, 230, 255 },
         justifyContent = "center", alignItems = "center", overflow = "hidden",
-        children = { UI.Avatar { src = portrait, name = member.name, size = 60, shape = "circle", showBorder = false } },
+        children = {
+            UI.Avatar { src = portrait, name = member.name, size = 60, shape = "circle", showBorder = false },
+            leader and UI.Panel { position = "absolute", right = 0, bottom = 0, width = 24, height = 24, backgroundImage = V7.Art.LeaderOverlay(), backgroundFit = "contain" } or UI.Panel { width = 0, height = 0 },
+        },
     }
 end
 
@@ -1066,7 +1069,7 @@ function App:OpenRunMember(memberId)
     local function overview()
         body:AddChild(tabs())
         body:AddChild(UI.Panel { flexDirection = "row", gap = 14, alignItems = "center", children = {
-            UI.Panel { width = 118, height = 118, backgroundImage = V7.Art.Portrait(member, "detail", member.alive == false and "deceased" or (member.health and member.health < 35 and "sick" or nil)), backgroundFit = "contain", borderWidth = 1, borderColor = C.gold },
+            UI.Panel { width = 118, height = 118, backgroundImage = V7.Art.Portrait(member, "detail", member.alive == false and "deceased" or (member.health and member.health < 35 and "sick" or nil)), backgroundFit = "contain", borderWidth = 1, borderColor = C.gold, children = { member.id == self.run.leaderId and UI.Panel { position = "absolute", right = 2, bottom = 2, width = 28, height = 28, backgroundImage = V7.Art.LeaderOverlay(), backgroundFit = "contain" } or UI.Panel { width = 0, height = 0 } } },
             UI.Panel { flex = 1, minWidth = 0, children = {
                 Label(member.name, { fontSize = 29, fontWeight = "bold" }),
                 Label(member.sex .. " · " .. tostring(member.age) .. " 岁 · 第 " .. tostring(State.Generation(self.run.members, member.id)) .. " 代", { fontSize = 15, fontColor = C.muted }),

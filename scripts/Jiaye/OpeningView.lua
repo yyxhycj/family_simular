@@ -95,7 +95,10 @@ local function memberTile(app, member)
         backgroundColor = leader and C.pale or C.card, borderWidth = 1,
         borderColor = leader and {143,163,111,255} or C.line,
         children = {
-            UI.Avatar { src = V7.AvatarId(member), name = member.name, size = 52, shape = "circle", showBorder = true, borderColor = leader and C.green or C.gold },
+            UI.Panel { width = 52, height = 52, children = {
+                UI.Avatar { src = V7.AvatarId(member), name = member.name, size = 52, shape = "circle", showBorder = true, borderColor = leader and C.green or C.gold },
+                leader and UI.Panel { position = "absolute", right = 0, bottom = 0, width = 20, height = 20, backgroundImage = V7.Art.LeaderOverlay(), backgroundFit = "contain" } or UI.Panel { width = 0, height = 0 },
+            } },
             text(member.name, 13, C.ink),
             text(tostring(member.age) .. "岁 · " .. (job and job.name or "待安排"), 11, C.muted),
             leader and text("朱印 · 首任族长", 10, C.warning) or UI.Panel { width = 0, height = 0 },
