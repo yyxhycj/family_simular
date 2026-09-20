@@ -182,7 +182,33 @@ end
 
 function App:Export()
     local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
-    self:Notify(message, raw and "success" or "error")
+    if not raw then self:Notify(message, "error"); return end
+    local modal = UI.Modal { title = "导出家谱备份", size = "lg", closeOnOverlay = true }
+    local field = UI.TextField { value = raw, maxLength = 15000000, height = 44 }
+    modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal" }))
+    modal:AddContent(Label("下方是完整备份。可复制留存，之后通过“导入备份”恢复家谱与收藏。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    modal:AddContent(field)
+    modal:SetFooter(UI.Row { gap = 8, children = {
+        Button("复制备份", function()
+            ui.useSystemClipboard = true
+            ui:SetClipboardText(raw)
+            self:Notify("已复制家谱备份。", "success")
+        end, { flex = 1 }),
+        Button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
+    } })
+    modal:Open()
+end
+
+function App:OpenMenu()
+    local modal = UI.Modal { title = "家谱事务", size = "sm", closeOnOverlay = true }
+    modal:AddContent(UI.Panel { gap = 10, children = {
+        Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
+        Button("导出备份", function() modal:Close(); self:Export() end, { width = "100%", role = "secondary" }),
+        Button("导入备份", function() modal:Close(); self:OpenImport() end, { width = "100%", role = "secondary" }),
+        Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
+    } })
+    modal:SetFooter(Button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }))
+    modal:Open()
 end
 
 function App:OpenImport()
@@ -383,7 +409,7 @@ function App:BuildHeader(title, subtitle)
                 Label(title, { fontSize = 20 }),
                 Label(subtitle, { fontSize = 12, fontColor = C.muted }),
             } },
-            Button(self.unsaved and "重试保存" or "存档", function() self:Save() end, { width = self.unsaved and 84 or 58, height = 44, fontSize = 14, role = "secondary" }),
+            Button(self.unsaved and "重试保存" or "···", function() if self.unsaved then self:Save() else self:OpenMenu() end end, { width = self.unsaved and 84 or 44, height = 44, fontSize = 20, role = "secondary", paddingHorizontal = 0 }),
         },
     }
 end

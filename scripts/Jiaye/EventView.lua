@@ -204,7 +204,7 @@ local function participantBlock(run, event, onChange)
     local initial = fixed and fixed.id or candidates[1].id
     local participantLabel = Visual.Text("参与人 · " .. memberName(findMember(run, initial)), { fontSize = 14, fontColor = C.secondary })
     local dropdown = UI.Dropdown {
-        options = options, value = initial, height = 44, fontSize = 15,
+        options = options, value = initial, height = 44, fontSize = V7.Font(15),
         triggerBgColor = C.paperLight, borderColor = C.rule, openBorderColor = C.gold,
         onChange = function(_, value)
             local member = findMember(run, value)
@@ -400,7 +400,7 @@ function EventView.OpenRelic(app, instance)
     local executorOptions = {}
     for _, member in ipairs(adults) do table.insert(executorOptions, { value = member.id, label = memberName(member) }) end
     local executorDropdown = UI.Dropdown {
-        options = executorOptions, value = selectedExecutorId, height = 44, fontSize = 15,
+        options = executorOptions, value = selectedExecutorId, height = 44, fontSize = V7.Font(15),
         triggerBgColor = C.paperLight, borderColor = C.rule, openBorderColor = C.gold,
         onChange = function(_, value)
             selectedExecutorId = value

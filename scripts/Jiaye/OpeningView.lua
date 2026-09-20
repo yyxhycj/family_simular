@@ -54,14 +54,14 @@ end
 local function field(value, onChange, id)
     return UI.TextField {
         id = id, value = value or "", onChange = onChange, height = 44,
-        fontSize = 16, maxLength = 20, backgroundColor = C.card,
+        fontSize = V7.Font(16), maxLength = 20, backgroundColor = C.card,
         textColor = C.ink, borderColor = C.line,
     }
 end
 
 local function choose(items, value, onChange)
     return UI.Dropdown {
-        options = items, value = value, height = 44, fontSize = 15, maxVisibleItems = 6,
+        options = items, value = value, height = 44, fontSize = V7.Font(15), maxVisibleItems = 6,
         onChange = function(_, selected) onChange(selected) end,
     }
 end

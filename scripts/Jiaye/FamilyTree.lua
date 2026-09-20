@@ -92,9 +92,9 @@ function FamilyTree.Build(app)
         for _, member in ipairs(row.members) do
             local leader = member.id == app.run.leaderId
             local portrait = Visual.Portrait(member, { size = 52, leader = leader })
-            local tile = UI.Button { text = "", width = 72, height = 126, padding = 0, gap = 2,
+            local tile = UI.Panel { width = 72, height = 126, padding = 0, gap = 2,
                 backgroundColor = {0,0,0,0}, hoverBackgroundColor = {0,0,0,0}, pressedBackgroundColor = {0,0,0,0},
-                borderWidth = 0, borderRadius = 0, alignItems = "center", justifyContent = "flex-start",
+                borderWidth = 0, borderRadius = 0, alignItems = "center", justifyContent = "flex-start", pointerEvents = "box-only",
                 onClick = function() app:OpenRunMember(member.id) end,
                 children = {
                     portrait,

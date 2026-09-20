@@ -119,7 +119,7 @@ local function personActionModal(app, instance, kind)
     local options = {}
     for _, member in ipairs(candidates) do table.insert(options, { value = member.id, label = memberText(member) }) end
     local dropdown = UI.Dropdown {
-        options = options, value = selectedId, height = 44, fontSize = 15,
+        options = options, value = selectedId, height = 44, fontSize = V7.Font(15),
         triggerBgColor = C.paperLight, borderColor = C.rule, openBorderColor = C.gold,
         onChange = function(_, value)
             selectedId = value
@@ -145,7 +145,7 @@ local function executorActionModal(app, instance, title, detail, command, confir
     local options = {}
     for _, member in ipairs(candidates) do table.insert(options, { value = member.id, label = memberText(member) }) end
     local dropdown = UI.Dropdown {
-        options = options, value = selectedId, height = 44, fontSize = 15,
+        options = options, value = selectedId, height = 44, fontSize = V7.Font(15),
         triggerBgColor = C.paperLight, borderColor = C.rule, openBorderColor = C.gold,
         onChange = function(_, value)
             selectedId = value

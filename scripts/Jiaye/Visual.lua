@@ -79,7 +79,7 @@ function Visual.Theme()
         components = {
             Button = {
                 borderRadius = Tokens.buttonRadius, height = Tokens.primaryHeight,
-                fontSize = Tokens.control, fontWeight = "normal", borderWidth = 0,
+                fontSize = V7.Font(Tokens.control), fontWeight = "normal", borderWidth = 0,
                 paddingHorizontal = 19, paddingVertical = 9,
             },
             Card = {
@@ -87,18 +87,21 @@ function Visual.Theme()
                 boxShadow = { { x = 0, y = 2, blur = 6, color = { 20, 43, 33, 14 } } },
             },
             Modal = {
+                titleFontSize = V7.Font(Tokens.panelTitle),
                 backgroundColor = c.paperLight, borderColor = c.gold,
                 borderWidth = Tokens.border, borderRadius = Tokens.sheetTopRadius,
                 titleTextColor = c.ink, closeIconColor = c.ink,
                 headerBorderColor = c.rule, footerBorderColor = c.rule,
             },
             TextField = {
+                fontSize = V7.Font(16),
                 backgroundColor = c.paperLight, textColor = c.ink,
                 borderColor = c.rule, focusedBorderColor = c.gold,
                 focusedBgColor = c.selected,
                 borderWidth = Tokens.border, borderRadius = Tokens.buttonRadius,
             },
             Dropdown = {
+                fontSize = V7.Font(Tokens.control),
                 triggerBgColor = c.paperLight, textColor = c.ink,
                 borderColor = c.rule, openBorderColor = c.gold,
                 popupBgColor = c.paperLight, popupBorderColor = c.gold,
@@ -123,7 +126,7 @@ end
 function Visual.Text(text, props)
     local result = copyProps(props)
     result.text = text or ""
-    result.fontSize = result.fontSize or Tokens.body
+    result.fontSize = V7.Font(result.fontSize or Tokens.body)
     result.fontColor = result.fontColor or V7.Colors.ink
     return UI.Label(result)
 end
@@ -142,7 +145,7 @@ function Visual.Button(text, onClick, props)
     result.variant = role
     result.height = result.height or Tokens.primaryHeight
     result.minHeight = result.minHeight or Tokens.touchMin
-    result.fontSize = result.fontSize or Tokens.control
+    result.fontSize = V7.Font(result.fontSize or Tokens.control)
     result.borderRadius = result.borderRadius or Tokens.buttonRadius
     result.backgroundImage = result.backgroundImage or buttonImage(role, state)
     result.pressedBackgroundImage = result.pressedBackgroundImage or buttonImage(role, "pressed")
@@ -230,6 +233,7 @@ function Visual.Portrait(member, props)
     if result.leader then table.insert(children, UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundImage = requireAsset(V7.Art.LeaderOverlay(), "族长头像叠层未登记。"), backgroundFit = "contain", pointerEvents = "none" }) end
     result.width = result.width or size
     result.height = result.height or size
+    result.flexShrink = 0
     result.borderRadius = size / 2
     result.borderWidth = result.borderWidth or Tokens.border
     result.borderColor = result.borderColor or (result.leader and V7.Colors.primary or V7.Colors.gold)

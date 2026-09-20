@@ -1,6 +1,11 @@
 local Art = require "Jiaye.Art"
 local V7 = { Art = Art }
 
+-- 设计稿字号为逻辑 px，UrhoX 组件接收 pt；不改变布局尺寸与热区。
+function V7.Font(px)
+    return px * 72 / 96
+end
+
 V7.Tokens = {
     caption = 12, body = 16, control = 15, secondary = 13,
     label = 16, title = 29, panelTitle = 23, buttonText = 15,
