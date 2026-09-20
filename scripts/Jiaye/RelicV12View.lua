@@ -514,8 +514,8 @@ end
 local function evidenceText(run, value)
     local parts = {}
     local year = value.runYear or value.settledYear
-    if year then table.insert(parts, "经营第" .. tostring(year) .. "年") end
-    if not year and value.year then table.insert(parts, "大晟历" .. tostring(value.year) .. "年") end
+    if value.year then table.insert(parts, "大晟历" .. tostring(value.year) .. "年")
+    elseif year then table.insert(parts, "第" .. tostring(year) .. "个结算年度") end
     if value.text then table.insert(parts, value.text) end
     if value.memberId then
         local actor = member(run, value.memberId)
@@ -554,7 +554,7 @@ local function evidenceLines(run, instance)
     if formOf(instance).familyId == "genealogy" and claim and claim.candidate then
         local person = claim.candidate
         table.insert(candidate, person.name .. " · " .. person.sex .. " · 第" .. tostring(person.generation) .. "代")
-        table.insert(candidate, "经营第" .. tostring(person.discoveredRunYear) .. "年发现，当时" .. tostring(person.ageAtDiscovery) .. "岁。" .. person.generationEvidence)
+        table.insert(candidate, "已经营" .. tostring(person.discoveredRunYear) .. "年时发现，当时" .. tostring(person.ageAtDiscovery) .. "岁。" .. person.generationEvidence)
     end
     return history, useFacts, projectFacts, candidate
 end
@@ -613,8 +613,8 @@ local function detailContent(app, instance, tab, openTab)
         for _, line in ipairs(projectFacts) do table.insert(evidence, text(line, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 })) end
         table.insert(children, card({
             text("族史快照", { fontSize = 18, fontWeight = "bold" }),
-            text("来源 · " .. tostring(instance.source or "本局开局收藏"), { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }),
-            text("首次获得 · " .. (instance.acquiredRunYear and "经营第" .. tostring(instance.acquiredRunYear) .. "年" or "日期未记录"), { fontSize = 14, fontColor = C.secondary }),
+            text("来源 · " .. (instance.source == "opening" and "开局带入" or tostring(instance.source or "本局开局收藏")), { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }),
+            text("首次获得 · " .. (instance.acquiredRunYear == 0 and "开局时" or instance.acquiredRunYear and "已经营" .. tostring(instance.acquiredRunYear) .. "年时" or "日期未记录"), { fontSize = 14, fontColor = C.secondary }),
             UI.Panel { gap = 5, children = evidence },
             text("此处显示已写入家谱的事实、实际使用和项目依据；后续证明必须在行动接受时绑定。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 }),
         }))
