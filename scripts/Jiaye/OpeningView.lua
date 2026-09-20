@@ -130,7 +130,7 @@ function View.Summary(app)
         },
     }
     local metrics = {}
-    for _, metric in ipairs({ {"现银", d.money .. " 两"}, {"存粮", d.grain .. " 石"}, {"田地", d.land .. " 亩"}, {"声望",run and tostring(run.reputation) or "待校验"} }) do
+    for _, metric in ipairs({ {"现银", d.money .. " 两"}, {"存粮", d.grain .. " 石"}, {"田地", d.land .. " 亩"}, {"住宅", Data.Home(d.homeId).name} }) do
         table.insert(metrics, UI.Panel { height = 82, padding = 8, gap = 3, justifyContent = "center", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line,
             children = { text(metric[1],13,C.muted), text(metric[2],25,C.ink) } })
     end

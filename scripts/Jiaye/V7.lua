@@ -26,6 +26,14 @@ function V7.HomeImage(homeId, state)
     return Art.House(homeId, state or "normal")
 end
 
+function V7.HouseState(run)
+    if type(run) ~= "table" then return "normal" end
+    if run.homeState == "damaged" or run.homeState == "upgraded" or run.homeState == "relocated" then return run.homeState end
+    if run.flags and run.flags.houseDamaged then return "damaged" end
+    if run.metrics and (run.metrics.migrations or 0) > 0 then return "relocated" end
+    return "normal"
+end
+
 function V7.AvatarId(member)
     return Art.Portrait(member, "normal")
 end

@@ -102,6 +102,17 @@ local function MemberNames(run, memberIds)
     return #names > 0 and table.concat(names, "、") or "未关联族人"
 end
 
+local function EventArtwork(run, event)
+    local relicId = nil
+    if event.relicInstanceId then
+        for _, instance in ipairs(run.relicInstances or {}) do
+            if instance.instanceId == event.relicInstanceId then relicId = instance.definitionId end
+        end
+    end
+    local path = V7.EventImage(event, relicId)
+    return path and UI.Panel { height = 96, backgroundImage = path, backgroundFit = "cover", borderWidth = 1, borderColor = C.gold } or nil
+end
+
 local function MemberRelationText(run, member)
     local relations = {}
     if member.id == run.leaderId then table.insert(relations, "现任族长") end
@@ -737,8 +748,13 @@ function App:BuildGameNav()
 end
 
 function App:BuildPendingEvent(event)
+    local function eventCard(children, props)
+        local artwork = EventArtwork(self.run, event)
+        if artwork then table.insert(children, 1, artwork) end
+        return Card(children, props)
+    end
     if event.type == "legacy_pending" then
-        return Card({
+        return eventCard({
             Label(event.title or "旧版待决家事", { fontSize = 19, fontWeight = "bold" }),
             Label("这条家事由 V5 存档迁入。原始内容已保存在迁移记录中；确认后会写入现有家史，不会重复结算旧版费用或奖励。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.55 }),
             Button("确认并写入家史", function() self:ConfirmEventChoice(event, "确认迁入旧版家事", "处理结果：原始内容保留，当前家谱只追加一条迁移事实。", "acknowledge") end, { height = 44 }),
@@ -755,7 +771,7 @@ function App:BuildPendingEvent(event)
             self:ConfirmEventChoice(event, relic and relic.story.defer or "暂存线索", "处理结果：保留这条线索，暂不继续修复。", "defer")
         end, { flex = 1, backgroundColor = C.pale, textColor = C.green })
         local actions = UI.Row { gap = 8, children = { restore, defer } }
-        return Card({
+        return eventCard({
             Label(event.title, { fontSize = 19, fontWeight = "bold" }),
             Label("“" .. (relic and relic.name or "旧物") .. "”的调查到期。执行人：" .. (executor and executor.name or "待重新指定") .. "。选择会写入家史；解锁奖励只登记一次。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.6 }),
             actions,
@@ -763,13 +779,13 @@ function App:BuildPendingEvent(event)
     end
     if event.type == "leader" then
         local choices = {}; for _, member in ipairs(self.run.members) do if member.alive and State.IsAdult(member) then table.insert(choices, Button("任命 " .. member.name, function() self:ConfirmRunAction("确认继任 · " .. member.name, "参与人：" .. member.name .. "\n处理结果：开始新的族长任期，其他族人的主业保持原样。", function() return Simulation.ResolveLeaderEvent(self.run, event.instanceId, member.id) end, "确认任命") end, { height = 44 })) end end
-        return Card({ Label("族长之位空缺", { fontSize = 19, fontWeight = "bold" }), Label("家族仍可继续，但需要从在世成年族人中选任族长。", { fontSize = 14, whiteSpace = "normal" }), UI.Panel { gap = 6, children = choices } }, { borderColor = C.warning })
+        return eventCard({ Label("族长之位空缺", { fontSize = 19, fontWeight = "bold" }), Label("家族仍可继续，但需要从在世成年族人中选任族长。", { fontSize = 14, whiteSpace = "normal" }), UI.Panel { gap = 6, children = choices } }, { borderColor = C.warning })
     end
     if event.type == "growth" then
         local member = State.FindMember(self.run.members, event.memberId)
         local job = event.jobId and Data.Jobs[event.jobId] or nil
         local detail = member and (event.growthId == "promotion" and (member.name .. "已具备“" .. (job and job.name or "新岗位") .. "”资格。是否现在查看安排？岗位不会自动改变。") or (member.name .. "已经成年，可以由你决定接下来的安排。")) or "这条成长记录的族人已不在当前家谱中。"
-        return Card({
+        return eventCard({
             Label(event.title, { fontSize = 19, fontWeight = "bold" }), Label(detail, { fontSize = 14, whiteSpace = "normal", lineHeight = 1.55 }),
             UI.Row { gap = 8, children = {
                 Button("查看安排", function()
@@ -825,8 +841,8 @@ function App:BuildPendingEvent(event)
             Button("传给后人", function() self:ConfirmEventChoice(event, "确认传承", "结果：医案改为传承状态，保留给后人。", "pass") end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
         } }
     end
-    if actions then return Card({ Label(event.title, { fontSize = 19, fontWeight = "bold" }), Label(details[event.type] or "需要你的决定。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.55 }), actions }, { borderColor = C.green }) end
-    return Card({ Label(event.title, { fontSize = 18, fontWeight = "bold" }) })
+    if actions then return eventCard({ Label(event.title, { fontSize = 19, fontWeight = "bold" }), Label(details[event.type] or "需要你的决定。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.55 }), actions }, { borderColor = C.green }) end
+    return eventCard({ Label(event.title, { fontSize = 18, fontWeight = "bold" }) })
 end
 
 function App:BuildFamilyRoutes()
@@ -1304,6 +1320,7 @@ function App:BuildEstateTab()
     local grainQuote = self.run.ending and nil or Simulation.GrainPurchaseQuote(self.run, 2)
     local estateChildren = {
         Label("家业与公库", { fontSize = 21, fontWeight = "bold" }),
+        UI.Panel { height = 118, backgroundImage = V7.HomeImage(self.run.homeId, V7.HouseState(self.run)), backgroundFit = "cover", borderWidth = 1, borderColor = C.gold },
         Label("银 " .. tostring(self.run.money) .. " 两 · 粮 " .. tostring(self.run.grain) .. " 石 · 田 " .. tostring(self.run.land) .. " 亩", { fontSize = 16 }),
         Label("住宅：" .. Data.Home(self.run.homeId).name .. " · 落脚处：" .. Data.Place(self.run.placeId).short, { fontSize = 14, fontColor = C.muted }),
         Label("作坊：" .. workshopExpected .. " · 经营人：" .. (#craftNames > 0 and table.concat(craftNames, "、") or "待安排") .. "\n商铺：" .. shopExpected .. " · 经营人：" .. (#tradeNames > 0 and table.concat(tradeNames, "、") or "待安排") .. "\n" .. realized, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }),

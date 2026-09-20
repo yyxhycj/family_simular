@@ -275,7 +275,7 @@ function Simulation.MoveFamily(run, placeId)
     if run.placeId == placeId then return false, "家族已经在这里。" end
     local fee = 18 + place.cost * 2
     if run.money < fee then return false, "迁居需要 " .. tostring(fee) .. " 两安置费。" end
-    run.money = run.money - fee; run.placeId = placeId; run.metrics.migrations = run.metrics.migrations + 1; run.metrics.lastMove = run.yearIndex
+    run.money = run.money - fee; run.placeId = placeId; run.metrics.migrations = run.metrics.migrations + 1; run.metrics.lastMove = run.yearIndex; run.homeState = "relocated"
     State.AddFact(run, "migration", "全家迁居至" .. place.short .. "，花费 " .. tostring(fee) .. " 两。", {}, { placeId = placeId, fee = fee, migrationCount = run.metrics.migrations })
     return true, "迁居已记入家史。"
 end
@@ -600,11 +600,11 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
     if event.type == "roof" then
         if choice == "repair" then
             if run.money < 8 then return false, "修补屋顶需要 8 两。" end
-            event.status = "resolved"; run.money = run.money - 8; run.reputation = run.reputation + 2
+            event.status = "resolved"; run.money = run.money - 8; run.reputation = run.reputation + 2; run.homeState = "normal"; run.flags.houseDamaged = nil
             State.AddLog(run, "屋顶修补妥当，邻里也记下了这份踏实。")
             return true, "屋顶已修补，声望 +2。"
         end
-        event.status = "resolved"
+        event.status = "resolved"; run.homeState = "damaged"; run.flags.houseDamaged = true
         State.AddLog(run, "屋顶暂未修补，来年仍要留心。")
         return true, "已暂缓。"
     end
