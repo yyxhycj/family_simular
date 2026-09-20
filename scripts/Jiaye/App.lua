@@ -191,7 +191,7 @@ function App:Export()
 end
 
 function App:OpenMenu()
-    local modal = UI.Modal { title = "家谱事务", size = "sm", closeOnOverlay = true }
+    local modal = UI.Modal { title = "家谱事务", size = "fullscreen", closeOnOverlay = true }
     modal:AddContent(UI.Panel { gap = 10, children = {
         Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
         Button("导出备份", function() modal:Close(); self:Export() end, { width = "100%", role = "secondary" }),

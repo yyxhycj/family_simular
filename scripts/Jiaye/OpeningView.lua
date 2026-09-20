@@ -196,8 +196,8 @@ function View.Summary(app)
     local children = {
         row({
             UI.Panel { flex = 1, minWidth = 0, height = 44, justifyContent = "center", onClick = function() app:BeginOpeningEdit("name") end, children = { text(draft.family .. "氏家族", 25) } },
-            button("改名", function() app:BeginOpeningEdit("name") end, true, { width = 58, height = 44 }),
-            button("骰子", function() app:RandomFamilyName() end, true, { width = 58, height = 44 }),
+            UI.Panel { width = 44, height = 44, padding = 0, borderRadius = 0, alignItems = "center", justifyContent = "center", pointerEvents = "box-only", onClick = function() app:BeginOpeningEdit("name") end, children = { Visual.Icon("edit", 20) } },
+            UI.Panel { width = 44, height = 44, padding = 0, borderRadius = 0, alignItems = "center", justifyContent = "center", pointerEvents = "box-only", onClick = function() app:RandomFamilyName() end, children = { Visual.Icon("random", 20) } },
         }),
         row({
             button("历 " .. tostring(draft.calendar) .. " 年", function() app:BeginOpeningEdit("world") end, true, { flex = 1, height = 44, fontSize = 13, paddingHorizontal = 4 }),

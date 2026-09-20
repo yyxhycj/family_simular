@@ -56,7 +56,7 @@ local function BuildTabs(section, setSection)
     for _, item in ipairs(items) do
         local selected = section == item.id
         table.insert(buttons, UI.Panel {
-            flex = 1, height = 44, alignItems = "center", justifyContent = "center",
+            flex = 1, height = 44, alignItems = "center", justifyContent = "center", borderRadius = 0,
             borderBottomWidth = selected and 2 or 1, borderBottomColor = selected and C.primary or C.rule,
             backgroundColor = selected and C.selected or C.paperLight, pointerEvents = "box-only",
             onClick = function() setSection(item.id) end,

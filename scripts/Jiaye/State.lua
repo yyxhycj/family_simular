@@ -969,9 +969,18 @@ function State.PreflightImport(raw)
     candidate.importReceipt = ImportReceipt(raw)
     local valid, message = State.ValidateSavePayload(candidate)
     if not valid then return nil, "备份校验失败：" .. tostring(message or "结构校验失败。"), "invalid" end
-    local pending = candidate.run and #candidate.run.events or 0
-    local years = candidate.run and candidate.run.yearIndex or 0
-    return candidate, source .. "已通过结构、版本与引用校验：经营 " .. tostring(years) .. " 年，待决家事 " .. tostring(pending) .. " 件。确认后才会替换当前进度。", "ready"
+    local summary = candidate.draft.family .. "氏 · 尚未开局"
+    if candidate.run then
+        local run = candidate.run
+        local pending, living = 0, 0
+        for _, event in ipairs(run.events) do if event.status == "pending" then pending = pending + 1 end end
+        for _, member in ipairs(run.members) do if member.alive then living = living + 1 end end
+        summary = (run.openingSnapshot.family or candidate.draft.family) .. "氏 · 第 " .. tostring(run.yearIndex + 1) .. " 年"
+            .. "\n大晟历 " .. tostring(run.calendar) .. " 年 · 在世 " .. tostring(living) .. " 人"
+            .. "\n现银 " .. tostring(run.money) .. " 两 · 存粮 " .. tostring(run.grain) .. " 石"
+            .. "\n待决家事 " .. tostring(pending) .. " 件"
+    end
+    return candidate, source .. "已通过结构、版本与引用校验。\n" .. summary .. "\n确认后才会替换当前进度。", "ready"
 end
 
 function State.Import(raw)
