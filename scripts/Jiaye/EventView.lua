@@ -230,7 +230,7 @@ local function choiceRow(choice, selected, disabled, onClick)
         backgroundColor = disabled and C.disabledSurface or (selected and C.selected or C.paperLight),
         hoverBackgroundColor = disabled and C.disabledSurface or C.selected,
         pressedBackgroundColor = disabled and C.disabledSurface or C.rule,
-        onClick = disabled and nil or function() onClick() end,
+        onClick = not disabled and function() onClick() end or nil,
         children = { radio, UI.Panel { flexGrow = 1, gap = 3, children = { title, summary } } },
     }
     return { choice = choice, row = row, radio = radio, title = title, summary = summary, disabled = disabled }
@@ -442,17 +442,25 @@ function EventView.OpenRelic(app, instance)
         outcome:SetText(option.id == "pause" and "线索保留在当前阶段，之后可以恢复调查。" or "调查开始后，主业不会被改动；结果会在家史中留下等待。")
         for _, item in ipairs(buttons) do
             local active = item.option.id == option.id
-            item.row:SetStyle({ backgroundColor = active and C.selected or C.paperLight, borderColor = active and C.primary or C.rule, hoverBackgroundColor = C.selected, pressedBackgroundColor = C.rule })
-            item.radio:SetStyle({ backgroundColor = active and C.primary or C.paperLight, borderColor = active and C.primary or C.gold })
-            item.title:SetStyle({ fontWeight = active and "bold" or "normal", fontColor = C.ink })
-            item.summary:SetStyle({ fontColor = C.secondary })
+            item.row:SetStyle({
+                backgroundColor = item.disabled and C.disabledSurface or (active and C.selected or C.paperLight),
+                borderColor = item.disabled and C.rule or (active and C.primary or C.rule),
+                hoverBackgroundColor = item.disabled and C.disabledSurface or C.selected,
+                pressedBackgroundColor = item.disabled and C.disabledSurface or C.rule,
+            })
+            item.radio:SetStyle({
+                backgroundColor = item.disabled and C.disabledSurface or (active and C.primary or C.paperLight),
+                borderColor = item.disabled and C.rule or (active and C.primary or C.gold),
+            })
+            item.title:SetStyle({ fontWeight = active and "bold" or "normal", fontColor = item.disabled and C.disabledInk or C.ink })
+            item.summary:SetStyle({ fontColor = item.disabled and C.disabledInk or C.secondary })
         end
     end
     local choiceChildren = { Visual.Text("选择调查方式", { fontSize = 13, fontColor = C.secondary }) }
     for _, option in ipairs(options) do
         local disabled = option.id ~= "pause" and option.id ~= "resume" and requiredFunds(option) > (tonumber(run.money) or 0)
         local row = choiceRow(option, option == selected, disabled, function() select(option) end)
-        table.insert(buttons, { option = option, row = row.row, radio = row.radio, title = row.title, summary = row.summary })
+        table.insert(buttons, { option = option, row = row.row, radio = row.radio, title = row.title, summary = row.summary, disabled = disabled })
         table.insert(choiceChildren, row.row)
     end
     local submitted = false

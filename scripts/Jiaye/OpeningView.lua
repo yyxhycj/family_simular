@@ -21,7 +21,7 @@ local function text(value, size, color, extra)
     local props = extra or {}
     props.fontSize = size or props.fontSize or 15
     props.fontColor = color or props.fontColor or C.ink
-    props.whiteSpace = props.whiteSpace or "normal"
+    props.lineHeight = props.lineHeight or 1.05
     props.flexShrink = props.flexShrink or 0
     return Visual.Text(tostring(value or ""), props)
 end
@@ -162,11 +162,11 @@ local function memberTile(app, member)
     local leader = member.id == draft.leaderId
     return UI.Panel {
         onClick = function() app:OpenDraftMember(member.id) end,
-        height = 122, flex = 1, minWidth = 0, gap = 3, padding = 0,
+        height = 114, flex = 1, minWidth = 0, gap = 3, padding = 0,
         flexDirection = "column", alignItems = "center", backgroundColor = false,
         pointerEvents = "box-only",
         children = {
-            Visual.Portrait(member, { size = 58, leader = leader }),
+            Visual.Portrait(member, { size = 52, leader = leader }),
             text(member.name, 15, C.ink, { maxLines = 1, textAlign = "center" }),
             text(tostring(member.age) .. "岁 · 资质 " .. tostring(member.talent) .. "/5", 12, C.muted, { maxLines = 1, textAlign = "center" }),
             text(job and job.name or "待安排", 12, C.muted, { maxLines = 1, textAlign = "center" }),
@@ -194,7 +194,6 @@ function View.Summary(app)
     local adults = 0
     for _, member in ipairs(draft.members) do if State.IsAdult(member) then adults = adults + 1 end end
     local children = {
-        text("一家人的故事，从这里开始", 15, C.muted),
         row({
             UI.Panel { flex = 1, minWidth = 0, height = 44, justifyContent = "center", onClick = function() app:BeginOpeningEdit("name") end, children = { text(draft.family .. "氏家族", 25) } },
             button("改名", function() app:BeginOpeningEdit("name") end, true, { width = 58, height = 44 }),
@@ -205,15 +204,17 @@ function View.Summary(app)
             button(background and background.name or origin.name, function() app:BeginOpeningEdit("world") end, true, { flex = 1, height = 44, fontSize = 13, paddingHorizontal = 4 }),
             button(place.short, function() app:BeginOpeningEdit("world") end, true, { flex = 1, height = 44, fontSize = 13, paddingHorizontal = 4 }),
         }, { gap = 5 }),
-        UI.Panel { onClick = function() app:BeginOpeningEdit("estate") end, height = 110, padding = 0, backgroundColor = C.card, borderWidth = 1, borderColor = C.gold, children = {
-            Visual.House(draft.homeId, "normal", { width = "100%", height = 108 }),
+        UI.Panel { onClick = function() app:BeginOpeningEdit("estate") end, height = 100, padding = 0, backgroundColor = C.card, borderWidth = 1, borderColor = C.gold, children = {
+            Visual.House(draft.homeId, "normal", { width = "100%", height = 98 }),
+            UI.Panel { position = "absolute", bottom = 0, left = 0, right = 0, height = 22, paddingHorizontal = 6, backgroundColor = {247,240,223,230}, children = {
+                text((period and period.name or "") .. " · " .. (draft.workshop and "有作坊" or "无作坊") .. " · " .. (draft.shop and "有商铺" or "无商铺"), 12, C.muted),
+            } },
         } },
     }
     table.insert(children, UI.Panel { flexDirection = "row", height = 58, borderWidth = 1, borderColor = C.line, overflow = "hidden", onClick = function() app:BeginOpeningEdit("estate") end, children = {
         assetCell("现银", draft.money .. " 两"), assetCell("存粮", draft.grain .. " 石"),
         assetCell("田地", draft.land .. " 亩"), assetCell("住宅", Data.Home(draft.homeId).name),
     } })
-    table.insert(children, text((draft.workshop and "有木工作坊" or "无木工作坊") .. " · " .. (draft.shop and "有小商铺" or "无小商铺"), 12, C.muted))
     table.insert(children, sectionTitle("家中 " .. #draft.members .. " 人", adults .. " 成人 · " .. (#draft.members - adults) .. " 孩子", function() app:BeginOpeningEdit("people") end))
     local tiles = {}
     for index = 1, math.min(4, #draft.members) do table.insert(tiles, memberTile(app, draft.members[index])) end
@@ -226,7 +227,7 @@ function View.Summary(app)
         text("›", 22, C.muted),
     } })
     table.insert(children, row({ text("首年预计 · 不含突发", 14, C.muted), button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { flex = 1, height = 44, fontSize = 14 }) }))
-    return card(children)
+    return UI.Panel { gap = 3, padding = 0, children = children }
 end
 
 local function ledgerView(app)
@@ -427,7 +428,7 @@ function View.Build(app)
                 row({ Visual.Decor("seal_square", { width = 28, height = 28 }), text("家业", 20), text(view == "summary" and ("凡世王朝 · " .. Data.WORLD_NAME) or "开局草案", 12, C.muted) }, { alignItems = "center" }),
             } },
             UI.ScrollView { width = "100%", flexGrow = 1, flexBasis = 0, minHeight = 0, padding = 12, children = { contentPanel } },
-            UI.Panel { padding = 12, gap = 6, backgroundColor = C.card, flexShrink = 0, borderTopWidth = 1, borderTopColor = C.line, children = footer },
+            UI.Panel { padding = 6, gap = 6, backgroundColor = C.card, flexShrink = 0, borderTopWidth = 1, borderTopColor = C.line, children = footer },
         },
     }
 end

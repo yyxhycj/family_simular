@@ -125,7 +125,6 @@ function Visual.Text(text, props)
     result.text = text or ""
     result.fontSize = result.fontSize or Tokens.body
     result.fontColor = result.fontColor or V7.Colors.ink
-    result.whiteSpace = result.whiteSpace or "normal"
     return UI.Label(result)
 end
 
