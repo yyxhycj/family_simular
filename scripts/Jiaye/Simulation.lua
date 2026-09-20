@@ -466,6 +466,7 @@ function Simulation.StartRelicInvestigation(run, instanceId, route, memberId)
     if not instance or instance.status == "sold" then return false, "此物件不在家中。" end
     if instance.status == "investigating" then return false, "调查已经在进行。" end
     if instance.status == "awaiting_resolution" then return false, "线索已到，请先处理结果。" end
+    if instance.stage == "clue_saved" then return false, "已有暂存线索，请继续处理已有结果。" end
     if instance.rewardState == "granted" or instance.stage == "completed" then return false, "这件信物的故事已经完成。" end
     local definition = Data.Relic(instance.definitionId)
     if not definition.basic then return false, "这件信物有自己的后续入口。" end
@@ -503,6 +504,16 @@ function Simulation.ResumeRelicStory(run, instanceId)
     if closed then return false, message end
     local instance = RelicInstance(run, instanceId)
     if not instance or instance.status == "sold" then return false, "此物件不在家中。" end
+    local definition = Data.Relic(instance.definitionId)
+    if definition.basic and instance.stage == "clue_saved" then
+        local executor = LivingAdult(run, instance.executorId)
+        if not executor then return false, "需要重新指定一位在世成年人。" end
+        instance.status = "awaiting_resolution"; instance.dueYear = nil
+        local event = AddEvent(run, { type = "relic_resolution", relicInstanceId = instanceId, executorId = executor.id, title = definition.name .. "的暂存线索", blocking = true })
+        instance.pendingEventId = event.instanceId
+        AddRelicFact(run, instance, executor.name .. "重新翻开“" .. definition.name .. "”的已有线索。", { action = "resume_resolution", relicInstanceId = instanceId })
+        return true, "已有线索已继续，未再次扣费。"
+    end
     if instance.definitionId == "jade" then return Simulation.StartJadeSearch(run, instanceId) end
     if instance.definitionId == "notes" then
         local executor = LivingAdult(run, instance.executorId)
@@ -730,7 +741,7 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
         MarkEventResolved(event, choice, "结果已写入家史与藏阁。")
         return true, event.resolutionMessage
     end
-    instance.pendingEventId = nil; instance.status = "held"; instance.stage = eventChoice.result.reward == "deferred" and "clue_saved" or "clue_saved"
+    instance.pendingEventId = nil; instance.status = "held"; instance.stage = "clue_saved"
     MarkEventResolved(event, choice, "后续被保留在家史中。")
     AddRelicFact(run, instance, executor.name .. "选择“" .. (relic.story.defer or "暂存线索") .. "”。", { action = "defer", relicInstanceId = instance.instanceId })
     State.AddLog(run, "“" .. relic.name .. "”的线索被妥善保存，暂不继续修复。")

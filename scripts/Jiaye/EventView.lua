@@ -46,6 +46,20 @@ local function choiceList(run, event)
     end
     if type(event.choiceSchema) == "table" and #event.choiceSchema > 0 then return event.choiceSchema end
     if type(event.choices) == "table" and #event.choices > 0 then return event.choices end
+    if event.type == "relic_resolution" then
+        local relic = assert(Data.Relic(relicIdFor(run, event)), "信物结果缺少有效物件。")
+        local choices = State.Copy(Data.EventChoices.relic_resolution)
+        for _, choice in ipairs(choices) do
+            if choice.id == "restore" then
+                choice.label = relic.story.restore
+                choice.result.relicId = relic.unlock
+                choice.result.unlock = relic.unlock
+            else
+                choice.label = relic.story.defer
+            end
+        end
+        return choices
+    end
     if event.type == "legacy_pending" then return { { id = "acknowledge", label = "确认并写入家史", cost = 0, years = 0, result = { status = "recorded" } } } end
     return Data.EventChoices[event.type] or {}
 end
@@ -65,6 +79,7 @@ local function choiceQuote(choice)
         costText = cost > 0 and ("成本 " .. tostring(cost) .. " 两") or "不花钱"
     end
     local waitText = years > 0 and ("等待约 " .. tostring(years) .. " 年") or "当年见结果"
+    if choice.id == "pause" or (type(choice.result) == "table" and choice.result.reward == "deferred") then waitText = "日后仍可继续" end
     local parts = { costText }
     if type(choice.result) == "table" and tonumber(choice.result.money) and tonumber(choice.result.money) > 0 and requiredMoney > 0 then
         table.insert(parts, "结算净增" .. tostring(choice.result.money))
@@ -105,7 +120,7 @@ local function resultText(choice)
     if result.status == "deferred" then table.insert(lines, "线索暂存，之后仍可继续") end
     if result.status == "recorded" then table.insert(lines, "这次机会记入家史") end
     if result.status == "new_term" then table.insert(lines, "开始新的族长任期") end
-    if result.reward == "grant" then table.insert(lines, "登记一次后续奖励") end
+    if result.reward == "grant" and not result.relicId then table.insert(lines, "登记一次后续奖励") end
     if result.reward == "deferred" then table.insert(lines, "奖励暂缓，线索留存") end
     if #lines == 0 then return "处理结果会写入本局家史。" end
     return table.concat(lines, " · ")
@@ -402,6 +417,8 @@ function EventView.OpenRelic(app, instance)
     if instance.status == "awaiting_resolution" or instance.pendingEventId then
         if app.Notify then app:Notify("这件信物已有待决结果，请先处理家事卡。", "warning") end
         return nil
+    elseif instance.status == "held" and instance.stage == "clue_saved" then
+        options = { { id = "continue", label = "继续处理已找到的线索", cost = 0, years = 0, result = { stage = "awaiting_resolution" } } }
     elseif instance.status == "held" and (instance.stage == "paused" or instance.stage == "awaiting_executor") then
         options = { { id = "resume", label = "恢复调查", cost = 0, years = instance.remainingYears or 1, result = { stage = "investigating" } } }
     elseif instance.status == "investigating" then
@@ -468,6 +485,13 @@ function EventView.OpenRelic(app, instance)
                     if not assigned then return false, assignMessage end
                 end
                 return Simulation.ResumeRelicInvestigation(app.run, instance.instanceId)
+            end
+            if selected.id == "continue" then
+                if selectedExecutorId ~= current.executorId then
+                    local assigned, assignMessage = Simulation.AssignRelicExecutor(app.run, instance.instanceId, selectedExecutorId)
+                    if not assigned then return false, assignMessage end
+                end
+                return Simulation.ResumeRelicStory(app.run, instance.instanceId)
             end
             return Simulation.StartRelicInvestigation(app.run, instance.instanceId, selected.id, selectedExecutorId)
         end)

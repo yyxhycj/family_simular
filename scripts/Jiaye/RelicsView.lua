@@ -215,7 +215,8 @@ local function instanceCard(app, instance, relic)
         local awaitingResolution = instance.status == "awaiting_resolution" or (pending and pending.type == "relic_resolution")
         local hasReward = instance.rewardState == "granted" or instance.stage == "completed"
         if relic.basic and not hasReward and not awaitingResolution then
-            table.insert(actions, Visual.Button(investigating and "调整调查" or "开始调查", function() EventView.OpenRelic(app, instance) end, { height = 44 }))
+            local actionText = investigating and "调整调查" or (instance.stage == "clue_saved" and "继续线索" or "开始调查")
+            table.insert(actions, Visual.Button(actionText, function() EventView.OpenRelic(app, instance) end, { height = 44 }))
         end
         if pending then
             table.insert(actions, Visual.Button("处理这件家事", function() EventView.Open(app, pending) end, { role = "secondary", height = 44 }))
