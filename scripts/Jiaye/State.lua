@@ -308,8 +308,8 @@ function State.CanUseJob(member, jobId)
 end
 
 ---@return table?, string[]?
-function State.NewRun(draft, profile)
-    local issues = State.ValidateDraft(draft, profile, false)
+local function CreateRun(draft, profile, allowOverBudget)
+    local issues = State.ValidateDraft(draft, profile, allowOverBudget)
     if #issues > 0 then return nil, issues end
     local period, origin = Data.Period(draft.periodId), Data.Origin(draft.originId)
     local newRules = not UsesLegacyOpeningRules(draft)
@@ -368,6 +368,14 @@ function State.NewRun(draft, profile)
         firstTerm.factId = fact.id
     end
     return run, nil
+end
+
+function State.NewRun(draft, profile)
+    return CreateRun(draft, profile, false)
+end
+
+function State.PreviewRun(draft, profile)
+    return CreateRun(draft, profile, true)
 end
 
 function State.Random(run, min, max)

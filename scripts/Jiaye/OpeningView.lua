@@ -118,7 +118,7 @@ local function objectControls(app, page)
 end
 
 local function preview(app)
-    local run = State.NewRun(draftOf(app), app.profile)
+    local run = State.PreviewRun(draftOf(app), app.profile)
     return run and Economy.Preview(run) or nil
 end
 
@@ -389,7 +389,7 @@ function View.Build(app)
                 },
             },
             row({
-                button("↻ 换一家", function() app:ChangeHouse() end, true, { flex = 1, height = 48 }),
+                button("换一家", function() app:ChangeHouse() end, true, { flex = 1, height = 48 }),
                 button("就从这家开始  →", function() app:StartRun() end, false, { flex = 2, height = 48, disabled = #issues > 0 }),
             }),
         }

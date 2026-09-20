@@ -2,12 +2,17 @@
   "$schema": "../schemas/resources.schema.json",
 
   "preload_groups": [
-
+    "jiaye_v7_ui"
   ],
 
   "groups": {
     "default": [
       "**"
+    ],
+    "jiaye_v7_ui": [
+      "Jiaye/V7/ui/**",
+      "Jiaye/V7/characters/**",
+      "Jiaye/V7/icons/**"
     ]
   }
 }

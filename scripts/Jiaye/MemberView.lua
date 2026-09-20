@@ -11,7 +11,7 @@ local C = V7.Colors
 
 local function Text(value, props)
     props = props or {}
-    props.fontSize = math.max(15, props.fontSize or V7.Tokens.body)
+    props.fontSize = props.fontSize or V7.Tokens.body
     return Visual.Text(value, props)
 end
 
@@ -55,11 +55,15 @@ local function BuildTabs(section, setSection)
     local buttons = {}
     for _, item in ipairs(items) do
         local selected = section == item.id
-        table.insert(buttons, Button(item.text, function() setSection(item.id) end, {
-            flex = 1, height = 44, selected = selected, role = selected and "primary" or "secondary",
-        }))
+        table.insert(buttons, UI.Panel {
+            flex = 1, height = 44, alignItems = "center", justifyContent = "center",
+            borderBottomWidth = selected and 2 or 1, borderBottomColor = selected and C.primary or C.rule,
+            backgroundColor = selected and C.selected or C.paperLight, pointerEvents = "box-only",
+            onClick = function() setSection(item.id) end,
+            children = { Text(item.text, { fontSize = 15, fontColor = selected and C.ink or C.secondary }) },
+        })
     end
-    return UI.Row { gap = 6, children = buttons }
+    return UI.Row { gap = 0, children = buttons }
 end
 
 local function BuildStats(member)
@@ -72,11 +76,15 @@ local function BuildStats(member)
     local cards = {}
     for _, item in ipairs(values) do
         table.insert(cards, UI.Panel {
-            minHeight = 68, padding = 9, gap = 3,
-            backgroundColor = C.paperLight, borderWidth = 1, borderColor = C.rule,
+            height = 52, paddingHorizontal = 8, paddingVertical = 6, gap = 6,
+            flexDirection = "row", alignItems = "center", justifyContent = "space-between",
+            backgroundColor = C.paperLight, borderWidth = 1, borderColor = C.rule, borderRadius = 0,
             children = {
-                Text(item[1], { fontSize = 13, fontColor = C.secondary }),
-                Text(tostring(item[2]) .. "/100", { fontSize = 21, fontWeight = "bold" }),
+                Text(item[1], { fontSize = 12, fontColor = C.secondary }),
+                UI.Row { gap = 0, alignItems = "baseline", children = {
+                    Text(tostring(item[2]), { fontSize = 22 }),
+                    Text("/100", { fontSize = 10 }),
+                } },
             },
         })
     end
@@ -89,9 +97,8 @@ end
 local function BuildIdentity(app, member)
     local run = app.run
     local talent = Data.Talent(math.tointeger(member.talent) or 1)
-    local experience = Data.Experience(member.experienceId)
     local generation = State.Generation(run.members, member.id)
-    local status = member.alive and "在世" or "已故 · 生平可读"
+    local status = member.alive and (member.id == run.leaderId and "现任族长" or "在世") or "已故"
     return UI.Panel {
         gap = 10,
         children = {
@@ -99,7 +106,7 @@ local function BuildIdentity(app, member)
                 gap = 14, alignItems = "center",
                 children = {
                     Visual.Portrait(member, {
-                        size = 90, detail = true, deceased = not member.alive,
+                        size = 82, detail = true, deceased = not member.alive,
                         sick = member.alive and (member.health or 0) < 35,
                         leader = member.id == run.leaderId,
                     }),
@@ -107,12 +114,8 @@ local function BuildIdentity(app, member)
                         flex = 1, minWidth = 0, gap = 4,
                         children = {
                             Text(member.name, { fontSize = 25, fontWeight = "bold" }),
-                            Text(member.sex .. " · " .. tostring(member.age) .. " 岁 · 第 " .. tostring(generation) .. " 代", { fontSize = 15, fontColor = C.secondary }),
-                            Text(status, { fontSize = 14, fontColor = member.alive and C.primary or C.secondary }),
-                            Text(talent.name .. "资质 " .. tostring(member.talent or 1) .. "/5 · " .. (experience and experience.name or "尚未专精"), {
-                                fontSize = 13, fontColor = C.ink, backgroundColor = C.selected,
-                                borderWidth = 1, borderColor = C.rule, paddingHorizontal = 7, paddingVertical = 5,
-                            }),
+                            Text(member.sex .. " · " .. tostring(member.age) .. " 岁 · 第 " .. tostring(generation) .. " 代", { fontSize = 13, fontColor = C.secondary }),
+                            Text(talent.name .. " " .. tostring(member.talent or 1) .. "/5 · " .. status, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }),
                         },
                     },
                 },
@@ -126,36 +129,25 @@ local function BuildOverview(app, member, openArrangement)
     local spouse = member.spouseId and State.FindMember(run.members, member.spouseId)
     local currentJob = Data.Jobs[member.jobId]
     local experience = Data.Experience(member.experienceId)
+    local function detail(label, value, action)
+        return UI.Row { minHeight = action and 44 or 40, alignItems = "center", justifyContent = "space-between", gap = 12,
+            borderBottomWidth = 1, borderBottomColor = C.rule, pointerEvents = action and "box-only" or "auto", onClick = action,
+            children = { Text(label, { fontSize = 12, fontColor = C.secondary }), Text(value, { fontSize = 14, flex = 1, textAlign = "right" }) },
+        }
+    end
     return UI.Panel {
-        gap = 12,
+        gap = 0,
         children = {
-            Card({
-                Text(experience and experience.name or "眼前的本领", { fontSize = 18, fontWeight = "bold" }),
-                Text("资质决定起点，当前属性与年度安排分别记录在家谱中。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
-            }, { backgroundColor = C.selected }),
-            Text("当前属性", { fontSize = 18, fontWeight = "bold" }),
             BuildStats(member),
-            Card({
-                UI.Row { justifyContent = "space-between", children = {
-                    Text("父母 / 养亲", { fontSize = 14, fontColor = C.secondary }),
-                    Text(MemberNames(run, member.parents), { fontSize = 15, fontWeight = "bold" }),
-                } },
-                UI.Row { justifyContent = "space-between", children = {
-                    Text("配偶", { fontSize = 14, fontColor = C.secondary }),
-                    Text(spouse and spouse.name or "未婚", { fontSize = 15, fontWeight = "bold" }),
-                } },
-            }, { gap = 11 }),
-            Card({
-                Text("性格与本领", { fontSize = 18, fontWeight = "bold" }),
-                Text("性格：" .. tostring(member.trait or "未记录") .. " · 经历：" .. (experience and experience.name or "尚未专精"), { fontSize = 15, fontColor = C.secondary, whiteSpace = "normal" }),
-            }, { backgroundColor = C.selected }),
-            Card({
-                Text(member.alive and (currentJob and currentJob.name or "未安排") or "生平已封存", { fontSize = 18, fontWeight = "bold" }),
-                Text(member.alive and (currentJob and currentJob.desc or "当前没有可显示的安排。") or "关系、事实和人生记录仍可查阅。", {
-                    fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45,
-                }),
-                member.alive and not run.ending and Button("调整安排", openArrangement, { height = 44, role = "secondary" }) or Text(run.ending and "本局已落笔，安排已封存。" or "已故成员不再安排新的主业。", { fontSize = 13, fontColor = C.secondary }),
-            }),
+            detail("当前安排", member.alive and (currentJob and currentJob.name or "未安排") or "生平已封存", openArrangement),
+            detail("家长", MemberNames(run, member.parents)),
+            detail("配偶", spouse and spouse.name or "未婚"),
+            UI.Panel { marginTop = 12, padding = 12, gap = 6, backgroundColor = C.selected,
+                borderLeftWidth = 2, borderLeftColor = C.gold, children = {
+                    Text("性格：" .. tostring(member.trait or "未记录") .. " · 已有本领：" .. (experience and experience.name or "尚未专精"), { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }),
+                    Text(member.alive and (currentJob and currentJob.desc or "当前没有安排。") or "关系、事实和人生记录仍可查阅。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
+                },
+            },
         },
     }
 end
@@ -305,12 +297,12 @@ function MemberView.Open(app, memberId)
     local lifePage = app.memberLifePages[memberId] or 1
     local section = "overview"
     local body = UI.Panel { gap = 11, children = {} }
-    local viewHeight = math.max(100, UI.GetHeight() * 0.9 - 184)
+    local viewHeight = math.max(100, UI.GetHeight() * 0.9 - 144)
     local scroll = UI.ScrollView { height = viewHeight, padding = 14, children = { body } }
-    local paper = Visual.Paper({ scroll }, { padding = 5 })
     local modal = UI.Modal {
         title = "一个人的一生", size = "fullscreen", backgroundColor = C.paper,
         contentBgColor = C.paper, borderColor = C.rule, titleTextColor = C.ink,
+        contentPadding = 0,
         closeIconColor = C.secondary, closeOnOverlay = true,
         onClose = function(selfModal) selfModal:Destroy() end,
     }
@@ -338,7 +330,7 @@ function MemberView.Open(app, memberId)
         end
     end
 
-    modal:AddContent(paper)
+    modal:AddContent(scroll)
     modal:SetFooter(Button("返回家谱", function() modal:Close() end, { width = "100%", height = 48, role = "primary" }))
     render()
     modal:Open()

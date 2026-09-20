@@ -203,11 +203,11 @@ local function instanceCard(app, instance, relic)
     local detail = "来源 · " .. tostring(instance.source or relic.story.source or "家中旧事") .. "\n状态 · " .. stageText(instance)
     if custodian then detail = detail .. "\n保管人 · " .. custodian.name end
     if executor then detail = detail .. " · 执行人 · " .. executor.name end
-    if instance.dueYear then
+    if instance.dueYear and instance.status == "investigating" then
         local remaining = math.max(0, instance.dueYear - run.yearIndex)
         detail = detail .. "\n预计约 " .. tostring(remaining) .. " 年后有消息"
     end
-    if instance.remainingYears then detail = detail .. "\n暂存约 " .. tostring(instance.remainingYears) .. " 年" end
+    if instance.remainingYears and instance.stage == "paused" then detail = detail .. "\n暂存约 " .. tostring(instance.remainingYears) .. " 年" end
     local actions = {}
     if instance.status ~= "sold" and not run.ending then
         local pending = pendingEvent(run, instance)
