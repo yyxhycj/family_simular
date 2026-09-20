@@ -183,17 +183,10 @@ end
 function App:Export()
     local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
     if not raw then self:Notify(message, "error"); return end
-    local modal = UI.Modal { title = "导出家谱备份", size = "lg", closeOnOverlay = true }
+    local modal = UI.Modal { title = "家谱备份已保存", size = "sm", closeOnOverlay = true }
     modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal" }))
-    modal:AddContent(Label("备份包含家谱、人物经历与收藏。点击复制后留存，之后可通过“导入备份”恢复。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
-    modal:SetFooter(UI.Row { gap = 8, children = {
-        Button("复制备份", function()
-            ui.useSystemClipboard = true
-            ui:SetClipboardText(raw)
-            self:Notify("已复制家谱备份。", "success")
-        end, { flex = 1 }),
-        Button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
-    } })
+    modal:AddContent(Label("备份包含家谱、人物经历与收藏，可从家谱事务中恢复。本机备份与当前进度分开保存；请保留当前浏览器的数据。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    modal:SetFooter(Button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }))
     modal:Open()
 end
 
@@ -202,6 +195,11 @@ function App:OpenMenu()
     modal:AddContent(UI.Panel { gap = 10, children = {
         Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
         Button("导出备份", function() modal:Close(); self:Export() end, { width = "100%", role = "secondary" }),
+        Button("恢复本机备份", function()
+            local candidate, message, status = State.ReadExport()
+            if not candidate then self:Notify(message, "error"); return end
+            modal:Close(); self:ConfirmImport(candidate, message, status)
+        end, { width = "100%", role = "secondary" }),
         Button("导入备份", function() modal:Close(); self:OpenImport() end, { width = "100%", role = "secondary" }),
         Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
     } })
@@ -211,12 +209,23 @@ end
 
 function App:OpenImport()
     if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
+    self.importRaw = ""
     local modal = UI.Modal { title = "导入家业备份", size = "fullscreen", closeOnOverlay = true }
-    modal:AddContent(Label("先复制由《家业》导出的完整 JSON，再读取剪贴板进行校验。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
+    modal:AddContent(Label("粘贴完整 JSON 备份，接收后显示文件长度。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
+    local receipt = Label("尚未接收备份", { fontSize = 14, fontColor = C.muted })
+    modal:AddContent(UI.TextField {
+        value = "", placeholder = "在此粘贴完整备份", maxLength = 15000000,
+        onChange = function(field, value)
+            if value == "" then return end
+            self.importRaw = value
+            field:SetValue("")
+            receipt:SetText("已接收 " .. tostring(#value) .. " 字节，等待校验")
+        end,
+    })
+    modal:AddContent(receipt)
     modal:SetFooter(UI.Panel { flexDirection = "column", gap = 8, children = {
-        Button("从剪贴板校验并预演", function()
-            ui.useSystemClipboard = true
-            local candidate, message, status = State.PreflightImport(ui:GetClipboardText())
+        Button("校验并预演", function()
+            local candidate, message, status = State.PreflightImport(self.importRaw)
             if not candidate then self:Notify(message, "error"); return end
             modal:Close(); self:ConfirmImport(candidate, message, status)
         end, { height = 48 }),
@@ -226,7 +235,7 @@ function App:OpenImport()
 end
 
 function App:ConfirmImport(candidate, previewMessage, status)
-    local modal = UI.Modal { title = "确认替换当前进度", size = "lg", closeOnOverlay = false }
+    local modal = UI.Modal { title = "确认替换当前进度", size = "fullscreen", closeOnOverlay = false }
     modal:AddContent(Label(previewMessage, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
     modal:AddContent(Label("确认后写入新的可回读存档；当前进度在写入失败时保持原样。重复确认同一份备份只保留一份结果。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.5, fontColor = C.muted }))
     modal:SetFooter(UI.Panel { flexDirection = "column", gap = 8, children = {

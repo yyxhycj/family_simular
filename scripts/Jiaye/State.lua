@@ -970,6 +970,12 @@ function State.Import(raw)
     return State.PreflightImport(raw)
 end
 
+function State.ReadExport()
+    local raw = ReadFile("jiaye_export.json")
+    if not raw then return nil, "本机尚无可读取的家谱备份。" end
+    return State.PreflightImport(raw)
+end
+
 ---@param candidate JiayeSavePayload
 function State.CommitImport(candidate)
     if type(candidate) ~= "table" then return false, "没有可确认的导入内容。", "invalid" end
