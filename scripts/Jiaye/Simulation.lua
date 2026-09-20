@@ -504,11 +504,14 @@ function Simulation.ResumeRelicStory(run, instanceId)
     if closed then return false, message end
     local instance = RelicInstance(run, instanceId)
     if not instance or instance.status == "sold" then return false, "此物件不在家中。" end
+    for _, event in ipairs(run.events) do
+        if event.relicInstanceId == instanceId and event.status == "pending" then return false, "这件信物已有待处理的后续。" end
+    end
     local definition = Data.Relic(instance.definitionId)
     if definition.basic and instance.stage == "clue_saved" then
         local executor = LivingAdult(run, instance.executorId)
         if not executor then return false, "需要重新指定一位在世成年人。" end
-        instance.status = "awaiting_resolution"; instance.dueYear = nil
+        instance.status = "awaiting_resolution"; instance.stage = "awaiting_choice"; instance.dueYear = nil
         local event = AddEvent(run, { type = "relic_resolution", relicInstanceId = instanceId, executorId = executor.id, title = definition.name .. "的暂存线索", blocking = true })
         instance.pendingEventId = event.instanceId
         AddRelicFact(run, instance, executor.name .. "重新翻开“" .. definition.name .. "”的已有线索。", { action = "resume_resolution", relicInstanceId = instanceId })

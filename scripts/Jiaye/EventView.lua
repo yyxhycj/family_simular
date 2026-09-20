@@ -44,11 +44,12 @@ local function choiceList(run, event)
         end
         return choices
     end
-    if type(event.choiceSchema) == "table" and #event.choiceSchema > 0 then return event.choiceSchema end
-    if type(event.choices) == "table" and #event.choices > 0 then return event.choices end
     if event.type == "relic_resolution" then
         local relic = assert(Data.Relic(relicIdFor(run, event)), "信物结果缺少有效物件。")
-        local choices = State.Copy(Data.EventChoices.relic_resolution)
+        local source = Data.EventChoices.relic_resolution
+        if type(event.choiceSchema) == "table" and #event.choiceSchema > 0 then source = event.choiceSchema
+        elseif type(event.choices) == "table" and #event.choices > 0 then source = event.choices end
+        local choices = State.Copy(source)
         for _, choice in ipairs(choices) do
             if choice.id == "restore" then
                 choice.label = relic.story.restore
@@ -60,6 +61,8 @@ local function choiceList(run, event)
         end
         return choices
     end
+    if type(event.choiceSchema) == "table" and #event.choiceSchema > 0 then return event.choiceSchema end
+    if type(event.choices) == "table" and #event.choices > 0 then return event.choices end
     if event.type == "legacy_pending" then return { { id = "acknowledge", label = "确认并写入家史", cost = 0, years = 0, result = { status = "recorded" } } } end
     return Data.EventChoices[event.type] or {}
 end
