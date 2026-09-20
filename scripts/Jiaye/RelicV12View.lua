@@ -1,5 +1,6 @@
 local UI = require "urhox-libs/UI"
 local State = require "Jiaye.State"
+local Data = require "Jiaye.Data"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
 local Defs = require "Jiaye.RelicDefinitions"
@@ -8,6 +9,14 @@ local RelicSystem = require "Jiaye.RelicSystem"
 
 local View = {}
 local C = V7.Colors
+
+local function scrollHeight()
+    return math.max(100, UI.GetHeight() * 0.9 - 168)
+end
+
+local function closeDetail(app)
+    if app.relicDetailModal then app.relicDetailModal:Close() end
+end
 
 local STATUS_NAMES = {
     held = "持有", active = "进行中", paused_manual = "已暂停 · 手动", paused_actor = "已暂停 · 执行人变化",
@@ -233,14 +242,14 @@ local function lifecycleModal(app, title, detail, action, confirmText, extra)
     }
     local paperChildren = { text(detail, { fontSize = 16, whiteSpace = "normal", lineHeight = 1.55 }) }
     if extra then table.insert(paperChildren, extra) end
-    modal:AddContent(UI.ScrollView { height = math.max(120, UI.GetHeight() * 0.78), children = { Visual.Paper(paperChildren, { padding = 14, gap = 10 }) } })
+    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { Visual.Paper(paperChildren, { padding = 14, gap = 10 }) } })
     local submitted = false
     modal:SetFooter(UI.Row { gap = 8, children = {
         button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
         button(confirmText or "确认", function()
             if submitted then return end
             submitted = true
-            if app:RunAction(action) then modal:Close() else submitted = false end
+            if app:RunAction(action) then modal:Close(); closeDetail(app) else submitted = false end
         end, { flex = 1 }),
     } })
     modal:Open()
@@ -435,7 +444,7 @@ function View.OpenAction(app, actionId, sourceInput)
                 View.OpenAction(app, item.id, nextInput)
             end, { width = "100%", role = "secondary", textAlign = "left" })) end
         end
-        picker:AddContent(UI.ScrollView { height = math.max(120, UI.GetHeight() * 0.78), children = { pickerBody } })
+        picker:AddContent(UI.ScrollView { height = scrollHeight(), children = { pickerBody } })
         picker:SetFooter(button("返回", function() picker:Close() end, { width = "100%", role = "secondary" }))
         picker:Open()
         return
@@ -465,7 +474,7 @@ function View.OpenAction(app, actionId, sourceInput)
         for _, child in ipairs(children) do optionPanel:AddChild(child) end
         refresh()
     end
-    modal:AddContent(UI.ScrollView { height = math.max(120, UI.GetHeight() * 0.78), children = { body } })
+    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { body } })
     local event, eventRelicId = actionEvent(action, input)
     local actionChildren = {
         text(action.name or actionId, { fontSize = 22, fontWeight = "bold" }),
@@ -483,7 +492,7 @@ function View.OpenAction(app, actionId, sourceInput)
             confirm = button("确认行动", function()
                 local quote = input._quote or RelicSystem.Quote(app.run, actionId, input)
                 if not quote.allowed then return end
-                if app:RunAction(function(run, profile) return RelicSystem.Start(run, profile, actionId, input) end) then modal:Close() end
+                if app:RunAction(function(run, profile) return RelicSystem.Start(run, profile, actionId, input) end) then modal:Close(); closeDetail(app) end
             end, { flex = 1 })
             return confirm
         end)(),
@@ -502,17 +511,25 @@ local function relatedEvidence(value, instanceId)
     return type(source) == "table" and (source.instanceId == instanceId or source.relicInstanceId == instanceId or source.sourceInstanceId == instanceId)
 end
 
-local function evidenceText(value)
-    local label = value.factId or value.id or value.type or value.kind or "家谱事实"
-    local parts = { tostring(label) }
-    for _, key in ipairs({ "source", "sourceId", "projectId", "caseId", "candidateId", "branch", "route", "year" }) do
-        local item = value[key]
-        if type(item) == "string" or type(item) == "number" then
-            local shown = (key == "branch" and displayValue(item, "branch")) or (key == "route" and displayValue(item, "route")) or tostring(item)
-            table.insert(parts, key .. "=" .. shown)
-        end
+local function evidenceText(run, value)
+    local parts = {}
+    local year = value.runYear or value.settledYear
+    if year then table.insert(parts, "经营第" .. tostring(year) .. "年") end
+    if not year and value.year then table.insert(parts, "大晟历" .. tostring(value.year) .. "年") end
+    if value.text then table.insert(parts, value.text) end
+    if value.memberId then
+        local actor = member(run, value.memberId)
+        table.insert(parts, assert(actor).name)
     end
-    if value.name then table.insert(parts, tostring(value.name)) end
+    if value.generation then table.insert(parts, "第" .. tostring(value.generation) .. "代") end
+    if value.jobId then table.insert(parts, assert(Data.Jobs[value.jobId]).name) end
+    if value.projectId then table.insert(parts, "工程完成") end
+    if value.workYears then table.insert(parts, "实际参与年度 " .. table.concat(value.workYears, "、")) end
+    if value.participantIds then
+        local names = {}
+        for _, id in ipairs(value.participantIds) do table.insert(names, assert(member(run, id)).name) end
+        table.insert(parts, "参与人 " .. table.concat(names, "、"))
+    end
     return table.concat(parts, " · ")
 end
 
@@ -521,24 +538,23 @@ local function evidenceLines(run, instance)
     local history = {}
     local useFacts = {}
     local projectFacts = {}
-    for _, fact in ipairs(run.facts or {}) do if relatedEvidence(fact, id) then table.insert(history, evidenceText(fact)) end end
-    for _, fact in ipairs(run.relicUseFacts or {}) do if relatedEvidence(fact, id) then table.insert(useFacts, evidenceText(fact)) end end
-    for _, fact in ipairs(run.relicProjectFacts or {}) do if relatedEvidence(fact, id) then table.insert(projectFacts, evidenceText(fact)) end end
-    for _, claim in pairs(run.relicClaims or {}) do if relatedEvidence(claim, id) then table.insert(history, "领取记录 · " .. evidenceText(claim)) end end
-    for _, candidate in pairs(run.branchCandidates or {}) do if relatedEvidence(candidate, id) then table.insert(history, "旁支候选 · " .. evidenceText(candidate)) end end
-    for _, task in ipairs(run.relicTasks or {}) do
-        if task.instanceId == id then
-            for _, fact in ipairs(task.workFacts or {}) do table.insert(projectFacts, evidenceText(fact)) end
+    for _, fact in ipairs(run.facts or {}) do
+        if relatedEvidence(fact, id) then
+            table.insert(history, evidenceText(run, fact))
+            if fact.factsSnapshot then
+                table.insert(history, "编修时封存 " .. tostring(#fact.factsSnapshot) .. " 条族史：")
+                for _, saved in ipairs(fact.factsSnapshot) do table.insert(history, "  " .. evidenceText(run, saved)) end
+            end
         end
     end
+    for _, fact in ipairs(run.relicUseFacts or {}) do if relatedEvidence(fact, id) then table.insert(useFacts, evidenceText(run, fact)) end end
+    for _, fact in ipairs(run.relicProjectFacts or {}) do if relatedEvidence(fact, id) then table.insert(projectFacts, evidenceText(run, fact)) end end
     local candidate = {}
-    for _, line in ipairs(history) do if string.find(line, "branch", 1, true) or string.find(line, "旁支", 1, true) then table.insert(candidate, line) end end
-    local snapshot = instance.chronicleSnapshot or instance.historySnapshot
-    if snapshot then table.insert(history, "chronicle快照 · " .. evidenceText(snapshot)) end
-    for _, source in ipairs({ run.relicChronicleSnapshots, run.chronicleSnapshots }) do
-        for _, item in pairs(source or {}) do
-            if relatedEvidence(item, id) then table.insert(history, "chronicle快照 · " .. evidenceText(item)) end
-        end
+    local claim = run.relicClaims and run.relicClaims["genealogy.branch_candidate"]
+    if formOf(instance).familyId == "genealogy" and claim and claim.candidate then
+        local person = claim.candidate
+        table.insert(candidate, person.name .. " · " .. person.sex .. " · 第" .. tostring(person.generation) .. "代")
+        table.insert(candidate, "经营第" .. tostring(person.discoveredRunYear) .. "年发现，当时" .. tostring(person.ageAtDiscovery) .. "岁。" .. person.generationEvidence)
     end
     return history, useFacts, projectFacts, candidate
 end
@@ -554,7 +570,7 @@ local function detailContent(app, instance, tab, openTab)
             UI.Panel { flex = 1, minWidth = 0, gap = 4, children = {
                 text(instanceTitle(instance), { fontSize = 22, fontWeight = "bold" }),
                 text(family.name .. " · 第 " .. tostring(form and form.tier or instance.tier or 1) .. " 阶 · " .. displayValue(instance.status or "held", "status"), { fontSize = 13, fontColor = C.secondary }),
-                form and form.tier and form.tier > 1 and text("高阶形态沿用基础图 · " .. tostring(legacyAsset(form)), { fontSize = 12, fontColor = C.gold, whiteSpace = "normal" }) or UI.Panel { height = 0 },
+                form and form.tier and form.tier > 1 and text("美术 · 临时复用基础图", { fontSize = 12, fontColor = C.gold, whiteSpace = "normal" }) or UI.Panel { height = 0 },
             } },
         } },
         UI.Row { gap = 5, children = {
@@ -598,8 +614,7 @@ local function detailContent(app, instance, tab, openTab)
         table.insert(children, card({
             text("族史快照", { fontSize = 18, fontWeight = "bold" }),
             text("来源 · " .. tostring(instance.source or "本局开局收藏"), { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }),
-            text("首次获得 · " .. tostring(instance.firstAcquiredYear or instance.acquiredYear or "开局"), { fontSize = 14, fontColor = C.secondary }),
-            text("绑定快照 · " .. tostring(instance.boundAtYear or instance.acceptedYear or "尚未绑定"), { fontSize = 14, fontColor = C.secondary }),
+            text("首次获得 · " .. (instance.acquiredRunYear and "经营第" .. tostring(instance.acquiredRunYear) .. "年" or "日期未记录"), { fontSize = 14, fontColor = C.secondary }),
             UI.Panel { gap = 5, children = evidence },
             text("此处显示已写入家谱的事实、实际使用和项目依据；后续证明必须在行动接受时绑定。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 }),
         }))
@@ -610,11 +625,16 @@ end
 function View.Open(app, instanceId)
     local instance = findInstance(app.run, instanceId)
     if not instance then app:Notify("这件信物已不在当前家谱中。", "warning"); return end
+    closeDetail(app)
     local modal = UI.Modal {
         title = "藏阁 · " .. instanceTitle(instance), size = "fullscreen", backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
-        closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
+        closeOnOverlay = true, onClose = function(selfModal)
+            if app.relicDetailModal == selfModal then app.relicDetailModal = nil end
+            selfModal:Destroy()
+        end,
     }
+    app.relicDetailModal = modal
     local activeTab = "effect"
     local body = UI.Panel { gap = 10 }
     local currentInstance = instance
@@ -631,7 +651,7 @@ function View.Open(app, instanceId)
         end
         body:AddChild(button("选择本家行动", function() View.OpenAction(app, nil, { instanceId = currentInstance.instanceId, familyId = formOf(currentInstance).familyId }) end, { height = 46 }))
     end
-    modal:AddContent(UI.ScrollView { height = math.max(120, UI.GetHeight() * 0.78), children = { body } })
+    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { body } })
     modal:SetFooter(UI.Row { gap = 8, children = {
         button("关闭", function() modal:Close() end, { flex = 1, role = "secondary" }),
         button("返回藏阁", function() modal:Close() end, { flex = 1 }),
@@ -783,7 +803,7 @@ local function openFormCatalog(app)
             end
         end
     end
-    modal:AddContent(UI.ScrollView { height = math.max(120, UI.GetHeight() * 0.78), children = { content } })
+    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { content } })
     modal:SetFooter(button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }))
     modal:Open()
 end

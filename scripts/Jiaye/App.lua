@@ -187,13 +187,13 @@ function App:Export()
     if not raw then self:Notify(message, "error"); return end
     local modal = UI.Modal { title = "保存家谱备份", size = "sm", closeOnOverlay = true }
     modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal" }))
-    modal:AddContent(Label("备份包含家谱、信物任务、人物经历与收藏，共 " .. tostring(#raw) .. " 字节。网页关闭或刷新前，请复制完整备份并保存到外部文本文件；以后可通过“导入备份”恢复。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    modal:AddContent(Label("备份包含家谱、信物任务、人物经历与收藏，共 " .. tostring(#raw) .. " 字节，可通过“恢复本机备份”读取。复制内容可在“导入备份”中粘贴；跨应用保存前请核对实际粘贴结果。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
     modal:SetFooter(UI.Panel { gap = 8, children = {
-        Button("复制完整备份", function()
+        Button("复制备份内容", function()
             ui:SetUseSystemClipboard(true)
             ui:SetClipboardText(raw)
             if ui:GetClipboardText() ~= raw then self:Notify("剪贴板写入未确认，请保持当前页面。", "error"); return end
-            self:Notify("完整备份已交给剪贴板，请粘贴到文本文件保存。", "success")
+            self:Notify("已写入游戏剪贴板，可在“导入备份”中粘贴核对。", "success")
         end, { width = "100%" }),
         Button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }),
     } })

@@ -703,9 +703,16 @@ function RelicSystem.Sell(run, instanceId)
     if run.ending then return false, "家史已落笔，本局只读。" end
     local instance = RelicState.Find(run, instanceId)
     if not instance or instance.status ~= "held" then return false, "信物当前无法出售。" end
-    local task = TaskForInstance(run, instanceId)
-    if task then
-        if task.external then task.status = "cancelled" else RelicSystem.Cancel(run, task.id) end
+    for _, task in ipairs(List(run.relicTasks)) do
+        if IsBlockingTask(task) and (task.instanceId == instanceId or HasId(task.attachedInstanceIds, instanceId)) then
+            RelicSystem.Cancel(run, task.id)
+        end
+    end
+    for _, project in pairs(Map(run.relicExternalProjects)) do
+        if project.status == "active" and HasId(project.attachedInstanceIds, instanceId) then
+            project.status = "cancelled"
+            project.settledYear = run.yearIndex
+        end
     end
     local form = RelicState.Form(instance)
     if not form then return false, "信物形态不存在。" end
@@ -905,6 +912,9 @@ function RelicSystem.Archive(run)
     run.relicArchived = true
     for _, task in ipairs(List(run.relicTasks)) do
         if IsBlockingTask(task) then task.status = "cancelled"; task.archived = true; task.settledYear = run.yearIndex; ReleaseTaskInstances(run, task) end
+    end
+    for _, project in pairs(Map(run.relicExternalProjects)) do
+        if project.status == "active" then project.status = "cancelled"; project.archived = true; project.settledYear = run.yearIndex end
     end
     for _, instance in ipairs(List(run.relicInstances)) do if instance.status == "held" then instance.availability = "sealed" end end
     return true, "本局信物任务已归档。"

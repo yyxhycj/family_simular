@@ -232,6 +232,7 @@ function RelicState.CreateInstance(run, formId, source, custodianId, userId)
         custodianId = custodianId,
         taskId = nil,
         source = source,
+        acquiredRunYear = run.yearIndex,
     }
     table.insert(run.relicInstances, instance)
     MarkFirstClaim(run, form, instance.instanceId, source)
