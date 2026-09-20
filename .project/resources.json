@@ -12,7 +12,9 @@
     "jiaye_v7_ui": [
       "Jiaye/V7/ui/**",
       "Jiaye/V7/characters/**",
-      "Jiaye/V7/icons/**"
+      "Jiaye/V7/icons/**",
+      "Jiaye/V7/events/**",
+      "Jiaye/V7/relics/**"
     ]
   }
 }

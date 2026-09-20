@@ -221,17 +221,17 @@ local function choiceRow(choice, selected, disabled, onClick)
         borderColor = disabled and C.rule or (selected and C.primary or C.gold),
         backgroundColor = disabled and C.disabledSurface or (selected and C.primary or C.paperLight),
     }
-    local title = Visual.Text(choice.label, { fontSize = 15, fontWeight = selected and "bold" or "normal", flexGrow = 1, fontColor = disabled and C.disabledInk or C.ink })
-    local summary = Visual.Text(choiceQuote(choice), { fontSize = 12, fontColor = disabled and C.disabledInk or C.secondary, whiteSpace = "normal" })
+    local title = Visual.Text(choice.label, { fontSize = 15, fontWeight = selected and "bold" or "normal", whiteSpace = "normal", lineHeight = 1.1, fontColor = disabled and C.disabledInk or C.ink })
+    local summary = Visual.Text(choiceQuote(choice), { fontSize = 12, lineHeight = 1.1, fontColor = disabled and C.disabledInk or C.secondary, whiteSpace = "normal" })
     local row = UI.Panel {
-        width = "100%", minHeight = 64, flexDirection = "row", alignItems = "center", gap = 10,
-        padding = 10, borderWidth = 1, borderRadius = 4,
+        width = "100%", minHeight = 60, flexDirection = "row", alignItems = "center", gap = 10,
+        padding = 8, borderWidth = 1, borderRadius = 2, flexShrink = 0,
         borderColor = disabled and C.rule or (selected and C.primary or C.rule),
         backgroundColor = disabled and C.disabledSurface or (selected and C.selected or C.paperLight),
         hoverBackgroundColor = disabled and C.disabledSurface or C.selected,
         pressedBackgroundColor = disabled and C.disabledSurface or C.rule,
         onClick = not disabled and function() onClick() end or nil,
-        children = { radio, UI.Panel { flexGrow = 1, gap = 3, children = { title, summary } } },
+        children = { radio, UI.Panel { flex = 1, minWidth = 0, gap = 3, children = { title, summary } } },
     }
     return { choice = choice, row = row, radio = radio, title = title, summary = summary, disabled = disabled }
 end
@@ -239,17 +239,18 @@ end
 local function openModal(app, title, content, footer)
     local modal = UI.Modal {
         title = title, size = "fullscreen", backgroundColor = C.paperLight,
-        borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
+        borderColor = C.gold, titleTextColor = C.gold, closeIconColor = C.secondary,
+        headerHeight = 44, titleFontSize = V7.Font(13), contentPadding = 0, borderRadius = 2,
         closeOnOverlay = true,
         onClose = function(selfModal) selfModal:Destroy() end,
     }
-    local contentHeight = math.max(200, (UI.GetHeight() or 600) * 0.9 - 170)
+    local contentHeight = math.max(200, (UI.GetHeight() or 600) * 0.9 - 120)
     modal:AddContent(UI.Panel {
         height = contentHeight, minHeight = contentHeight, maxHeight = contentHeight,
         flexGrow = 0, flexShrink = 0, flexDirection = "column", padding = 0,
         children = { UI.ScrollView {
             height = contentHeight, minHeight = contentHeight, maxHeight = contentHeight,
-            flexGrow = 0, flexShrink = 0, padding = 14, children = { content },
+            flexGrow = 0, flexShrink = 0, padding = 0, children = { content },
         } },
     })
     modal:SetFooter(footer)
@@ -296,14 +297,12 @@ function EventView.Open(app, event)
         end
     end
     local selectedParticipantId = nil
-    local choiceSummary = Visual.Text(choiceQuote(selectedChoice), { fontSize = 14, fontColor = C.secondary })
-    local resultSummary = Visual.Text(resultText(selectedChoice), { fontSize = 15, whiteSpace = "normal", lineHeight = 1.45 })
+    local resultSummary = Visual.Text(resultText(selectedChoice), { fontSize = 14, whiteSpace = "normal", lineHeight = 1.4 })
     local choiceButtons = {}
     local modal
 
     local function selectChoice(choice)
         selectedChoice = choice
-        choiceSummary:SetText(choiceQuote(choice))
         resultSummary:SetText(resultText(choice))
         for _, item in ipairs(choiceButtons) do
             local active = item.choice.id == choice.id
@@ -322,7 +321,7 @@ function EventView.Open(app, event)
         end
     end
 
-    local choiceChildren = { Visual.Text("选择一项", { fontSize = 13, fontColor = C.secondary }) }
+    local choiceChildren = {}
     for _, choice in ipairs(choices) do
         local disabled = requiredFunds(choice) > (tonumber(run.money) or 0)
         local row = choiceRow(choice, choice.id == selectedChoice.id, disabled, function() selectChoice(choice) end)
@@ -333,20 +332,13 @@ function EventView.Open(app, event)
     local participant, initialParticipant = participantBlock(run, event, function(value) selectedParticipantId = value end)
     selectedParticipantId = initialParticipant
     local contentChildren = {
-        Visual.EventImage(event, { height = 132, relicId = relicIdFor(run, event) }),
-        Visual.Text(event.title or "家族事件", { fontSize = 26, fontWeight = "bold", textAlign = "center", whiteSpace = "normal" }),
-        Visual.Card({
-            Visual.Text("来源 · " .. sourceText(event), { fontSize = 13, fontColor = C.secondary }),
-            participant,
-        }, { backgroundColor = C.paper, borderColor = C.rule, gap = 8 }),
-        Visual.Text(eventBody(run, event), { fontSize = 16, whiteSpace = "normal", lineHeight = 1.6 }),
-        Visual.Card(choiceChildren, { backgroundColor = C.paper, borderColor = C.rule, gap = 8 }),
-        Visual.Card({
-            Visual.Text("即时账目与结果", { fontSize = 13, fontColor = C.secondary }),
-            choiceSummary,
-            resultSummary,
-        }, { backgroundColor = C.selected, borderColor = C.gold, gap = 5 }),
-        Visual.Text("确认前不会扣除费用，也不会改变人物、信物或家史。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }),
+        Visual.Text(event.title or "家族事件", { fontSize = 22, textAlign = "center", whiteSpace = "normal", lineHeight = 1.1 }),
+        Visual.EventImage(event, { height = 120, relicId = relicIdFor(run, event), borderRadius = 0 }),
+        Visual.Text("来源 · " .. sourceText(event), { fontSize = 12, fontColor = C.secondary }),
+        Visual.Text(eventBody(run, event), { fontSize = 15, whiteSpace = "normal", lineHeight = 1.4 }),
+        participant,
+        UI.Panel { gap = 8, children = choiceChildren },
+        resultSummary,
     }
 
     local submitted = false
@@ -368,11 +360,8 @@ function EventView.Open(app, event)
         if ok then modal:Close() else submitted = false end
     end, { flex = 1, height = 48, confirm = true })
 
-    local footer = UI.Row { gap = 8, children = {
-        Visual.Button("返回", function() modal:Close() end, { role = "secondary", flex = 1, height = 48 }),
-        confirm,
-    } }
-    modal = openModal(app, "家族事件", Visual.Paper(contentChildren, { gap = 12, padding = 14 }), footer)
+    local footer = UI.Row { children = { confirm } }
+    modal = openModal(app, "家族事件", Visual.Paper(contentChildren, { gap = 10, padding = 14, borderRadius = 0 }), footer)
     return modal
 end
 
@@ -396,15 +385,13 @@ function EventView.OpenRelic(app, instance)
     end
     local initialExecutor = adultById(instance.executorId) or adultById(instance.custodianId) or adults[1]
     local selectedExecutorId = initialExecutor and initialExecutor.id or nil
-    local executorLabel = Visual.Text("执行人 · " .. memberName(initialExecutor), { fontSize = 14, fontColor = C.secondary })
     local executorOptions = {}
     for _, member in ipairs(adults) do table.insert(executorOptions, { value = member.id, label = memberName(member) }) end
     local executorDropdown = UI.Dropdown {
-        options = executorOptions, value = selectedExecutorId, height = 44, fontSize = V7.Font(15),
+        options = executorOptions, value = selectedExecutorId, height = 44, fontSize = V7.Font(15), flex = 1, minWidth = 0,
         triggerBgColor = C.paperLight, borderColor = C.rule, openBorderColor = C.gold,
         onChange = function(_, value)
             selectedExecutorId = value
-            executorLabel:SetText("执行人 · " .. memberName(findMember(run, value)))
         end,
     }
     local fast = Data.EventChoice("relic_investigation", "fast")
@@ -433,13 +420,11 @@ function EventView.OpenRelic(app, instance)
             break
         end
     end
-    local quote = Visual.Text(choiceQuote(selected), { fontSize = 14, fontColor = C.secondary })
-    local outcome = Visual.Text(selected.id == "pause" and "线索保留在当前阶段，之后可以恢复调查。" or "调查开始后，主业不会被改动；结果会在家史中留下等待。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.45 })
+    local outcome = Visual.Text(selected.id == "pause" and "线索保留，之后可以继续。" or "主业保持原安排，调查与后续写入家史。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.2 })
     local buttons = {}
     local function select(option)
         selected = option
-        quote:SetText(choiceQuote(option))
-        outcome:SetText(option.id == "pause" and "线索保留在当前阶段，之后可以恢复调查。" or "调查开始后，主业不会被改动；结果会在家史中留下等待。")
+        outcome:SetText(option.id == "pause" and "线索保留，之后可以继续。" or "主业保持原安排，调查与后续写入家史。")
         for _, item in ipairs(buttons) do
             local active = item.option.id == option.id
             item.row:SetStyle({
@@ -456,7 +441,7 @@ function EventView.OpenRelic(app, instance)
             item.summary:SetStyle({ fontColor = item.disabled and C.disabledInk or C.secondary })
         end
     end
-    local choiceChildren = { Visual.Text("选择调查方式", { fontSize = 13, fontColor = C.secondary }) }
+    local choiceChildren = {}
     for _, option in ipairs(options) do
         local disabled = option.id ~= "pause" and option.id ~= "resume" and requiredFunds(option) > (tonumber(run.money) or 0)
         local row = choiceRow(option, option == selected, disabled, function() select(option) end)
@@ -465,7 +450,7 @@ function EventView.OpenRelic(app, instance)
     end
     local submitted = false
     local modal
-    local confirm = Visual.Button("确认这项安排", function()
+    local confirm = Visual.Button("确认这个决定", function()
         if submitted then return end
         submitted = true
         local ok = app:RunAction(function()
@@ -490,22 +475,17 @@ function EventView.OpenRelic(app, instance)
     end, { flex = 1, height = 48, confirm = true })
     local relicEvent = { type = "relic_resolution" }
     local content = Visual.Paper({
-        Visual.EventImage(relicEvent, { height = 132, relicId = instance.definitionId }),
-        UI.Row { gap = 10, alignItems = "center", children = {
-            Visual.Relic(instance.definitionId, 56),
-            Visual.Text(relic.name, { fontSize = 26, fontWeight = "bold", flexGrow = 1 }),
+        Visual.Text(relic.story.title or relic.name, { fontSize = 22, textAlign = "center", whiteSpace = "normal", lineHeight = 1.1 }),
+        Visual.EventImage(relicEvent, { height = 120, relicId = instance.definitionId, borderRadius = 0 }),
+        Visual.Text("来自 " .. relic.name .. " · " .. tostring(instance.source or relic.story.source), { fontSize = 12, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.1 }),
+        Visual.Text(relic.story.body or relic.desc, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.4 }),
+        UI.Row { gap = 8, alignItems = "center", children = {
+            Visual.Text("交给谁办理", { fontSize = 14 }), executorDropdown,
         } },
-        Visual.Text(relic.story.source or relic.desc, { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
-        Visual.Text(relic.desc, { fontSize = 16, whiteSpace = "normal", lineHeight = 1.6 }),
-        Visual.Card({ executorLabel, executorDropdown }, { backgroundColor = C.paper, borderColor = C.rule, gap = 6 }),
-        Visual.Card(choiceChildren, { backgroundColor = C.paper, borderColor = C.rule, gap = 8 }),
-        Visual.Card({ Visual.Text("即时账目与等待", { fontSize = 13, fontColor = C.secondary }), quote, outcome }, { backgroundColor = C.selected, borderColor = C.gold, gap = 5 }),
-        Visual.Text("确认前不会扣费，也不会改变信物状态。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }),
-    }, { gap = 12, padding = 14 })
-    modal = openModal(app, "信物调查", content, UI.Row { gap = 8, children = {
-        Visual.Button("返回", function() modal:Close() end, { role = "secondary", flex = 1, height = 48 }),
-        confirm,
-    } })
+        UI.Panel { gap = 8, children = choiceChildren },
+        outcome,
+    }, { gap = 10, padding = 14, borderRadius = 0 })
+    modal = openModal(app, "家族事件", content, UI.Row { children = { confirm } })
     return modal
 end
 
