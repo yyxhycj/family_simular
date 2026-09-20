@@ -184,10 +184,8 @@ function App:Export()
     local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
     if not raw then self:Notify(message, "error"); return end
     local modal = UI.Modal { title = "导出家谱备份", size = "lg", closeOnOverlay = true }
-    local field = UI.TextField { value = raw, maxLength = 15000000, height = 44 }
     modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal" }))
-    modal:AddContent(Label("下方是完整备份。可复制留存，之后通过“导入备份”恢复家谱与收藏。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
-    modal:AddContent(field)
+    modal:AddContent(Label("备份包含家谱、人物经历与收藏。点击复制后留存，之后可通过“导入备份”恢复。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
     modal:SetFooter(UI.Row { gap = 8, children = {
         Button("复制备份", function()
             ui.useSystemClipboard = true
@@ -213,16 +211,12 @@ end
 
 function App:OpenImport()
     if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
-    self.importRaw = ""
     local modal = UI.Modal { title = "导入家业备份", size = "fullscreen", closeOnOverlay = true }
-    modal:AddContent(Label("粘贴由《家业》导出的完整 JSON。系统会先隔离解析、校验版本、结构和所有人物/物件引用；确认前不会改动当前进度。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
-    modal:AddContent(UI.TextField {
-        value = "", placeholder = "粘贴 JSON 备份内容", maxLength = 15000000,
-        onChange = function(_, value) self.importRaw = value end,
-    })
+    modal:AddContent(Label("先复制由《家业》导出的完整 JSON，再读取剪贴板进行校验。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
     modal:SetFooter(UI.Panel { flexDirection = "column", gap = 8, children = {
-        Button("校验并预演", function()
-            local candidate, message, status = State.PreflightImport(self.importRaw)
+        Button("从剪贴板校验并预演", function()
+            ui.useSystemClipboard = true
+            local candidate, message, status = State.PreflightImport(ui:GetClipboardText())
             if not candidate then self:Notify(message, "error"); return end
             modal:Close(); self:ConfirmImport(candidate, message, status)
         end, { height = 48 }),
@@ -486,7 +480,7 @@ function App:BuildGameNav()
     local children = {}
     for _, tab in ipairs(tabs) do
         local active = self.gameTab == tab.id
-        table.insert(children, UI.Button { flex = 1, height = 56, padding = 4, gap = 2, flexDirection = "column", alignItems = "center", justifyContent = "center",
+        table.insert(children, UI.Button { flex = 1, height = 56, paddingHorizontal = 4, paddingVertical = 4, gap = 2, flexDirection = "column", alignItems = "center", justifyContent = "center",
             backgroundColor = { 0, 0, 0, 0 }, hoverBackgroundColor = C.pale, pressedBackgroundColor = C.pale,
             borderRadius = 0, borderWidth = 0, borderBottomWidth = active and 2 or 0, borderBottomColor = C.green,
             onClick = function() self.gameTab = tab.id; self:Render() end,
@@ -726,7 +720,7 @@ function App:BuildAnnualFooter()
                 submitted = true
                 if not self:RunAction(function() return Simulation.AdvanceYear(self.run, self.profile) end) then submitted = false end
             end
-        end, { height = 48, fontSize = 16, role = #pending > 0 and "secondary" or "primary" }),
+        end, { width = "100%", height = 48, fontSize = 16, role = #pending > 0 and "secondary" or "primary" }),
     } }
 end
 
