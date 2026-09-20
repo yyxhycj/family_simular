@@ -8,7 +8,9 @@ local function HasRelic(run, id)
 end
 
 local function ApplyIncome(run, member, job, period, place)
-    local money, grain = job.money or 0, job.grain or 0
+    local baseMoney, money, grain = job.money or 0, job.money or 0, job.grain or 0
+    local initialHealth = member.health
+    local growth = { stat = job.stat, amount = 0, health = 0 }
     money = math.floor(money * period.wage)
     if member.jobId ~= "farm" then money = math.floor(money * (place.incomeMultiplier or 1)) end
     if member.jobId == "craft" and place.id == "mountain" then money = math.floor(money * 1.1) end
@@ -24,7 +26,9 @@ local function ApplyIncome(run, member, job, period, place)
     if member.jobId == "farm" then grain = grain + (place.id == "village" and 2 or 0) + (place.farmGrainModifier or 0) + (run.originId == "plain" and 1 or 0) end
     run.money = run.money + money; run.grain = run.grain + grain
     if job.stat == "health" then
+        local beforeHealth = member.health
         member.health = math.min(100, member.health + math.max(0, job.gain or 0))
+        growth.health = member.health - beforeHealth
     elseif job.stat then
         local talent = Data.Talent(math.tointeger(member.talent) or 1)
         local gain = (job.gain or 0) + talent.gain
@@ -36,13 +40,55 @@ local function ApplyIncome(run, member, job, period, place)
         if run.originId == "artisan" and (member.jobId == "apprentice" or member.jobId == "craft") then gain = gain + 1 end
         if run.originId == "scholar" and member.jobId == "study" then gain = gain + 2 end
         if run.originId == "military" and member.jobId == "train" then gain = gain + 2 end
-        member.stats[job.stat] = math.min(100, (member.stats[job.stat] or 0) + math.max(0, gain))
+        local beforeStat = member.stats[job.stat] or 0
+        member.stats[job.stat] = math.min(100, beforeStat + math.max(0, gain))
+        growth.amount = member.stats[job.stat] - beforeStat
+        growth.gain = gain
     end
-    if member.jobId == "home" then member.health = math.min(100, member.health + 1) end
+    if member.jobId == "home" then
+        local beforeHealth = member.health
+        member.health = math.min(100, member.health + 1)
+        growth.stat = "health"; growth.health = member.health - beforeHealth
+    end
     if member.jobId == "rest" then
         local recovery = (run.homeId == "estate" and 2 or run.homeId == "courtyard" and 1 or 0) + (run.habitId == "care" and 2 or 0)
         member.health = math.min(100, member.health + recovery)
+        growth.stat = "health"; growth.health = member.health - initialHealth; growth.gain = (job.gain or 0) + recovery
     end
+    return { baseMoney = baseMoney, money = money, grain = grain, growth = growth }
+end
+
+-- 只读岗位报价：复制完整 run 后复用正式收入与成长计算，不推进原局状态。
+function Economy.JobQuote(run, memberId, jobId)
+    if type(run) ~= "table" or type(run.members) ~= "table" then return nil, "当前家族数据无效。" end
+    local sourceMember = State.FindMember(run.members, memberId)
+    local job = Data.Jobs[jobId]
+    if not sourceMember then return nil, "族人不存在。" end
+    if not sourceMember.alive then return nil, "已故族人不能报价。" end
+    if not job then return nil, "岗位不存在。" end
+    local copy = State.Copy(run)
+    local member = State.FindMember(copy.members, memberId)
+    member.jobId = jobId
+    local period = Data.Period(copy.eraId) or Data.Period("peace")
+    local place = Data.Place(copy.placeId)
+    if not place then return nil, "当前落脚处无效。" end
+    local beforeMoney, beforeGrain = copy.money, copy.grain
+    local applied = ApplyIncome(copy, member, job, period, place)
+    local growth = applied.growth
+    local growthText = "无属性成长"
+    if growth.stat == "health" then
+        growthText = "体魄 +" .. tostring(growth.health or 0)
+    elseif growth.stat then
+        growthText = assert(Data.FocusNames[growth.stat], "成长属性未登记") .. " +" .. tostring(growth.amount or 0)
+    end
+    return {
+        baseMoney = job.money or 0,
+        money = copy.money - beforeMoney,
+        grain = copy.grain - beforeGrain,
+        growth = growth,
+        growthStat = growth.stat,
+        growthText = growthText,
+    }
 end
 
 -- 购粮与年度缺粮补购使用同一份时期和地点价格，界面预览可直接引用。

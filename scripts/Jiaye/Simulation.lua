@@ -5,6 +5,56 @@ local Art = require "Jiaye.Art"
 
 local Simulation = {}
 
+local function EventChoice(eventType, choiceId)
+    return Data.EventChoice(eventType, choiceId)
+end
+
+local function NormalizeEventChoice(eventType, choiceId)
+    if eventType == "growth" and choiceId == "acknowledge" then return "accept" end
+    if (eventType == "medical_find" or eventType == "plan_work" or eventType == "school" or eventType == "community_request" or eventType == "roof") and choiceId == "decline" then return "defer" end
+    if eventType == "notes_choice" and choiceId == "pass" then return "defer" end
+    return choiceId
+end
+
+local function EnsureHabitTracking(run)
+    run.habitProgress = run.habitProgress or {}
+    run.habitFormations = run.habitFormations or {}
+end
+
+local function UpdateHabitFormation(run, ledger)
+    EnsureHabitTracking(run)
+    local definition = Data.HabitFormation("education")
+    if not definition then return end
+    local studied = false
+    local memberIds = {}
+    for _, row in ipairs(ledger.members or {}) do
+        table.insert(memberIds, row.memberId)
+        if row.job == Data.Jobs.study.name then studied = true end
+    end
+    local years = studied and ((run.habitProgress.education or 0) + 1) or 0
+    run.habitProgress.education = years
+    local record = run.habitFormations.education
+    if not record and years >= definition.threshold then
+        record = { habitId = definition.habitId or definition.id, name = definition.name, status = "active", effect = definition.effect, formedYear = run.calendar, prototype = definition.prototype == true }
+        run.habitFormations.education = record
+        State.AddFact(run, "habit", "家中连续读书三年，形成家风“" .. definition.name .. "”。这项原型家风暂不附加属性。", memberIds, { habitId = record.habitId, status = record.status, effect = record.effect, threshold = definition.threshold, prototype = true })
+    elseif record and record.status == "active" and years <= definition.lossThreshold then
+        record.status = "inactive"
+        record.lostYear = run.calendar
+        State.AddFact(run, "habit", "家中暂时无人继续读书，家风“" .. definition.name .. "”暂时沉寂。", memberIds, { habitId = record.habitId, status = record.status, effect = record.effect, prototype = true })
+    elseif record and record.status == "inactive" and years >= definition.threshold then
+        record.status = "active"
+        record.reformedYear = run.calendar
+        State.AddFact(run, "habit", "家中再次连续读书，家风“" .. definition.name .. "”重新被记起。", memberIds, { habitId = record.habitId, status = record.status, effect = record.effect, prototype = true })
+    end
+end
+
+local function MarkEventResolved(event, choice, message)
+    event.status = "resolved"
+    event.resolvedChoice = choice
+    event.resolutionMessage = message
+end
+
 local function IsClosed(run)
     if run.ending then return true, "本局已落笔，只能回顾家史。" end
     return false, ""
@@ -113,6 +163,7 @@ local function CurrentPeriod(run) return Data.Period(run.eraId) or Data.Period("
 local function AddEvent(run, event)
     event.instanceId = "event-" .. tostring(run.calendar) .. "-" .. tostring(#run.events + 1)
     event.status = "pending"
+    if Data.EventChoices[event.type] then event.choiceSchema = State.Copy(Data.EventChoices[event.type]) end
     table.insert(run.events, event)
     State.AddLog(run, event.title .. "：需要你的决定。")
     return event
@@ -418,7 +469,7 @@ function Simulation.StartRelicInvestigation(run, instanceId, route, memberId)
     if instance.rewardState == "granted" or instance.stage == "completed" then return false, "这件信物的故事已经完成。" end
     local definition = Data.Relic(instance.definitionId)
     if not definition.basic then return false, "这件信物有自己的后续入口。" end
-    local option = definition.story and definition.story[route]
+    local option = EventChoice("relic_investigation", route)
     if not option or not option.cost or not option.years then return false, "这条调查路线不存在。" end
     local executor = LivingAdult(run, memberId) or FindDefaultExecutor(run, instance)
     if not executor then return false, "需要指定一位在世成年人办理。" end
@@ -497,13 +548,20 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
     if closed then return false, message end
     local event = nil
     for _, item in ipairs(run.events) do if item.instanceId == eventId then event = item end end
-    if not event or event.status ~= "pending" then return false, "这件事已处理或不存在。" end
+    if not event then return false, "这件事已处理或不存在。" end
+    choice = NormalizeEventChoice(event.type, choice)
+    if event.status ~= "pending" then
+        if event.status == "resolved" and event.resolvedChoice == choice then return true, event.resolutionMessage or "这件事已经按此前确认处理。" end
+        return false, "这件事已处理或不存在。"
+    end
+    if not EventChoice(event.type, choice) and event.type ~= "legacy_pending" and event.type ~= "leader" then return false, "这项事件选择不存在。" end
     if event.type == "legacy_pending" then
-        event.status = "resolved"
+        local message = "旧版待决家事已写入现有家史。"
+        MarkEventResolved(event, choice, message)
         State.AddFact(run, "migration", "确认了迁入家谱中的旧版家事：“" .. tostring(event.title or "未命名家事") .. "”。", {}, {
             action = "acknowledge_legacy_event", legacyType = event.legacyType, legacyDetail = State.Copy(event.legacyDetail or {}),
         })
-        return true, "旧版待决家事已写入现有家史。"
+        return true, message
     end
     if event.type == "growth" then
         local member = State.FindMember(run.members, event.memberId)
@@ -516,16 +574,21 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
         event.status = "resolved"
         if event.growthId == "promotion" then
             local job = Data.Jobs[event.jobId]
+            local message = choice == "defer" and "已记录暂缓出师。" or "资格已记入经历，岗位仍由你确认。"
+            MarkEventResolved(event, choice, message)
             State.AddFact(run, "growth", member.name .. (choice == "defer" and "暂缓出师，继续积累本领。" or "已具备“" .. (job and job.name or "新岗位") .. "”资格，等待本人安排。"), { member.id }, { growthId = event.growthId, jobId = event.jobId, choice = choice })
-            return true, choice == "defer" and "已记录暂缓出师。" or "资格已记入经历，岗位仍由你确认。"
+            return true, message
         end
+        local message = choice == "defer" and "已记录暂缓安排。" or "成年节点已记入经历。"
+        MarkEventResolved(event, choice, message)
         State.AddFact(run, "growth", member.name .. (choice == "defer" and "成年后的安排暂缓决定。" or "已成年，可以自行安排人生。"), { member.id }, { growthId = event.growthId, choice = choice })
-        return true, choice == "defer" and "已记录暂缓安排。" or "成年节点已记入经历。"
+        return true, message
     end
     if event.type == "medical_find" then
+        local eventChoice = EventChoice(event.type, choice)
         if choice == "accept" then
             if HasRelic(run, "notes") then return false, "批注医案已经在家中，不能重复收下。" end
-            event.status = "resolved"
+            MarkEventResolved(event, choice, "批注医案已收入藏阁，也解锁了下一局资格。")
             profile.unlockedRelicIds.notes = true
             local executor = LivingAdult(run, event.memberId) or LivingAdult(run, run.leaderId)
             local instance = AddRelicInstance(run, "notes", event.memberId or run.leaderId, "医馆托付", executor and executor.id)
@@ -534,102 +597,128 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
             instance.pendingEventId = nextEvent.instanceId
             AddRelicFact(run, instance, (executor and executor.name or "家中") .. "从医馆接下批注医案。", { action = "receive_notes", relicInstanceId = instance.instanceId })
             State.AddLog(run, "家中收下批注医案，医术得以继续传下去。")
-            return true, "批注医案已收入藏阁，也解锁了下一局资格。"
+            return true, event.resolutionMessage
         end
-        event.status = "resolved"
+        MarkEventResolved(event, choice, eventChoice.result.status == "recorded" and "这次机会先记在家史里。" or "这次机会已记录。")
         State.AddLog(run, "医案暂留在医馆，家中没有收下。")
-        return true, "这次机会先记在家史里。"
+        return true, event.resolutionMessage
     end
     if event.type == "plan_work" then
         local instance, executor, problem = ActiveRelicEvent(run, event, "plan")
         if not instance then return false, problem end
+        local eventChoice = EventChoice(event.type, choice)
         if choice == "accept" then
-            if run.money < 10 then return false, "接下修缮前需要先备好 10 两工料。" end
-            event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "work_completed"; run.money = run.money + 18; run.reputation = run.reputation + 5
-            AddRelicFact(run, instance, executor.name .. "依照营造图完成一桩修缮。", { action = "plan_work", relicInstanceId = instance.instanceId, money = 18, reputation = 5 })
-            State.AddLog(run, executor.name .. "依照营造图完成一桩修缮，净得 18 两并获 5 点声望。")
-            return true, "修缮活已完成。"
+            if run.money < eventChoice.requiredMoney then return false, "接下修缮前需要先备好 " .. tostring(eventChoice.requiredMoney) .. " 两工料周转，结算净得 " .. tostring(eventChoice.result.money) .. " 两。" end
+            local result = eventChoice.result
+            instance.pendingEventId = nil; instance.stage = "work_completed"; run.money = run.money + result.money; run.reputation = run.reputation + result.reputation
+            local message = "修缮活已完成。"
+            MarkEventResolved(event, choice, message)
+            AddRelicFact(run, instance, executor.name .. "依照营造图完成一桩修缮。", { action = "plan_work", relicInstanceId = instance.instanceId, money = result.money, reputation = result.reputation })
+            State.AddLog(run, executor.name .. "依照营造图完成一桩修缮，净得 " .. tostring(result.money) .. " 两并获 " .. tostring(result.reputation) .. " 点声望。")
+            return true, message
         end
-        event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "work_deferred"
+        instance.pendingEventId = nil; instance.stage = "work_deferred"
+        MarkEventResolved(event, choice, "已婉拒。")
         AddRelicFact(run, instance, executor.name .. "暂不接下营造图的修缮活。", { action = "plan_defer", relicInstanceId = instance.instanceId })
         State.AddLog(run, executor.name .. "暂不接下营造图的修缮活。")
-        return true, "已婉拒。"
+        return true, event.resolutionMessage
     end
     if event.type == "jade_search" then
         local instance, executor, problem = ActiveRelicEvent(run, event, "jade")
         if not instance then return false, problem end
+        local eventChoice = EventChoice(event.type, choice)
         if choice == "search" then
-            if run.money < 8 then return false, "查访故人需要 8 两路费。" end
-            event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "reunited"; run.money = run.money - 8; run.flags.jadeReunited = true; run.reputation = run.reputation + 8
-            AddRelicFact(run, instance, executor.name .. "寻回玉佩的另一半，故人的名字被重新记下。", { action = "jade_reunion", relicInstanceId = instance.instanceId, money = -8, reputation = 8 })
+            if run.money < eventChoice.cost then return false, "查访故人需要 " .. tostring(eventChoice.cost) .. " 两路费。" end
+            local result = eventChoice.result
+            instance.pendingEventId = nil; instance.stage = "reunited"; run.money = run.money - eventChoice.cost; run.flags.jadeReunited = true; run.reputation = run.reputation + result.reputation
+            local message = "重逢已写入家史，声望 +" .. tostring(result.reputation) .. "。"
+            MarkEventResolved(event, choice, message)
+            AddRelicFact(run, instance, executor.name .. "寻回玉佩的另一半，故人的名字被重新记下。", { action = "jade_reunion", relicInstanceId = instance.instanceId, money = -eventChoice.cost, reputation = result.reputation })
             State.AddLog(run, executor.name .. "寻回玉佩的另一半，故人的名字被重新记下。")
-            return true, "重逢已写入家史，声望 +8。"
+            return true, message
         end
-        event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "clue_saved"
+        instance.pendingEventId = nil; instance.stage = "clue_saved"
+        MarkEventResolved(event, choice, "线索暂存。")
         AddRelicFact(run, instance, executor.name .. "把玉佩线索暂存，等待下次查访。", { action = "jade_defer", relicInstanceId = instance.instanceId })
         State.AddLog(run, executor.name .. "把玉佩线索小心收好，等待下次查访。")
-        return true, "线索暂存。"
+        return true, event.resolutionMessage
     end
     if event.type == "school" then
+        local eventChoice = EventChoice(event.type, choice)
         if choice == "support" then
-            if run.money < 6 then return false, "添置书本需要 6 两。" end
-            event.status = "resolved"; run.money = run.money - 6
+            if run.money < eventChoice.cost then return false, "添置书本需要 " .. tostring(eventChoice.cost) .. " 两。" end
+            local result = eventChoice.result
+            run.money = run.money - eventChoice.cost
             for _, member in ipairs(run.members) do
                 if member.alive and member.age >= Data.AgeRules.study and not State.IsAdult(member) then
-                    member.stats.learn = math.min(100, (member.stats.learn or 0) + 4)
+                    member.stats.learn = math.min(100, (member.stats.learn or 0) + result.learn)
                 end
             end
-            State.AddLog(run, "家中为孩子添置书本，在读的孩子学识各 +4。")
-            return true, "书本已添置。"
+            MarkEventResolved(event, choice, "书本已添置。")
+            State.AddLog(run, "家中为孩子添置书本，在读的孩子学识各 +" .. tostring(result.learn) .. "。")
+            return true, event.resolutionMessage
         end
-        event.status = "resolved"
+        MarkEventResolved(event, choice, "已暂缓。")
         State.AddLog(run, "今年先把书本钱留给日常开销。")
-        return true, "已暂缓。"
+        return true, event.resolutionMessage
     end
     if event.type == "community_request" then
+        local eventChoice = EventChoice(event.type, choice)
         if choice == "aid" then
-            if run.money < 15 then return false, "接济邻里需要 15 两。" end
+            if run.money < eventChoice.cost then return false, "接济邻里需要 " .. tostring(eventChoice.cost) .. " 两。" end
             local ok, message = Simulation.AidCommunity(run)
-            if ok then event.status = "resolved" end
+            if ok then MarkEventResolved(event, choice, message) end
             return ok, message
         end
-        event.status = "resolved"
+        MarkEventResolved(event, choice, "已婉拒。")
         State.AddLog(run, "家中这次没有接下邻里的周转请求。")
-        return true, "已婉拒。"
+        return true, event.resolutionMessage
     end
     if event.type == "roof" then
+        local eventChoice = EventChoice(event.type, choice)
         if choice == "repair" then
-            if run.money < 8 then return false, "修补屋顶需要 8 两。" end
-            event.status = "resolved"; run.money = run.money - 8; run.reputation = run.reputation + 2; run.homeState = "normal"; run.flags.houseDamaged = nil
+            if run.money < eventChoice.cost then return false, "修补屋顶需要 " .. tostring(eventChoice.cost) .. " 两。" end
+            local result = eventChoice.result
+            run.money = run.money - eventChoice.cost; run.reputation = run.reputation + result.reputation; run.homeState = result.homeState; run.flags.houseDamaged = nil
+            MarkEventResolved(event, choice, "屋顶已修补，声望 +" .. tostring(result.reputation) .. "。")
             State.AddLog(run, "屋顶修补妥当，邻里也记下了这份踏实。")
-            return true, "屋顶已修补，声望 +2。"
+            return true, event.resolutionMessage
         end
-        event.status = "resolved"; run.homeState = "damaged"; run.flags.houseDamaged = true
+        run.homeState = eventChoice.result.homeState; run.flags.houseDamaged = true
+        MarkEventResolved(event, choice, "已暂缓。")
         State.AddLog(run, "屋顶暂未修补，来年仍要留心。")
-        return true, "已暂缓。"
+        return true, event.resolutionMessage
     end
     if event.type == "notes_choice" then
         local instance, executor, problem = ActiveRelicEvent(run, event, "notes")
         if not instance then return false, problem end
+        local eventChoice = EventChoice(event.type, choice)
         if choice == "print" then
-            if run.money < 8 then return false, "刊印医案需要 8 两。" end
-            event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "printed"; run.money = run.money - 8; run.reputation = run.reputation + 8
-            AddRelicFact(run, instance, executor.name .. "刊印批注医案，留下公开的医术记录。", { action = "notes_print", relicInstanceId = instance.instanceId, money = -8, reputation = 8 })
-            State.AddLog(run, executor.name .. "刊印批注医案，声望 +8。")
-            return true, "医案已刊印。"
+            if run.money < eventChoice.cost then return false, "刊印医案需要 " .. tostring(eventChoice.cost) .. " 两。" end
+            local result = eventChoice.result
+            instance.pendingEventId = nil; instance.stage = result.stage; run.money = run.money - eventChoice.cost; run.reputation = run.reputation + result.reputation
+            MarkEventResolved(event, choice, "医案已刊印。")
+            AddRelicFact(run, instance, executor.name .. "刊印批注医案，留下公开的医术记录。", { action = "notes_print", relicInstanceId = instance.instanceId, money = -eventChoice.cost, reputation = result.reputation })
+            State.AddLog(run, executor.name .. "刊印批注医案，声望 +" .. tostring(result.reputation) .. "。")
+            return true, event.resolutionMessage
         end
-        event.status = "resolved"; instance.pendingEventId = nil; instance.stage = "passed"
+        instance.pendingEventId = nil; instance.stage = eventChoice.result.stage
+        MarkEventResolved(event, choice, "医案已传承。")
         AddRelicFact(run, instance, executor.name .. "把批注医案传给后人保管。", { action = "notes_pass", relicInstanceId = instance.instanceId })
         State.AddLog(run, executor.name .. "把批注医案郑重传给后人保管。")
-        return true, "医案已传承。"
+        return true, event.resolutionMessage
     end
-    if event.type ~= "relic_resolution" then event.status = "resolved" return true, "事件已记录。" end
+    if event.type ~= "relic_resolution" then
+        MarkEventResolved(event, choice, "事件已记录。")
+        return true, event.resolutionMessage
+    end
     local instance, executor, problem = ActiveRelicEvent(run, event)
     if not instance then return false, problem end
     local relic = Data.Relic(instance.definitionId)
-    event.status = "resolved"; instance.pendingEventId = nil; instance.status = "held"; instance.stage = "completed"
+    local eventChoice = EventChoice(event.type, choice)
     if choice == "restore" then
         if instance.rewardState == "granted" then return false, "这件信物的奖励已经登记。" end
+        instance.pendingEventId = nil; instance.status = "held"; instance.stage = "completed"
         if relic.unlock then
             profile.unlockedRelicIds[relic.unlock] = true
             AddRelicInstance(run, relic.unlock, instance.custodianId, "修复“" .. relic.name .. "”", executor.id)
@@ -638,12 +727,14 @@ function Simulation.ResolveEvent(run, eventId, choice, profile)
         if relic.id == "ruler" then run.flags.rulerRestored = true elseif relic.id == "book" then run.flags.bookRestored = true elseif relic.id == "letter" then run.flags.promiseKept = true end
         AddRelicFact(run, instance, executor.name .. "完成“" .. relic.name .. "”的“" .. relic.story.restore .. "”。", { action = "restore", relicInstanceId = instance.instanceId, unlock = relic.unlock })
         State.AddLog(run, executor.name .. "完成“" .. relic.name .. "”的“" .. relic.story.restore .. "”。" .. (relic.unlock and "“" .. Data.Relic(relic.unlock).name .. "”已进入本局藏阁，也解锁了下一局资格。" or "这段家史被完整记下。"))
-        return true, "结果已写入家史与藏阁。"
+        MarkEventResolved(event, choice, "结果已写入家史与藏阁。")
+        return true, event.resolutionMessage
     end
-    instance.stage = "clue_saved"
+    instance.pendingEventId = nil; instance.status = "held"; instance.stage = eventChoice.result.reward == "deferred" and "clue_saved" or "clue_saved"
+    MarkEventResolved(event, choice, "后续被保留在家史中。")
     AddRelicFact(run, instance, executor.name .. "选择“" .. (relic.story.defer or "暂存线索") .. "”。", { action = "defer", relicInstanceId = instance.instanceId })
     State.AddLog(run, "“" .. relic.name .. "”的线索被妥善保存，暂不继续修复。")
-    return true, "后续被保留在家史中。"
+    return true, event.resolutionMessage
 end
 
 local function TryBirths(run)
@@ -709,6 +800,8 @@ local function QueueRoutineEvents(run)
     elseif run.yearIndex % 5 == 0 then
         AddEvent(run, { type = "community_request", title = "邻里来求一份周转", blocking = false })
     elseif run.yearIndex % 7 == 0 then
+        run.homeState = "damaged"
+        run.flags.houseDamaged = true
         AddEvent(run, { type = "roof", title = "屋顶需要修补", blocking = false })
     end
 end
@@ -762,10 +855,12 @@ function Simulation.AdvanceYear(run, profile)
     local place = CurrentPlace(run)
     local yearStart = { money = run.money, grain = run.grain, land = run.land, members = {} }
     for _, member in ipairs(living) do table.insert(yearStart.members, { id = member.id, age = member.age, jobId = member.jobId }) end
+    EnsureHabitTracking(run)
     run.lastLedger = Economy.Settle(run)
     State.RecordAnnualLedger(run, run.lastLedger, yearStart)
     ApplyPlaceBurden(run, living, place)
     run.yearIndex = run.yearIndex + 1; run.calendar = run.calendar + 1
+    UpdateHabitFormation(run, run.lastLedger)
     TryBirths(run); AgeAndLife(run, living); QueueGrowthEvents(run); QueueDueRelicEvents(run); HandleLeadership(run); MaybeShiftEra(run)
     if not HasRelic(run, "notes") and not run.flags.notesOffered then
         for _, member in ipairs(run.members) do
@@ -780,10 +875,6 @@ function Simulation.AdvanceYear(run, profile)
     if #Living(run) == 0 then
         local ending = Data.Ending("last")
         if not ending then return false, "自然终章定义缺失。" end
-        Simulation.FinalizeEnding(run, ending, profile)
-    elseif Simulation.IsFamilyCollapsed(run) then
-        local ending = Data.Ending("collapse")
-        if not ending then return false, "家道终局定义缺失。" end
         Simulation.FinalizeEnding(run, ending, profile)
     else
         State.AddLog(run, "大晟历 " .. tostring(run.calendar) .. " 年结算完成。")
@@ -803,9 +894,10 @@ end
 function Simulation.AidCommunity(run)
     local closed, message = IsClosed(run)
     if closed then return false, message end
-    if run.money < 15 then return false, "接济邻里需要 15 两。" end
-    run.money = run.money - 15; run.reputation = run.reputation + 12 + (run.tieId == "neighbor" and 2 or 0); run.metrics.aid = run.metrics.aid + 1
-    State.AddFact(run, "community_aid", "家中接济了邻里，声望提升。", {}, { aidCount = run.metrics.aid, cost = 15, reputation = run.reputation })
+    local choice = EventChoice("community_request", "aid")
+    if run.money < choice.cost then return false, "接济邻里需要 " .. tostring(choice.cost) .. " 两。" end
+    run.money = run.money - choice.cost; run.reputation = run.reputation + choice.result.reputation + (run.tieId == "neighbor" and 2 or 0); run.metrics.aid = run.metrics.aid + choice.result.aid
+    State.AddFact(run, "community_aid", "家中接济了邻里，声望提升。", {}, { aidCount = run.metrics.aid, cost = choice.cost, reputation = run.reputation })
     return true, "援助已被记入家史。"
 end
 
@@ -895,7 +987,8 @@ end
 function Simulation.AvailableEndings(run)
     local ready = {}
     for _, entry in ipairs(Data.Endings) do
-        if not entry.automatic and Simulation.IsEndingReady(run, entry.id) then table.insert(ready, entry) end
+        local ending = entry --[[@as JiayeEndingDefinition]]
+        if not ending.automatic and Simulation.IsEndingReady(run, ending.id) then table.insert(ready, ending) end
     end
     return ready
 end

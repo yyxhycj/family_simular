@@ -4,9 +4,9 @@ local State = require "Jiaye.State"
 local Art = require "Jiaye.Art"
 local Opening = {}
 Opening.Fields = {
-    world = { "worldId", "periodId", "calendar", "originId", "placeId" },
+    world = { "worldId", "periodId", "calendar", "originId", "backgroundId", "placeId" },
     people = { "members", "leaderId", "nextId" },
-    estate = { "money", "grain", "land", "homeId", "workshop", "shop", "habitId", "tieId" },
+    estate = { "money", "grain", "land", "homeId", "workshop", "shop" },
     relics = { "selectedRelicIds" },
 }
 
@@ -93,23 +93,61 @@ local function configureMember(member, pick, roll)
     member.trait = pick({ "踏实", "好奇", "细致", "仁厚", "沉静", "爽朗" })
 end
 
+local function backgroundForOrigin(originId)
+    for _, background in ipairs(Data.Backgrounds or {}) do
+        if background.originId == originId then return background end
+    end
+    return nil
+end
+
+local function buildMembers(draft, family, roll, pick)
+    draft.members = {}
+    local function add(age, sourceName, parents)
+        local member = { id = #draft.members + 1, age = age, sex = pick({ "男", "女" }),
+            parents = parents or {}, nameSource = sourceName, focus = "general" }
+        giveName(member, family, pick)
+        configureMember(member, pick, roll)
+        table.insert(draft.members, member)
+        return member
+    end
+
+    local leader = add(roll(22, 58), "family")
+    local adult = add(roll(math.max(18, leader.age - 8), math.min(66, leader.age + 8)), roll(1, 3) == 1 and "family" or "external")
+    local couple = adult.nameSource == "external"
+    if couple then
+        giveName(adult, family, pick)
+        leader.spouseId = adult.id
+        adult.spouseId = leader.id
+    end
+    if roll(1, 3) == 1 then
+        local elder = add(roll(leader.age + 18, math.min(90, leader.age + 35)), "family")
+        leader.parents = { elder.id }
+        if not couple then adult.parents = {} end
+    end
+    for _ = 1, roll(0, 3) do
+        local parents = couple and { leader.id, adult.id } or { leader.id }
+        add(roll(0, math.min(24, leader.age - 18, couple and adult.age - 18 or 24)), "family", parents)
+    end
+    draft.nextId = #draft.members + 1
+    draft.leaderId = leader.id
+end
+
 local function randomPage(candidate, page, profile, roll, pick)
     if page == "world" then
         local period = pick(Data.Periods)
         candidate.periodId = period.id; candidate.calendar = pick(period.years)
         candidate.originId = pick(Data.Origins).id; candidate.placeId = pick(Data.Places).id
+        local background = backgroundForOrigin(candidate.originId)
+        candidate.backgroundId = background and background.id or nil
     elseif page == "people" then
-        for _, member in ipairs(candidate.members) do
-            configureMember(member, pick, roll)
-            -- 明确自定义/旧档未声明归属的姓名不被本页随机覆盖。
-            if member.nameSource == "family" or member.nameSource == "external" then giveName(member, candidate.family, pick) end
-        end
+        buildMembers(candidate, candidate.family, roll, pick)
+        for _, member in ipairs(candidate.members) do Art.Assign(member, candidate.rngSeed) end
     elseif page == "estate" then
         candidate.money = roll(0, 12) * Data.OpeningCosts.moneyUnit
         candidate.grain = roll(0, 10) * Data.OpeningCosts.grainUnit; candidate.land = roll(0, 3)
         candidate.homeId = pick(Data.Homes).id
         candidate.workshop = roll(1, 4) == 1; candidate.shop = roll(1, 4) == 1
-        candidate.habitId = pick(Data.Habits).id; candidate.tieId = pick(Data.Ties).id
+        candidate.habitId = "none"; candidate.tieId = "none"
     elseif page == "relics" then
         candidate.selectedRelicIds = {}
         for _, relic in ipairs(Data.Relics) do
@@ -137,36 +175,17 @@ function Opening.Generate(profile, seed, worldId)
     local source, roll, pick = randomSource(seed)
     for _ = 1, 512 do
         local draft = State.NewDraft()
-        draft.generatorVersion = 2; draft.family = pick(Data.Surnames); draft.members = {}
-        local function add(age, sourceName, parents)
-            local member = { id = #draft.members + 1, age = age, sex = pick({ "男", "女" }),
-                parents = parents or {}, nameSource = sourceName }
-            giveName(member, draft.family, pick); configureMember(member, pick, roll)
-            table.insert(draft.members, member)
-            return member
-        end
-        local leader = add(roll(22, 58), "family")
-        local adult = add(roll(math.max(18, leader.age - 8), math.min(66, leader.age + 8)), roll(1, 3) == 1 and "family" or "external")
-        local couple = adult.nameSource == "external"
-        if couple then
-            giveName(adult, draft.family, pick)
-            leader.spouseId = adult.id; adult.spouseId = leader.id
-        end
-        if roll(1, 3) == 1 then
-            local elder = add(roll(leader.age + 18, math.min(90, leader.age + 35)), "family")
-            leader.parents = { elder.id }
-            if not couple then adult.parents = {} end
-        end
-        for _ = 1, roll(0, 3) do
-            local parents = couple and { leader.id, adult.id } or { leader.id }
-            add(roll(0, math.min(24, leader.age - 18, couple and adult.age - 18 or 24)), "family", parents)
-        end
-        draft.nextId = #draft.members + 1; draft.leaderId = leader.id
-        for _, page in ipairs({ "world", "estate", "relics" }) do randomPage(draft, page, profile, roll, pick) end
-        draft.rngSeed = source.rngState
-        for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed) end
+        draft.generatorVersion = 2
+        draft.rulesVersion = Data.RULES_VERSION
+        draft.family = pick(Data.Surnames)
         draft.habitId = "none"
         draft.tieId = "none"
+        buildMembers(draft, draft.family, roll, pick)
+        for _, page in ipairs({ "world", "estate", "relics" }) do randomPage(draft, page, profile, roll, pick) end
+        local background = backgroundForOrigin(draft.originId)
+        draft.backgroundId = background and background.id or nil
+        draft.rngSeed = source.rngState
+        for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed) end
         if #State.ValidateDraft(draft, profile, false) == 0 then
             draft.rngSeed = source.rngState
             draft.nameSeed = draft.rngSeed

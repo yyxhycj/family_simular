@@ -1,395 +1,435 @@
--- 手机开局与可选编辑：同一草案，明细只读，长内容在固定操作栏之上滚动。
 local UI = require "urhox-libs/UI"
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Opening = require "Jiaye.Opening"
 local Economy = require "Jiaye.Economy"
 local V7 = require "Jiaye.V7"
+local Visual = require "Jiaye.Visual"
+
 local View = {}
-local C = { paper = V7.Colors.paper, card = V7.Colors.paperLight, ink = V7.Colors.ink,
-    muted = V7.Colors.secondary, line = V7.Colors.rule, green = V7.Colors.primary, pale = V7.Colors.selected, warning = V7.Colors.danger, gold = V7.Colors.gold }
-local function text(value, size, color)
-    return UI.Label { text = value, fontSize = size or 15, fontColor = color or C.ink, whiteSpace = "normal", flexShrink = 0 }
+local C = {
+    paper = V7.Colors.paper, card = V7.Colors.paperLight, ink = V7.Colors.ink,
+    muted = V7.Colors.secondary, line = V7.Colors.rule, green = V7.Colors.primary,
+    pale = V7.Colors.selected, warning = V7.Colors.danger, gold = V7.Colors.gold,
+}
+
+local function draftOf(app)
+    return app.openingEditDraft or app.draft
 end
+
+local function text(value, size, color, extra)
+    local props = extra or {}
+    props.fontSize = size or props.fontSize or 15
+    props.fontColor = color or props.fontColor or C.ink
+    props.whiteSpace = props.whiteSpace or "normal"
+    props.flexShrink = props.flexShrink or 0
+    return Visual.Text(tostring(value or ""), props)
+end
+
 local function button(label, action, secondary, extra)
     local props = extra or {}
-    props.text = label; props.onClick = action; props.height = props.height or 44; props.fontSize = 15
-    local role = secondary and "secondary" or "primary"
-    props.backgroundImage = props.backgroundImage or V7.ButtonImage(role, "default")
-    props.pressedBackgroundImage = props.pressedBackgroundImage or V7.ButtonImage(role, "pressed")
-    props.disabledBackgroundImage = props.disabledBackgroundImage or V7.ButtonImage(role, "disabled")
-    props.backgroundFit = "sliced"; props.backgroundSlice = { 9, 9, 9, 9 }
-    props.textColor = secondary and C.ink or {255,255,255,255}
-    props.borderRadius = 3; props.flexShrink = 0
-    return UI.Button(props)
+    props.role = secondary and "secondary" or (props.role or "primary")
+    props.height = props.height or 44
+    props.fontSize = props.fontSize or 15
+    props.flexShrink = props.flexShrink or 0
+    return Visual.Button(label, action, props)
 end
-local function panel(children, card)
-    return UI.Panel { gap = 8, padding = card and 12 or 0, backgroundColor = card and C.card or nil,
-        borderWidth = card and 1 or 0, borderColor = C.line, borderRadius = 10, flexShrink = 0, children = children }
+
+local function card(children, extra)
+    local props = extra or {}
+    props.gap = props.gap or 8
+    props.padding = props.padding == nil and 12 or props.padding
+    props.flexShrink = props.flexShrink or 0
+    return Visual.Card(children, props)
 end
-local function row(children) return UI.Row { gap = 8, flexShrink = 0, children = children } end
-local function signed(n) return (n > 0 and "+" or "") .. tostring(n) end
-local function field(value, onChange)
-    return UI.TextField { value = value, onChange = onChange, height = 44, fontSize = 16, maxLength = 20,
-        backgroundColor = C.card, textColor = C.ink, borderColor = C.line }
+
+local function row(children, extra)
+    local props = extra or {}
+    props.gap = props.gap or 8
+    props.flexShrink = props.flexShrink or 0
+    props.children = children
+    return UI.Row(props)
 end
+
+local function field(value, onChange, id)
+    return UI.TextField {
+        id = id, value = value or "", onChange = onChange, height = 44,
+        fontSize = 16, maxLength = 20, backgroundColor = C.card,
+        textColor = C.ink, borderColor = C.line,
+    }
+end
+
 local function choose(items, value, onChange)
-    return UI.Dropdown { options = items, value = value, height = 44, fontSize = 15, maxVisibleItems = 5,
-        onChange = function(_, selected) onChange(selected) end }
+    return UI.Dropdown {
+        options = items, value = value, height = 44, fontSize = 15, maxVisibleItems = 6,
+        onChange = function(_, selected) onChange(selected) end,
+    }
 end
-local function quantityControl(label, value, min, max, step, suffix, onChange)
-    local function move(delta)
-        local nextValue = math.max(min, math.min(max, value + delta))
-        if nextValue ~= value then onChange(nextValue) end
-    end
-    return UI.Panel { gap = 6, children = {
-        text(label .. "：" .. tostring(value) .. suffix, 17),
-        row({
-            button("−", function() move(-step) end, true, { width = 44, height = 44, disabled = value <= min }),
-            UI.Panel { flex = 1, height = 44, justifyContent = "center", alignItems = "center", backgroundColor = C.card,
-                borderColor = C.line, borderWidth = 1, borderRadius = 8, children = { text(tostring(value) .. suffix, 19) } },
-            button("+", function() move(step) end, true, { width = 44, height = 44, disabled = value >= max }),
-        }),
-    }}
-end
+
 local function options(items)
     local result = {}
-    for _, item in ipairs(items) do table.insert(result, { value = item.id, label = item.name .. " · " .. tostring(item.cost or 0) .. " 点" }) end
+    for _, item in ipairs(items) do
+        table.insert(result, { value = item.id, label = item.name .. " · " .. tostring(item.cost or 0) .. " 点" })
+    end
     return result
 end
-local function show(app, name) app.openingView = name; app.openingFeedback = ""; app:Render() end
+
+local function signed(value)
+    return (value > 0 and "+" or "") .. tostring(value)
+end
+
+local function sectionTitle(title, detail, action)
+    local content = row({
+        row({ text("◇", 18, C.gold), text(title, 19) }, { alignItems = "center" }),
+        detail and text(detail, 13, C.muted) or UI.Panel { width = 0 },
+    }, { justifyContent = "space-between", alignItems = "center" })
+    if not action then return content end
+    return UI.Panel {
+        height = 44, minHeight = 44, onClick = action, backgroundColor = false,
+        pointerEvents = "box-only", children = { content },
+    }
+end
+
+local function backgroundFor(draft)
+    return State.BackgroundDefinition(draft)
+end
+
+local function assetCell(label, value, action)
+    return UI.Panel {
+        flex = 1, minWidth = 0, height = 58, padding = 5,
+        justifyContent = "center", alignItems = "center",
+        backgroundColor = C.card, borderRightWidth = 1, borderRightColor = C.line,
+        onClick = action, children = { text(label, 11, C.muted), text(value, 16) },
+    }
+end
+
+local function objectControls(app, page)
+    if page == "name" then
+        return row({
+            button("骰子：随机姓氏", function() app:RandomFamilyName() end, true, { flex = 1 }),
+        })
+    end
+    local used, available = State.PageBudget(draftOf(app), page)
+    return row({
+        button("对象随机", function() app:RandomizePage(page) end, true, { flex = 1 }),
+        button("撤销", function() app:UndoPage(page) end, true, { flex = 1, disabled = app.undo[page] == nil }),
+        text("100 − 其他对象 = " .. available .. " 点 · 已用 " .. used, 12, C.muted, { flex = 1, textAlign = "right" }),
+    }, { alignItems = "center" })
+end
+
 local function preview(app)
-    local run = State.NewRun(app.draft, app.profile)
-    return run and Economy.Preview(run) or nil, run
-end
-local function relicSummary(app)
-    local result = {}
-    for _, id in ipairs(app.draft.selectedRelicIds) do local relic = Data.Relic(id); if relic then table.insert(result, relic.name .. " · " .. relic.cost .. " 点") end end
-    if #result == 0 then return "未带信物 · 可以空手开篇" end
-    local shown = {}
-    for index = 1, math.min(2, #result) do table.insert(shown, result[index]) end
-    if #result > #shown then table.insert(shown, "其余 " .. tostring(#result - #shown) .. " 件") end
-    return table.concat(shown, "；")
+    local run = State.NewRun(draftOf(app), app.profile)
+    return run and Economy.Preview(run) or nil
 end
 
-local function lastGlyph(value)
-    local glyph = "人"
-    for _, codepoint in utf8.codes(value or "") do glyph = utf8.char(codepoint) end
-    return glyph
+local function show(app, view)
+    app.openingView = view
+    app.openingFeedback = ""
+    app:Render()
 end
 
-local function sectionTitle(title, detail)
-    return UI.Row { justifyContent = "space-between", alignItems = "center", children = {
-        UI.Row { gap = 7, alignItems = "center", children = {
-            text("◇", 18, C.gold), text(title, 20),
-        } },
-        detail and text(detail, 14, C.muted) or UI.Panel { width = 0 },
-    } }
+local function backgroundInfo(d)
+    local background = backgroundFor(d)
+    if not background then return nil end
+    local children = {
+        text(background.name .. " · 背景定义", 17),
+        text(background.history or "", 14, C.muted),
+    }
+    for _, contact in ipairs(background.contacts or {}) do
+        table.insert(children, text("旧识 · " .. tostring(contact.name) .. " · " .. tostring(contact.relation), 14))
+        table.insert(children, text(contact.history or "", 13, C.muted))
+    end
+    if background.effect then
+        table.insert(children, text("当前作用 · " .. tostring(background.effect.description or "待确认"), 14))
+        table.insert(children, text("适用条件 · " .. tostring(background.effect.condition or "待确认"), 13, C.muted))
+    end
+    local opportunity = background.opportunity
+    if opportunity then
+        table.insert(children, text("机会 · " .. tostring(opportunity.name or "待确认"), 14))
+        table.insert(children, text("条件 · " .. tostring(opportunity.condition or "待确认"), 13, C.muted))
+        if opportunity.status == "prototype" then
+            table.insert(children, text("原型待确认 · " .. tostring(opportunity.pending or "费用与结果待确认"), 13, C.warning))
+        else
+            table.insert(children, text("费用与结果 · " .. tostring(opportunity.cost or "待确认") .. " · " .. tostring(opportunity.result or "待确认"), 13, C.muted))
+        end
+    end
+    return card(children)
 end
 
 local function memberTile(app, member)
+    local draft = draftOf(app)
     local job = Data.Jobs[member.jobId]
-    local leader = member.id == app.draft.leaderId
-    return UI.Button { text = "", onClick = function() app:OpenDraftMember(member.id) end,
-        height = 122, flex = 1, minWidth = 0, gap = 4, padding = 7, flexDirection = "column",
-        backgroundColor = leader and C.pale or C.card, borderWidth = 1,
-        borderColor = leader and {143,163,111,255} or C.line,
+    local leader = member.id == draft.leaderId
+    return UI.Panel {
+        onClick = function() app:OpenDraftMember(member.id) end,
+        height = 122, flex = 1, minWidth = 0, gap = 3, padding = 0,
+        flexDirection = "column", alignItems = "center", backgroundColor = false,
+        pointerEvents = "box-only",
         children = {
-            UI.Panel { width = 52, height = 52, children = {
-                UI.Avatar { src = V7.AvatarId(member), name = member.name, size = 52, shape = "circle", showBorder = true, borderColor = leader and C.green or C.gold },
-                leader and UI.Panel { position = "absolute", right = 0, bottom = 0, width = 20, height = 20, backgroundImage = V7.Art.LeaderOverlay(), backgroundFit = "contain" } or UI.Panel { width = 0, height = 0 },
-            } },
-            text(member.name, 13, C.ink),
-            text(tostring(member.age) .. "岁 · " .. (job and job.name or "待安排"), 11, C.muted),
-            leader and text("朱印 · 首任族长", 10, C.warning) or UI.Panel { width = 0, height = 0 },
+            Visual.Portrait(member, { size = 58, leader = leader }),
+            text(member.name, 15, C.ink, { maxLines = 1, textAlign = "center" }),
+            text(tostring(member.age) .. "岁 · 资质 " .. tostring(member.talent) .. "/5", 12, C.muted, { maxLines = 1, textAlign = "center" }),
+            text(job and job.name or "待安排", 12, C.muted, { maxLines = 1, textAlign = "center" }),
         },
     }
 end
 
-function View.Summary(app)
-    local d = app.draft
-    local ledger, run = preview(app)
-    local adults = 0; for _, member in ipairs(d.members) do if State.IsAdult(member) then adults = adults + 1 end end
-    local children = {
-        text("一家人的故事，从这里开始", 16, C.muted),
-        row({ UI.Panel { flex = 1, minWidth = 0, children = { text(d.family .. "氏家族", 31) } },
-            button("改名", function() app.nameEditing = d.family; show(app, "name") end, true, { width = 58 }),
-            button("骰子", function() app:RandomFamilyName() end, true, { width = 58 }) }),
-        UI.Panel { flexDirection = "row", flexWrap = "wrap", gap = 6, children = {
-            UI.Label { text = Data.Period(d.periodId).name, fontSize = 14, fontColor = C.ink, backgroundColor = C.pale, borderColor = C.line, borderWidth = 1, borderRadius = 5, paddingHorizontal = 8, paddingVertical = 4 },
-            UI.Label { text = Data.Place(d.placeId).short, fontSize = 14, fontColor = C.ink, backgroundColor = C.card, borderColor = C.line, borderWidth = 1, borderRadius = 5, paddingHorizontal = 8, paddingVertical = 4 },
-            UI.Label { text = "大晟历 " .. d.calendar .. " 年", fontSize = 14, fontColor = C.ink, backgroundColor = C.card, borderColor = C.line, borderWidth = 1, borderRadius = 5, paddingHorizontal = 8, paddingVertical = 4 },
-        } },
-        UI.Panel { padding = 13, backgroundColor = {239,243,231,255}, borderLeftWidth = 3, borderLeftColor = C.gold, borderRadius = 7, children = {
-            text(Data.Origin(d.originId).desc, 17, C.ink),
-        } },
-        UI.Panel { height = 142, backgroundImage = V7.HomeImage(d.homeId), backgroundFit = "cover", borderWidth = 1, borderColor = C.gold,
-            children = { UI.Panel { flex = 1, justifyContent = "flex-end", padding = 10, imageTint = {255,255,255,190}, children = {
-                text("家宅 · " .. Data.Home(d.homeId).name, 16, C.ink),
-            } } },
-        },
-    }
-    local metrics = {}
-    for _, metric in ipairs({ {"现银", d.money .. " 两"}, {"存粮", d.grain .. " 石"}, {"田地", d.land .. " 亩"}, {"住宅", Data.Home(d.homeId).name} }) do
-        table.insert(metrics, UI.Panel { height = 82, padding = 8, gap = 3, justifyContent = "center", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line,
-            children = { text(metric[1],13,C.muted), text(metric[2],25,C.ink) } })
+local function relicSummary(app)
+    local result = {}
+    for _, id in ipairs(draftOf(app).selectedRelicIds or {}) do
+        local relic = Data.Relic(id)
+        if relic then table.insert(result, relic.name .. " · " .. relic.cost .. " 点") end
     end
-    table.insert(children, UI.Panel { borderWidth = 1, borderColor = C.line, borderRadius = 10, overflow = "hidden", children = {
-        UI.SimpleGrid { columns = 4, gap = 0, children = metrics },
-    } })
-    table.insert(children, UI.Row { justifyContent = "space-between", children = {
-        text(Data.Home(d.homeId).name, 14, C.muted),
-        text((d.workshop and "有作坊" or "无作坊") .. " · " .. (d.shop and "有商铺" or "无商铺"), 14, C.muted),
-    } })
-    local leader = State.FindMember(d.members, d.leaderId)
-    local leaderJob = leader and Data.Jobs[leader.jobId]
-    table.insert(children, sectionTitle("家中 " .. #d.members .. " 人", adults .. " 成人 · " .. (#d.members - adults) .. " 孩子"))
-    table.insert(children, text("首任族长 · " .. (leader and leader.name or "未指定") .. " · " .. (leaderJob and leaderJob.name or "安排待校验"), 14, C.muted))
-    local memberTiles = {}
-    for index = 1, math.min(4, #d.members) do table.insert(memberTiles, memberTile(app, d.members[index])) end
-    table.insert(children, UI.SimpleGrid { columns = math.min(4, math.max(1, #memberTiles)), gap = 7, children = memberTiles })
-    if #d.members > #memberTiles then table.insert(children, button("查看全部 " .. #d.members .. " 人  ›", function() app:OpenOpeningDetail("people") end, true, { height = 44 })) end
-    local firstRelic = d.selectedRelicIds[1] and Data.Relic(d.selectedRelicIds[1]) or nil
-    table.insert(children, panel({
-        UI.Row { gap = 12, alignItems = "center", children = {
-            UI.Panel { width = 58, height = 58, justifyContent = "center", alignItems = "center", backgroundColor = {244,239,222,255}, borderWidth = 2, borderColor = C.gold, children = { UI.Panel { width = 44, height = 44, backgroundImage = firstRelic and V7.Art.Relic(firstRelic.id) or nil, backgroundFit = "contain", children = firstRelic and nil or { text("物", 27, C.gold) } } } },
-            UI.Panel { flex = 1, minWidth = 0, children = { text(firstRelic and firstRelic.name or "本局未带入旧物", 20), text(relicSummary(app), 14, C.muted) } },
-            button("›", function() app:OpenOpeningDetail("relics") end, true, { id = "opening-relic-detail", width = 42, height = 52, fontSize = 28 }),
+    if #result == 0 then return "未带信物 · 可以空手开篇" end
+    return table.concat(result, "；")
+end
+
+function View.Summary(app)
+    local draft = app.draft
+    local ledger = preview(app)
+    local period = Data.Period(draft.periodId)
+    local origin = Data.Origin(draft.originId)
+    local place = Data.Place(draft.placeId)
+    local background = backgroundFor(draft)
+    local adults = 0
+    for _, member in ipairs(draft.members) do if State.IsAdult(member) then adults = adults + 1 end end
+    local children = {
+        text("一家人的故事，从这里开始", 15, C.muted),
+        row({
+            UI.Panel { flex = 1, minWidth = 0, height = 44, justifyContent = "center", onClick = function() app:BeginOpeningEdit("name") end, children = { text(draft.family .. "氏家族", 25) } },
+            button("改名", function() app:BeginOpeningEdit("name") end, true, { width = 58, height = 44 }),
+            button("骰子", function() app:RandomFamilyName() end, true, { width = 58, height = 44 }),
+        }),
+        row({
+            button("历 " .. tostring(draft.calendar) .. " 年", function() app:BeginOpeningEdit("world") end, true, { flex = 1, height = 44, fontSize = 13, paddingHorizontal = 4 }),
+            button(background and background.name or origin.name, function() app:BeginOpeningEdit("world") end, true, { flex = 1, height = 44, fontSize = 13, paddingHorizontal = 4 }),
+            button(place.short, function() app:BeginOpeningEdit("world") end, true, { flex = 1, height = 44, fontSize = 13, paddingHorizontal = 4 }),
+        }, { gap = 5 }),
+        UI.Panel { onClick = function() app:BeginOpeningEdit("estate") end, height = 110, padding = 0, backgroundColor = C.card, borderWidth = 1, borderColor = C.gold, children = {
+            Visual.House(draft.homeId, "normal", { width = "100%", height = 108 }),
         } },
-    }, true))
-    table.insert(children, UI.Row { justifyContent = "space-between", alignItems = "center", children = {
-        text("首年预计净变化", 17),
-        button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { id = "opening-ledger-detail", height = 44, fontSize = 17 }),
+    }
+    table.insert(children, UI.Panel { flexDirection = "row", height = 58, borderWidth = 1, borderColor = C.line, overflow = "hidden", onClick = function() app:BeginOpeningEdit("estate") end, children = {
+        assetCell("现银", draft.money .. " 两"), assetCell("存粮", draft.grain .. " 石"),
+        assetCell("田地", draft.land .. " 亩"), assetCell("住宅", Data.Home(draft.homeId).name),
     } })
-    table.insert(children,text("不含突发事件 · 不用填写，也能直接开始",14,C.muted))
-    if ledger and (not ledger.foodSatisfied or not ledger.moneySatisfied) then table.insert(children,text("首年钱粮可能不足，可调整家底或安排后再开始。",15,C.warning)) end
-    return panel(children)
+    table.insert(children, text((draft.workshop and "有木工作坊" or "无木工作坊") .. " · " .. (draft.shop and "有小商铺" or "无小商铺"), 12, C.muted))
+    table.insert(children, sectionTitle("家中 " .. #draft.members .. " 人", adults .. " 成人 · " .. (#draft.members - adults) .. " 孩子", function() app:BeginOpeningEdit("people") end))
+    local tiles = {}
+    for index = 1, math.min(4, #draft.members) do table.insert(tiles, memberTile(app, draft.members[index])) end
+    table.insert(children, UI.SimpleGrid { columns = math.min(4, math.max(1, #tiles)), gap = 7, children = tiles })
+    if #draft.members > #tiles then table.insert(children, button("查看全部 " .. #draft.members .. " 人  ›", function() app:OpenOpeningDetail("people") end, true)) end
+    local firstRelic = draft.selectedRelicIds and draft.selectedRelicIds[1]
+    table.insert(children, UI.Panel { onClick = function() app:BeginOpeningEdit("relics") end, height = 60, padding = 5, gap = 8, flexDirection = "row", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line, children = {
+        firstRelic and Visual.Relic(firstRelic, 46) or text("物", 25, C.gold),
+        UI.Panel { flex = 1, minWidth = 0, children = { text(firstRelic and Data.Relic(firstRelic).name or "本局未带入旧物", 15), text(relicSummary(app), 12, C.muted, { maxLines = 1 }) } },
+        text("›", 22, C.muted),
+    } })
+    table.insert(children, row({ text("首年预计 · 不含突发", 14, C.muted), button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { flex = 1, height = 44, fontSize = 14 }) }))
+    return card(children)
 end
 
 local function ledgerView(app)
     local ledger = preview(app)
-    if not ledger then return panel({text("草案存在错误，修正后即可查看首年预计收支。",16,C.warning)}) end
-    local children = {text("首年账本",23),text("按眼前安排与年初数值计算，不含突发事件。",14,C.muted),
-        text("现有 " .. ledger.beforeMoney .. " 两 / " .. ledger.beforeGrain .. " 石",18)}
-    for _, entry in ipairs(ledger.members) do
-        table.insert(children,text(entry.name .. " · " .. entry.job .. "：" .. signed(entry.money) .. " 两，" .. signed(entry.grain) .. " 石"))
-    end
-    for _, line in ipairs({"谋生收入 +" .. ledger.income .. " 两", "产业与营造图 +" .. ledger.industryIncome .. " 两",
-        "培养支出 −" .. ledger.training .. " 两", "生活开支 −" .. ledger.livingExpense .. " 两", "田地产粮 +" .. ledger.landGrain .. " 石",
-        "全年口粮 −" .. ledger.foodNeed .. " 石", "缺粮 " .. ledger.foodShortfall .. " 石；实际可购 " .. ledger.boughtGrain .. " 石 / " .. ledger.foodCost .. " 两",
-        "补开支售粮 " .. ledger.grainSold .. " 石 / +" .. ledger.saleIncome .. " 两", "预计年末 " .. ledger.money .. " 两 / " .. ledger.grain .. " 石"}) do table.insert(children,text(line)) end
-    if not ledger.foodSatisfied then table.insert(children,text("购粮资金不足，按当前规则全家体魄各减 12。",16,C.warning)) end
-    return panel(children,true)
+    if not ledger then return card({ text("草案存在错误，修正后即可查看首年预计收支。", 16, C.warning) }) end
+    local children = { text("首年账本", 23), text("按当前安排和年初数值计算，不含突发事件。", 14, C.muted), text("现有 " .. ledger.beforeMoney .. " 两 / " .. ledger.beforeGrain .. " 石", 18) }
+    for _, entry in ipairs(ledger.members or {}) do table.insert(children, text(entry.name .. " · " .. entry.job .. "：" .. signed(entry.money) .. " 两，" .. signed(entry.grain) .. " 石")) end
+    table.insert(children, text("谋生收入 +" .. ledger.income .. " 两 · 产业 +" .. ledger.industryIncome .. " 两", 15))
+    table.insert(children, text("培养支出 −" .. ledger.training .. " 两 · 生活开支 −" .. ledger.livingExpense .. " 两", 15))
+    table.insert(children, text("预计年末 " .. ledger.money .. " 两 / " .. ledger.grain .. " 石", 17))
+    return card(children)
 end
 
 local function pointsView(app)
-    local children={text("开局点数明细",23),text("共用 100 点，不设类别配额；姓名与性别零点。",14,C.muted)}
-    for _, entry in ipairs(State.PointLines(app.draft)) do
-        table.insert(children,panel({text(entry.label .. " · " .. entry.cost .. " 点",16),text(entry.effect,14,C.muted)},true))
+    local draft = draftOf(app)
+    local children = { text("开局点数明细", 23), text("共用 100 点，不设类别配额；姓名、性别、家风和成长偏向不单独出售。", 14, C.muted) }
+    for _, entry in ipairs(State.PointLines(draft)) do
+        if not string.find(entry.label or "", "偏向", 1, true) and not string.find(entry.label or "", "家风", 1, true) and not string.find(entry.label or "", "旧识", 1, true) then
+            table.insert(children, card({ text(entry.label .. " · " .. entry.cost .. " 点", 16), text(entry.effect, 14, C.muted) }))
+        end
     end
-    return panel(children)
+    return card(children)
 end
 
 local function peopleView(app)
-    local children={text("全部 " .. #app.draft.members .. " 位族人",23)}
-    for _, member in ipairs(app.draft.members) do
-        local stats=Data.Experience(member.experienceId).values
-        table.insert(children,panel({text(member.name .. " · " .. member.age .. " 岁" .. (member.id==app.draft.leaderId and " · 首任族长" or ""),18),
-            text("资质 " .. member.talent .. "/5 · " .. Data.Jobs[member.jobId].name),
-            text("学识 " .. stats.learn .. " / 手艺 " .. stats.skill .. " / 医术 " .. stats.medicine .. " / 经营 " .. stats.trade .. " / 武艺 " .. stats.martial,14,C.muted),
-            button("查看与编辑 · " .. member.name,function() app:OpenDraftMember(member.id) end,true)},true))
+    local draft = draftOf(app)
+    local children = { text("全部 " .. #draft.members .. " 位族人", 23) }
+    for _, member in ipairs(draft.members) do
+        local stats = Data.Experience(member.experienceId).values
+        table.insert(children, card({ row({ Visual.Portrait(member, { size = 52, leader = member.id == draft.leaderId }), UI.Panel { flex = 1, minWidth = 0, children = { text(member.name .. " · " .. member.age .. " 岁", 18), text("资质 " .. member.talent .. "/5 · " .. Data.Jobs[member.jobId].name, 14, C.muted) } }, button("编辑", function() app:OpenDraftMember(member.id) end, true, { width = 58 }) }), text("学识 " .. stats.learn .. " / 手艺 " .. stats.skill .. " / 医术 " .. stats.medicine .. " / 经营 " .. stats.trade .. " / 武艺 " .. stats.martial, 14, C.muted) }))
     end
-    table.insert(children,button("添加族人",function() app:BeginOpeningEdit("people"); app:AddMember() end,true))
-    return panel(children)
+    table.insert(children, button("添加族人", function() app:AddMember() end, true))
+    return card(children)
 end
 
 local function relicView(app, editing)
-    local children={text(editing and "信物选择" or "本局信物与收藏",23),text("解锁是可选资格；只有选中的物件带入本局，共享 100 点。",14,C.muted)}
+    local draft = draftOf(app)
+    local children = { text(editing and "信物选择" or "本局信物与收藏", 23), text("解锁是可选资格；只有选中的物件带入本局，共享 100 点。", 14, C.muted) }
     for _, relic in ipairs(Data.Relics) do
-        local selected=false; for _, id in ipairs(app.draft.selectedRelicIds) do if id==relic.id then selected=true end end
-        local unlocked=app.profile.unlockedRelicIds[relic.id]
-        local content={text(relic.name .. " · " .. relic.cost .. " 点",18),text(relic.desc,15,C.muted)}
-        table.insert(content,editing and button(not unlocked and "尚未解锁" or (selected and "✓ 已带入" or "选入本局"),function() app:ToggleRelic(relic.id) end,not selected,{disabled=not unlocked})
-            or text(not unlocked and "尚未解锁" or (selected and "✓ 本局带入" or "已解锁 · 本局未带入"),14))
-        table.insert(children,panel(content,true))
+        local selected = false
+        for _, id in ipairs(draft.selectedRelicIds or {}) do if id == relic.id then selected = true end end
+        local unlocked = app.profile.unlockedRelicIds[relic.id]
+        local action = editing and button(not unlocked and "尚未解锁" or (selected and "✓ 已带入" or "选入本局"), function() app:ToggleRelic(relic.id) end, not selected, { disabled = not unlocked }) or text(not unlocked and "尚未解锁" or (selected and "✓ 本局带入" or "已解锁 · 本局未带入"), 14, C.muted)
+        table.insert(children, card({ row({ Visual.Relic(relic.id, 42), UI.Panel { flex = 1, minWidth = 0, children = { text(relic.name .. " · " .. relic.cost .. " 点", 18), text(relic.desc, 14, C.muted) } }, action }) }))
     end
-    if not editing then table.insert(children,button("调整信物",function() app:BeginOpeningEdit("relics") end,true)) end
-    return panel(children)
+    return card(children)
 end
 
 local function editor(app)
-    local d,page=app.draft,app.openingPage
-    local used,capacity=State.PageBudget(d,page)
-    local children={text("只改你在意的选项",22),text("合计 " .. State.TotalPoints(d) .. "/100 · 本页 " .. used .. " 点，可用 " .. capacity .. " 点",14,C.muted)}
-    local nav={}; for _, item in ipairs({{"world","世道"},{"people","族人"},{"estate","家底"},{"relics","信物"},{"final","确认"}}) do
-        table.insert(nav,button(item[2],function() app:SetOpeningPage(item[1]) end,item[1]~=page))
-    end
-    table.insert(children,UI.Panel { flexDirection = "row", flexWrap = "wrap", gap = 8, children = nav })
-    if page~="final" then table.insert(children,row({button("随机本页",function() app:RandomizePage(page) end,true,{flex=1}),button("撤销本页随机",function() app:UndoPage(page) end,true,{flex=1,disabled=not app.undo[page]})})) end
-    local function choice(title, key, list, selected, effect)
-        table.insert(children,text(title,17))
-        table.insert(children,choose(list,selected,function(value) app:SetDraftField(page,key,value) end))
-        if effect then table.insert(children,text(effect,14,C.muted)) end
-    end
-    if page=="world" then
-        table.insert(children,text("凡世王朝 · 家族称谓在摘要中单独修改",15,C.muted))
-        table.insert(children,choose(options(Data.Periods),d.periodId,function(id) app:SelectPeriod(id) end))
-        local years={}; for _, y in ipairs(Data.Period(d.periodId).years) do table.insert(years,{value=y,label="大晟历 " .. y .. " 年"}) end
-        choice("年份","calendar",years,d.calendar)
-        choice("来历","originId",options(Data.Origins),d.originId,Data.Origin(d.originId).desc)
-        local place=Data.Place(d.placeId)
-        choice("落脚地区","placeId",options(Data.Places),d.placeId,place.desc .. "\n" .. place.burden)
-    elseif page=="people" then table.insert(children,peopleView(app))
-    elseif page=="estate" then
-        for _, item in ipairs({{"money","现银",300,Data.OpeningCosts.moneyUnit," 两"},{"grain","存粮",160,Data.OpeningCosts.grainUnit," 石"},{"land","田地",12,1," 亩"}}) do
-            local key=item[1]
-            table.insert(children,quantityControl(item[2], d[key], 0, item[3], item[4], item[5], function(v) app:SetDraftField(page,key,v) end))
+    local draft, page = draftOf(app), app.openingPage
+    local children = { text("编辑对象", 23), text("修改只写入临时草案；保存并返回才提交，取消会完整丢弃。", 14, C.muted) }
+    table.insert(children, objectControls(app, page))
+    if page == "name" then
+        table.insert(children, text("家族称谓", 17))
+        table.insert(children, field(app.nameEditing or draft.family, function(_, value) app.nameEditing = value end, "opening-family-name"))
+        table.insert(children, text("骰子只随机姓氏；外姓、自定义姓名和关系保持原样。", 14, C.muted))
+    elseif page == "world" then
+        table.insert(children, text("时间与背景", 17))
+        table.insert(children, choose(options(Data.Periods), draft.periodId, function(id) app:SelectPeriod(id) end))
+        local years = {}; for _, year in ipairs(Data.Period(draft.periodId).years) do table.insert(years, { value = year, label = "大晟历 " .. year .. " 年" }) end
+        table.insert(children, choose(years, draft.calendar, function(value) app:SetDraftField("world", "calendar", value) end))
+        table.insert(children, choose(options(Data.Origins), draft.originId, function(value) app:SetDraftField("world", "originId", value) end))
+        table.insert(children, choose(options(Data.Places), draft.placeId, function(value) app:SetDraftField("world", "placeId", value) end))
+        local details = backgroundInfo(draft); if details then table.insert(children, details) end
+        table.insert(children, text("家风与旧识在真实经历中形成，开局不单独购买。", 14, C.muted))
+    elseif page == "people" then
+        table.insert(children, peopleView(app))
+    elseif page == "estate" then
+        for _, item in ipairs({ {label = "现银", key = "money", max = 300, step = Data.OpeningCosts.moneyUnit, suffix = " 两"}, {label = "存粮", key = "grain", max = 160, step = Data.OpeningCosts.grainUnit, suffix = " 石"}, {label = "田地", key = "land", max = 12, step = 1, suffix = " 亩"} }) do
+            table.insert(children, UI.Panel { gap = 5, children = { text(item.label .. "：" .. draft[item.key] .. item.suffix, 17), row({ button("−", function() app:SetDraftField("estate", item.key, math.max(0, draft[item.key] - item.step)) end, true, { width = 44, disabled = draft[item.key] <= 0 }), UI.Panel { flex = 1, height = 44, justifyContent = "center", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line, children = { text(draft[item.key] .. item.suffix, 18) } }, button("+", function() app:SetDraftField("estate", item.key, math.min(item.max, draft[item.key] + item.step)) end, true, { width = 44, disabled = draft[item.key] >= item.max }) }) } })
         end
-        choice("住宅","homeId",options(Data.Homes),d.homeId)
-        for _, item in ipairs({{"workshop","木工作坊",Data.OpeningCosts.workshop},{"shop","小商铺",Data.OpeningCosts.shop}}) do
-            local key=item[1]; table.insert(children,button((d[key] and "✓ " or "") .. item[2] .. " · " .. item[3] .. " 点",function() app:SetDraftField(page,key,not d[key]) end,not d[key]))
+        table.insert(children, choose(options(Data.Homes), draft.homeId, function(value) app:SetDraftField("estate", "homeId", value) end))
+        for _, item in ipairs({ {name = "木工作坊", key = "workshop", cost = Data.OpeningCosts.workshop}, {name = "小商铺", key = "shop", cost = Data.OpeningCosts.shop} }) do
+            table.insert(children, button((draft[item.key] and "✓ " or "") .. item.name .. " · " .. item.cost .. " 点", function() app:SetDraftField("estate", item.key, not draft[item.key]) end, not draft[item.key]))
         end
-        table.insert(children, text("家风与旧识会在局内经历中形成，开局不单独购买。", 14, C.muted))
-    elseif page=="relics" then table.insert(children,relicView(app,true))
-    else
-        table.insert(children,pointsView(app)); table.insert(children,ledgerView(app))
-        local prior = app.previousDraft ~= nil
-        table.insert(children, panel({
-            text(prior and "原家谱存档" or "草案存档", 18),
-            text(prior and "正在试配新家谱：保存、导出和读取只处理原家谱；新草案仅在“就从这家开始”后写入。" or "保存会先校验并结束当前编辑；导出当前候选草案不会写入存档。", 14, C.muted),
-            row({
-                button(prior and "保存原家谱" or "保存草案", function() app:SaveOpeningDraft() end, true, { flex = 1, height = 40 }),
-                button(prior and "导出原家谱" or "导出当前候选草案", function() app:Export() end, true, { flex = 1, height = 40 }),
-            }),
-            button("读取最近存档", function() app:Load() end, true, { height = 40 }),
-        }, true))
+    elseif page == "relics" then
+        table.insert(children, relicView(app, true))
+    elseif page == "ledger" then
+        table.insert(children, ledgerView(app))
+    elseif page == "points" then
+        table.insert(children, pointsView(app))
     end
-    return panel(children)
+    return card(children)
 end
 
 local function memberView(app)
-    local m=app.memberEditing
-    local children={text(m.name .. " · 临时编辑",23),text("人物 " .. State.MemberCost(m) .. " 点；保存后生效，取消不改草案。",14,C.muted)}
-    local tabs={}; for _, item in ipairs({{"base","概况"},{"skills","本领与安排"},{"relations","亲属"}}) do
-        table.insert(tabs,button(item[2],function() app.memberSection=item[1]; app:Render() end,item[1]~=app.memberSection,{flex=1}))
-    end
-    table.insert(children,row(tabs))
-    if app.memberRemoving then
-        table.insert(children,text("此人将在“保存移除”后才从草案删除；取消不会改动关系或族长。",15,C.warning))
-    end
-    local function change(key,value) m[key]=value; app.memberIssue=""; app.removeConfirm=false; app:Render() end
-    if app.memberSection=="base" then
-        table.insert(children,text("完整姓名 · 手改后独立保留"))
-        -- 输入时不重建整棵树，避免 TextField 丢失焦点；保存前仍由 EditMember 完整校验。
-        table.insert(children,field(m.name,function(_,value) m.name=value; m.nameSource="custom"; app.memberIssue=""; app.removeConfirm=false end))
-        table.insert(children,button(m.nameSource=="family" and "✓ 跟随家族姓氏" or "改为跟随家族姓氏",function()
-            m.nameSource="family"; m.givenName=m.givenName or "新"; m.name=app.draft.family .. m.givenName; app.removeConfirm=false; app:Render()
-        end,true))
-        if m.nameSource=="family" then
-            table.insert(children,text("本姓成员的名（不含姓）"))
-            table.insert(children,field(m.givenName,function(_,value) m.givenName=value; m.name=app.draft.family .. value; app.memberIssue=""; app.removeConfirm=false end))
+    local member, draft = app.memberEditing, draftOf(app)
+    local children = { text(member.name .. " · 临时编辑", 23), text("保存后生效，取消不改草案。", 14, C.muted), row({
+        button("概况", function() app.memberSection = "base"; app:Render() end, app.memberSection ~= "base", { flex = 1 }),
+        button("本领与安排", function() app.memberSection = "skills"; app:Render() end, app.memberSection ~= "skills", { flex = 1 }),
+        button("亲属", function() app.memberSection = "relations"; app:Render() end, app.memberSection ~= "relations", { flex = 1 }),
+    }) }
+    local function change(key, value)
+        member[key] = value
+        if key == "sex" then
+            member.artId = nil
+            V7.Art.Assign(member, draft.rngSeed)
         end
-        table.insert(children,quantityControl("年龄", m.age, 0, 92, 1, " 岁", function(v) change("age",v) end))
-        table.insert(children,choose({{value="男",label="男"},{value="女",label="女"}},m.sex,function(v) change("sex",v) end))
-        table.insert(children,button(app.memberLeader==m.id and "✓ 首任族长" or "设为首任族长",function() app.memberLeader=m.id; app:Render() end,true,{disabled=m.age < Data.AgeRules.adult}))
-    elseif app.memberSection=="skills" then
-        local talents={}; for i,t in ipairs(Data.Talents) do table.insert(talents,{value=i,label=t.name .. " · " .. t.cost .. " 点"}) end
-        table.insert(children,text("潜力资质")); table.insert(children,choose(talents,m.talent,function(v) change("talent",v) end))
-        table.insert(children,text("已有本领"))
-        local experiences=options(Data.Experiences)
-        for i,item in ipairs(Data.Experiences) do experiences[i].disabled=m.age < Data.AgeRules.basicExperience and item.id~="none" or m.age < Data.AgeRules.adult and item.id~="none" and item.id~="basic" end
-        table.insert(children,choose(experiences,m.experienceId,function(v) change("experienceId",v) end))
-        local values=Data.Experience(m.experienceId).values
-        table.insert(children,text("学识 " .. values.learn .. " / 手艺 " .. values.skill .. " / 医术 " .. values.medicine .. " / 经营 " .. values.trade .. " / 武艺 " .. values.martial,15,C.muted))
-        table.insert(children,text("初始安排 · 不满足资格时先改年龄或本领"))
-        local jobs={}
-        for _, id in ipairs(Data.JobOrder) do
-            local ok,reason=State.CanUseJob({age=m.age,stats=values},id)
-            table.insert(jobs,{value=id,label=Data.Jobs[id].name .. (ok and "" or " · " .. reason),disabled=not ok})
-        end
-        table.insert(children,choose(jobs,m.jobId,function(v) change("jobId",v) end))
-        table.insert(children,text(Data.Jobs[m.jobId].desc,14,C.muted))
+        app.memberIssue = ""; app:Render()
+    end
+    if app.memberSection == "base" then
+        table.insert(children, field(member.name, function(_, value) member.name = value; member.nameSource = "custom" end, "opening-member-name-" .. tostring(member.id)))
+        table.insert(children, row({ text("年龄 " .. member.age .. " 岁", 17), button("−", function() change("age", math.max(0, member.age - 1)) end, true, { width = 44 }), button("+", function() change("age", math.min(92, member.age + 1)) end, true, { width = 44 }) }))
+        table.insert(children, choose({ {value = "男", label = "男"}, {value = "女", label = "女"} }, member.sex, function(value) change("sex", value) end))
+        table.insert(children, button(app.memberLeader == member.id and "✓ 首任族长" or "设为首任族长", function() app.memberLeader = member.id; app:Render() end, true, { disabled = member.age < Data.AgeRules.adult }))
+    elseif app.memberSection == "skills" then
+        local talents = {}; for i, talent in ipairs(Data.Talents) do table.insert(talents, { value = i, label = talent.name .. " · " .. talent.cost .. " 点" }) end
+        table.insert(children, choose(talents, member.talent, function(value) change("talent", value) end))
+        table.insert(children, choose(options(Data.Experiences), member.experienceId, function(value) change("experienceId", value) end))
+        local values = Data.Experience(member.experienceId).values
+        table.insert(children, text("学识 " .. values.learn .. " / 手艺 " .. values.skill .. " / 医术 " .. values.medicine .. " / 经营 " .. values.trade .. " / 武艺 " .. values.martial, 14, C.muted))
+        local jobs = {}; for _, id in ipairs(Data.JobOrder) do local ok, reason = State.CanUseJob({ age = member.age, stats = values }, id); table.insert(jobs, { value = id, label = Data.Jobs[id].name .. (ok and "" or " · " .. reason), disabled = not ok }) end
+        table.insert(children, choose(jobs, member.jobId, function(value) change("jobId", value) end))
     else
-        table.insert(children,text("父母/养亲 · 最多两位；年龄变更不会偷偷删除关系。",15,C.muted))
-        for _, other in ipairs(app.draft.members) do if other.id~=m.id then
-            local selected=false; for _,id in ipairs(m.parents) do if id==other.id then selected=true end end
-            table.insert(children,button((selected and "✓ " or "") .. other.name .. " · " .. other.age .. " 岁",function()
-                local nextParents={}; for _,id in ipairs(m.parents) do if id~=other.id then table.insert(nextParents,id) end end
-                if not selected then table.insert(nextParents,other.id) end
-                change("parents",nextParents)
-            end,not selected,{disabled=not selected and (other.age-m.age<18 or #m.parents>=2)}))
+        table.insert(children, text("父母/养亲 · 最多两位；关系在保存时统一校验。", 15, C.muted))
+        for _, other in ipairs(draft.members) do if other.id ~= member.id then
+            local selected = false; for _, id in ipairs(member.parents or {}) do if id == other.id then selected = true end end
+            table.insert(children, button((selected and "✓ " or "") .. other.name .. " · " .. other.age .. " 岁", function()
+                local parents = {}; for _, id in ipairs(member.parents or {}) do if id ~= other.id then table.insert(parents, id) end end
+                if not selected then table.insert(parents, other.id) end; change("parents", parents)
+            end, not selected, { disabled = not selected and (other.age - member.age < 18 or #(member.parents or {}) >= 2) }))
         end end
-        local spouses={{value=0,label="无配偶"}}
-        for _,other in ipairs(app.draft.members) do if other.id~=m.id then table.insert(spouses,{value=other.id,label=other.name .. " · " .. other.age .. " 岁",disabled=other.age<18 or m.age<18}) end end
-        table.insert(children,text("配偶 · 保存时双向校验")); table.insert(children,choose(spouses,m.spouseId or 0,function(v) change("spouseId",v~=0 and v or nil) end))
-        if not app.memberIsNew then
-            if app.memberRemoving then
-                table.insert(children,button("取消移除标记",function() app.memberRemoving=false; app.memberIssue=""; app:Render() end,true))
-            else
-                table.insert(children,button(app.removeConfirm and "确认移除，并清理配偶/亲子引用" or "移除此人…",function()
-                    if app.removeConfirm then app.removeConfirm=false; app:MarkDraftMemberForRemoval() else app.removeConfirm=true; app:Render() end
-                end,true))
-            end
-        end
+        local spouses = { { value = 0, label = "无配偶" } }; for _, other in ipairs(draft.members) do if other.id ~= member.id then table.insert(spouses, { value = other.id, label = other.name .. " · " .. other.age .. " 岁" }) end end
+        table.insert(children, choose(spouses, member.spouseId or 0, function(value) change("spouseId", value ~= 0 and value or nil) end))
+        if not app.memberIsNew then table.insert(children, button(app.memberRemoving and "已标记移除" or "移除此人…", function() app:MarkDraftMemberForRemoval() end, true)) end
     end
-    local candidate,issue=app:DraftMemberCandidate()
-    table.insert(children,text(candidate and ("保存后总分 " .. State.TotalPoints(candidate) .. "/100") or issue,15,candidate and C.muted or C.warning))
-    if app.memberIssue~="" then table.insert(children,text(app.memberIssue,15,C.warning)) end
-    return panel(children)
+    local candidate, issue = app:DraftMemberCandidate()
+    if candidate then
+        local memberCost = State.MemberCost(member)
+        local available = Data.LIMIT - (State.TotalPoints(candidate) - (app.memberRemoving and 0 or memberCost))
+        table.insert(children, text((app.memberRemoving and "移除该成员 · 将节省 " .. memberCost .. " 点" or "本成员费用 " .. memberCost .. " 点") .. " · 100 − 其他费用 = " .. available .. " 点 · 保存后总分 " .. State.TotalPoints(candidate) .. "/100", 13, C.muted))
+    else
+        table.insert(children, text(issue or "成员候选无效。", 14, C.warning))
+    end
+    return card(children)
 end
 
 function View.Build(app)
-    local view=app.openingView or "summary"
-    local content,footer
-    if view=="summary" then content=View.Summary(app)
-    elseif view=="ledger" then content=ledgerView(app)
-    elseif view=="points" then content=pointsView(app)
-    elseif view=="people" then content=peopleView(app)
-    elseif view=="relics" then content=relicView(app,false)
-    elseif view=="editor" then content=editor(app)
-    elseif view=="member" then content=memberView(app)
-    elseif view=="name" then
-        content=panel({text("家族称谓",24),text("零点；只同步明确跟随家姓的成员，外姓与手改完整姓名保留。",15,C.muted),
-            field(app.nameEditing,function(_,value) app.nameEditing=value end)})
+    local view = app.openingView or "summary"
+    local content
+    if view == "summary" then content = View.Summary(app)
+    elseif view == "editor" or view == "name" then content = editor(app)
+    elseif view == "member" then content = memberView(app)
+    elseif view == "ledger" then content = ledgerView(app)
+    elseif view == "points" then content = pointsView(app)
+    elseif view == "people" then content = peopleView(app)
+    elseif view == "relics" then content = relicView(app, false)
+    else content = View.Summary(app) end
+    local footer
+    if view == "summary" then
+        local issues = State.ValidateDraft(app.draft, app.profile, false)
+        footer = {
+            UI.Panel {
+                height = 44, minHeight = 44, onClick = function() app:OpenOpeningDetail("points") end,
+                backgroundColor = false, pointerEvents = "box-only", flexDirection = "row",
+                justifyContent = "space-between", alignItems = "center", children = {
+                    text("总分 " .. State.TotalPoints(app.draft) .. "/100 · " .. (#issues > 0 and "请先修正草案" or "可以开局"), 13, #issues > 0 and C.warning or C.muted),
+                    text("点数明细 ›", 13, C.muted),
+                },
+            },
+            row({
+                button("↻ 换一家", function() app:ChangeHouse() end, true, { flex = 1, height = 48 }),
+                button("就从这家开始  →", function() app:StartRun() end, false, { flex = 2, height = 48, disabled = #issues > 0 }),
+            }),
+        }
+        if #issues > 0 then table.insert(footer, 2, text(table.concat(issues, "\n"), 13, C.warning)) end
+        local links = {}
+        if app.houseUndo then table.insert(links, button("撤销换家", function() app:UndoHouse() end, true, { flex = 1, height = 44, fontSize = 12 })) end
+        if app.previousDraft then table.insert(links, button("回原家谱", function() app:CancelNewRun() end, true, { flex = 1, height = 44, fontSize = 12 })) end
+        if #links > 0 then table.insert(footer, row(links)) end
+    elseif view == "member" then
+        footer = { row({ button("取消", function() app:CancelDraftMember() end, true, { flex = 1 }), button(app.memberRemoving and "保存移除" or "保存人物", function() app:SaveDraftMember() end, false, { flex = 1 }) }) }
+    elseif view == "editor" or view == "name" then
+        footer = { row({ button("取消", function() app:FinishOpeningEdit(false) end, true, { flex = 1 }), button("保存并返回", function()
+            if view == "name" then
+                local candidate = State.Copy(app.openingEditDraft or app.draft)
+                local ok, message = Opening.Rename(candidate, app.nameEditing or candidate.family)
+                if not ok then app.openingFeedback = message; app:Render(); return end
+                app.openingEditDraft = candidate
+            end
+            app:FinishOpeningEdit(true)
+        end, false, { flex = 1 }) }) }
+    else
+        footer = { button("返回这户家庭", function() app:ReturnOpeningDetail() end, true) }
     end
-    if view=="summary" then
-        local issues=State.ValidateDraft(app.draft,app.profile,false)
-        footer={UI.Row { justifyContent = "space-between", alignItems = "center", children = {
-                text("总计 " .. State.TotalPoints(app.draft) .. "/100 点", 18),
-                button("查看明细  ›",function() app:OpenOpeningDetail("points") end,true,{id="opening-points-detail",height=42,fontSize=14}),
-            } },
-            row({button("↻ 换一家",function() app:ChangeHouse() end,true,{id="opening-change-house",flex=1,height=52,fontSize=17}),button("就从这家开始  →",function() app:StartRun() end,false,{id="opening-start",flex=2,height=52,disabled=#issues>0,fontSize=17})}),
-            button("只改我在意的选项",function() app:BeginOpeningEdit() end,true,{height=40})}
-        if #issues>0 then table.insert(footer,1,text(table.concat(issues,"\n"),14,C.warning)) end
-        if app.houseUndo then table.insert(footer,button("恢复上一家",function() app:UndoHouse() end,true)) end
-    elseif view=="editor" then
-        footer={text("总计 " .. State.TotalPoints(app.draft) .. "/100 · 超分可保留编辑，但不能开局",14,C.muted),
-            row({button("取消编辑",function() app:FinishOpeningEdit(false) end,true,{flex=1}),button("保存并返回",function() app:FinishOpeningEdit(true) end,false,{flex=1})})}
-    elseif view=="member" then
-        footer={row({button("取消",function() app:CancelDraftMember() end,true,{flex=1}),button(app.memberRemoving and "保存移除" or "保存人物",function() app:SaveDraftMember() end,false,{flex=1})})}
-    elseif view=="name" then
-        footer={row({button("取消",function() show(app,"summary") end,true,{flex=1}),button("保存姓名",function()
-            local ok,message=Opening.Rename(app.draft,app.nameEditing)
-            if ok then app:MarkOpeningPageChanged("people"); app.openingView="summary" end
-            app.openingFeedback=message; app:Render()
-        end,false,{flex=1})})}
-    else footer={button("返回这户家庭",function() app:ReturnOpeningDetail() end,true)} end
-    local body={content}
-    if app.openingFeedback~="" then table.insert(body,1,text(app.openingFeedback,14,C.warning)) end
-    local header={
-        UI.Panel { width=34,height=34,justifyContent="center",alignItems="center",backgroundColor=C.green,borderRadius=6,children={
-            text("家",20,{255,255,255,255}),
-        } },
-        UI.Panel { flex=1,minWidth=0,gap=1,children={
-            text("家业",20),
-            text(view=="summary" and ("凡世王朝 · " .. Data.WORLD_NAME) or "开局草案",12,C.muted),
-        } },
+    local body = { content }
+    if app.openingFeedback ~= "" then table.insert(body, 1, text(app.openingFeedback, 14, C.warning)) end
+    local contentPanel = UI.Panel {
+        width = "100%", alignSelf = "stretch", flexShrink = 0, minHeight = 0,
+        flexDirection = "column", gap = 10, padding = 0, children = body,
     }
-    if app.previousDraft then table.insert(header,button("回原家谱",function() app:CancelNewRun() end,true)) end
-    return UI.Panel {width="100%",height="100%",backgroundColor=C.paper,backgroundImage=V7.Images.paperTexture,backgroundImageOpacity=0.18,backgroundFit="cover",children={
-        UI.Panel {padding=12,borderBottomWidth=1,borderBottomColor=C.line,flexShrink=0,children={row(header)}},
-        UI.ScrollView {flexGrow=1,flexBasis=0,minHeight=0,padding=12,children={panel(body)}},
-        UI.Panel {padding=12,gap=6,backgroundColor=C.card,flexShrink=0,borderTopWidth=1,borderTopColor=C.line,children=footer},
-    }}
+    return UI.Panel {
+        width = "100%", height = "100%", backgroundColor = C.paper,
+        backgroundImage = V7.Images.paperTexture, backgroundImageOpacity = 1,
+        backgroundFit = "cover", flexDirection = "column", padding = 0,
+        children = {
+            UI.Panel { height = 52, padding = 12, flexShrink = 0, borderBottomWidth = 1, borderBottomColor = C.line, children = {
+                row({ Visual.Decor("seal_square", { width = 28, height = 28 }), text("家业", 20), text(view == "summary" and ("凡世王朝 · " .. Data.WORLD_NAME) or "开局草案", 12, C.muted) }, { alignItems = "center" }),
+            } },
+            UI.ScrollView { width = "100%", flexGrow = 1, flexBasis = 0, minHeight = 0, padding = 12, children = { contentPanel } },
+            UI.Panel { padding = 12, gap = 6, backgroundColor = C.card, flexShrink = 0, borderTopWidth = 1, borderTopColor = C.line, children = footer },
+        },
+    }
 end
+
 return View

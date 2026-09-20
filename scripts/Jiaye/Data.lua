@@ -15,7 +15,8 @@ Data.AgeRules = {
     birth = { min = 21, max = 60 },
 }
 Data.WORLD_NAME = "大晟"
-Data.RULES_VERSION = 1
+-- V7 改变了开局背景与局内家风的语义；旧 run 继续读取自身的 rulesVersion。
+Data.RULES_VERSION = 2
 
 Data.Periods = {
     { id = "rebuild", name = "百废初兴", era = "rebuild", years = { 12, 24, 36 }, cost = 8, wage = 1.00, food = 2, expense = 1.00, desc = "乱后初定，谋生与学艺都不容易，也都有机会。" },
@@ -39,6 +40,58 @@ Data.Places = {
     { id = "border", name = "边地驿镇", short = "北望驿", cost = 3, desc = "收益：护卫收入 +20%。", burden = "代价：生活开支 +5%。", expenseMultiplier = 1.05 },
     { id = "county", name = "县城近郊", short = "临川县", cost = 7, desc = "收益：读书每年额外学识 +1。", burden = "代价：生活开支 +15%。", expenseMultiplier = 1.15 },
     { id = "port", name = "江口商埠", short = "江口埠", cost = 10, desc = "收益：经商收入 +20%。", burden = "代价：生活开支 +15%。", expenseMultiplier = 1.15 },
+}
+
+-- 新开局使用背景定义承接来历、地区历史和旧识叙事。
+-- opportunity 的价格和结果仍待确认，原型阶段不向经济结算注入新奖励。
+Data.Backgrounds = {
+    {
+        id = "plain_village", name = "河畔农家", originId = "plain", cost = 0,
+        history = "家中熟悉水土与农时，在河畔乡里守着一块薄田。",
+        contacts = { { id = "zhou_boqu", name = "周伯渠", relation = "河埠老农", history = "每逢汛期替乡里传递农时消息。" } },
+        effect = { description = "务农族人每年额外收粮 1 石。", condition = "在世族人当前安排为耕作。", source = "Data.Origins.plain" },
+        opportunity = { id = "plain_harvest", name = "河埠换种", status = "prototype", condition = "需要在世耕作者并完成一段真实农事经历。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+    },
+    {
+        id = "artisan_workshop", name = "手艺人家", originId = "artisan", cost = 8,
+        history = "家中有人靠手艺度日，旧工具和师承仍留在手边。",
+        contacts = { { id = "shen_musheng", name = "沈木生", relation = "旧匠坊师兄", history = "曾与家中手艺人同在一间匠坊学艺。" } },
+        effect = { description = "学手艺、手艺谋生每年额外手艺 +1。", condition = "族人当前安排为学手艺或手艺谋生。", source = "Data.Origins.artisan" },
+        opportunity = { id = "artisan_repair", name = "旧坊修缮", status = "prototype", condition = "需要在世手艺人当前安排为手艺谋生，并有可追溯的作坊经历。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+    },
+    {
+        id = "merchant_route", name = "行商后裔", originId = "merchant", cost = 12,
+        history = "家中记得几条旧商路，往来见闻比田地更熟。",
+        contacts = { { id = "gu_jiuru", name = "顾九如", relation = "南来商行掌柜", history = "家中长辈曾在南来商行留下账册。" } },
+        effect = { description = "经商收入 +10%。", condition = "族人当前安排为外出经商。", source = "Data.Origins.merchant" },
+        opportunity = { id = "merchant_credit", name = "旧账重开", status = "prototype", condition = "需要在世经商者、实际商路经历和有效账本记录。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+    },
+    {
+        id = "scholar_lineage", name = "书香旧族", originId = "scholar", cost = 16,
+        history = "旧书和家训尚在，家中仍有人愿意从灯下读起。",
+        contacts = { { id = "lu_yanshan", name = "陆砚山", relation = "塾中旧友", history = "曾与家中读书人共同抄录旧籍。" } },
+        effect = { description = "读书每年额外学识 +2。", condition = "族人当前安排为读书求学。", source = "Data.Origins.scholar" },
+        opportunity = { id = "scholar_archive", name = "旧卷借阅", status = "prototype", condition = "需要在世读书者和连续读书的真实家史记录。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+    },
+    {
+        id = "military_post", name = "军户后人", originId = "military", cost = 10,
+        history = "家中熟悉守备与操练，仍记得旧营地的规矩。",
+        contacts = { { id = "cheng_shouyi", name = "程守义", relation = "驿站故人", history = "家中长辈曾替驿站守过一段路。" } },
+        effect = { description = "习武每年额外武艺 +2；护卫收入 +10%。", condition = "族人当前安排为习武或担任护卫。", source = "Data.Origins.military" },
+        opportunity = { id = "military_escort", name = "旧营护送", status = "prototype", condition = "需要在世护卫者和已发生的护卫经历。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+    },
+    {
+        id = "gentry_old_house", name = "旧日名门", originId = "gentry", cost = 26,
+        history = "旧宅与名望都已褪色，留下的是需要重新经营的家史。",
+        contacts = { { id = "wen_jingxiu", name = "闻敬修", relation = "旧门房", history = "仍替家中保管一册未完的旧客名录。" } },
+        effect = { description = "初始声望 +25；每年声望 +1。", condition = "开局写入初始声望，年度结算保留既有声望增长。", source = "Data.Origins.gentry" },
+        opportunity = { id = "gentry_reputation", name = "旧客重访", status = "prototype", condition = "需要真实接待或互助事实，具体事件条件待确认。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+    },
+}
+
+-- 由实际生活形成的家风只记录事实，不在原型阶段添加属性修正。
+Data.HabitFormations = {
+    education = { id = "education", name = "不废灯火", threshold = 3, trigger = "连续三年有人读书", lossThreshold = 0, effect = "none", prototype = true },
 }
 
 Data.Surnames = { "林", "沈", "顾", "陆", "程", "许", "周", "宋", "苏", "叶", "闻", "姜" }
@@ -108,6 +161,66 @@ Data.Relics = {
     { id = "notes", name = "批注医案", cost = 10, saleValue = 24, unlock = nil, event = "notes", desc = "实际行医积累后由医馆托付；可刊印或传给后人。", story = { source = "医馆托付", executor = "行医者", action = "刊印或传承" } },
 }
 
+-- 事件纸面、Simulation 和后续 UI 共用这份现有费用与结果定义。
+Data.EventChoices = {
+    legacy_pending = {
+        { id = "acknowledge", label = "写入家史", cost = 0, years = 0, result = { status = "recorded" } },
+    },
+    leader = {
+        { id = "appoint", label = "确认继任", cost = 0, years = 0, result = { status = "recorded" } },
+    },
+    growth = {
+        { id = "defer", label = "暂缓", cost = 0, years = 0, result = { status = "recorded" } },
+        { id = "accept", label = "确认成长", cost = 0, years = 0, result = { status = "recorded" } },
+    },
+    medical_find = {
+        { id = "accept", label = "收下医案", cost = 0, years = 0, result = { relicId = "notes", unlock = "notes" } },
+        { id = "defer", label = "暂留医馆", cost = 0, years = 0, result = { status = "recorded" } },
+    },
+    plan_work = {
+        { id = "accept", label = "接下修缮", cost = 0, requiredMoney = 10, years = 0, result = { money = 18, reputation = 5 } },
+        { id = "defer", label = "暂不接下", cost = 0, years = 0, result = { status = "deferred" } },
+    },
+    jade_search = {
+        { id = "search", label = "查访故人后辈", cost = 8, years = 0, result = { reputation = 8, reunited = true } },
+        { id = "defer", label = "暂存线索", cost = 0, years = 0, result = { status = "deferred" } },
+    },
+    school = {
+        { id = "support", label = "添置书本", cost = 6, years = 0, result = { learn = 4 } },
+        { id = "defer", label = "暂缓添置", cost = 0, years = 0, result = { status = "deferred" } },
+    },
+    community_request = {
+        { id = "aid", label = "接济邻里", cost = 15, years = 0, result = { reputation = 12, aid = 1 } },
+        { id = "defer", label = "暂不接济", cost = 0, years = 0, result = { status = "deferred" } },
+    },
+    roof = {
+        { id = "repair", label = "修补屋顶", cost = 8, years = 0, result = { reputation = 2, homeState = "upgraded" } },
+        { id = "defer", label = "暂缓修补", cost = 0, years = 0, result = { homeState = "damaged" } },
+    },
+    notes_choice = {
+        { id = "print", label = "刊印医案", cost = 8, years = 0, result = { reputation = 8, stage = "printed" } },
+        { id = "defer", label = "传给后人", cost = 0, years = 0, result = { stage = "passed" } },
+    },
+    relic_resolution = {
+        { id = "restore", label = "完成修复", cost = 0, years = 0, result = { reward = "grant" } },
+        { id = "defer", label = "暂存线索", cost = 0, years = 0, result = { reward = "deferred" } },
+    },
+    relic_investigation = {
+        { id = "fast", label = "快速办理", cost = 8, years = 1, result = { stage = "investigating" } },
+        { id = "slow", label = "慢查线索", cost = 4, years = 2, result = { stage = "investigating" } },
+    },
+}
+
+---@class JiayeEndingDefinition
+---@field id string
+---@field title string
+---@field desc string
+---@field type string
+---@field automatic boolean?
+---@field automaticHint string?
+---@field automaticTrigger string?
+---@field automaticFact string?
+---@type JiayeEndingDefinition[]
 Data.Endings = {
     { id = "peaceful", title = "炊烟未断", desc = "把安稳的日子接过了两任人手。", type = "development" },
     { id = "scholar", title = "书香传家", desc = "两代人都把书教给别人。", type = "development" },
@@ -137,11 +250,26 @@ function Data.Talent(index) return Data.Talents[index] or Data.Talents[1] end
 function Data.Period(id) return Data.Find(Data.Periods, id) end
 function Data.Origin(id) return Data.Find(Data.Origins, id) end
 function Data.Place(id) return Data.Find(Data.Places, id) end
+function Data.Background(id) return Data.Find(Data.Backgrounds, id) end
+function Data.BackgroundForOrigin(originId)
+    for _, background in ipairs(Data.Backgrounds) do
+        if background.originId == originId then return background end
+    end
+    return nil
+end
 function Data.Experience(id) return Data.Find(Data.Experiences, id) end
 function Data.Home(id) return Data.Find(Data.Homes, id) end
 function Data.Habit(id) return Data.Find(Data.Habits, id) end
 function Data.Tie(id) return Data.Find(Data.Ties, id) end
 function Data.Relic(id) return Data.Find(Data.Relics, id) end
 function Data.Ending(id) return Data.Find(Data.Endings, id) end
+function Data.HabitFormation(id) return Data.HabitFormations[id] end
+
+function Data.EventChoice(eventType, choiceId)
+    for _, choice in ipairs(Data.EventChoices[eventType] or {}) do
+        if choice.id == choiceId then return choice end
+    end
+    return nil
+end
 
 return Data

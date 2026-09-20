@@ -6,6 +6,23 @@ local State = {}
 
 State.SAVE_SCHEMA_VERSION = 2
 
+local function UsesLegacyOpeningRules(draft)
+    if type(draft) ~= "table" then return true end
+    if type(draft.rulesVersion) == "number" then return draft.rulesVersion < 2 end
+    return type(draft.generatorVersion) ~= "number" or draft.generatorVersion < 2
+end
+
+local KNOWN_RULES_VERSIONS = { [1] = true, [2] = true }
+
+local function IsInteger(value)
+    if type(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then return false end
+    return value == math.floor(value)
+end
+
+local function IsNonNegativeInteger(value)
+    return IsInteger(value) and value >= 0
+end
+
 function State.Copy(value)
     if type(value) ~= "table" then return value end
     local copy = {}
@@ -15,6 +32,15 @@ end
 
 function State.NewProfile()
     return { schemaVersion = 1, unlockedRelicIds = { book = true, ruler = true, letter = true }, endingRecords = {} }
+end
+
+function State.BackgroundDefinition(draft)
+    if type(draft) ~= "table" then return nil end
+    if draft.backgroundId ~= nil then return Data.Background(draft.backgroundId) end
+    for _, background in ipairs(Data.Backgrounds or {}) do
+        if background.originId == draft.originId then return background end
+    end
+    return nil
 end
 
 -- 旧版兼容与验收基线；玩家新局由 Opening.Generate 生成。
@@ -88,8 +114,6 @@ function State.PointLines(draft)
         if experience then add("people", name .. " · " .. experience.name, experience.cost, "已有本领") end
         local job = Data.Jobs[member.jobId]
         if job then add("people", name .. " · 初始安排：" .. job.name, 0, job.desc) end
-        local focus = Data.FocusNames[member.focus]
-        if focus then add("people", name .. " · 偏向：" .. focus, 0, "不计点；当前版本不直接改变初始数值。") end
     end
     local money = type(draft.money) == "number" and draft.money or 0
     local grain = type(draft.grain) == "number" and draft.grain or 0
@@ -101,8 +125,10 @@ function State.PointLines(draft)
     if home then add("estate", home.name, home.cost, "每年维护 " .. home.upkeep .. " 两") end
     if draft.workshop then add("estate", "木工作坊", prices.workshop, "有手艺人经营，每年 +8 两") end
     if draft.shop then add("estate", "小商铺", prices.shop, "有经商族人经营，每年 +10 两") end
-    for _, item in ipairs({ Data.Habit(draft.habitId), Data.Tie(draft.tieId) }) do
-        if item then add("estate", item.name, item.cost, item.desc) end
+    if UsesLegacyOpeningRules(draft) then
+        for _, item in ipairs({ Data.Habit(draft.habitId), Data.Tie(draft.tieId) }) do
+            if item then add("estate", item.name, item.cost, item.desc) end
+        end
     end
     local seen = {}
     for _, id in ipairs(type(draft.selectedRelicIds) == "table" and draft.selectedRelicIds or {}) do
@@ -186,6 +212,7 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
     profile = type(profile) == "table" and profile or {}
     local unlockedRelicIds = type(profile.unlockedRelicIds) == "table" and profile.unlockedRelicIds or {}
     local issues, ids = {}, {}
+    if draft.rulesVersion ~= nil and (not IsInteger(draft.rulesVersion) or not KNOWN_RULES_VERSIONS[draft.rulesVersion]) then table.insert(issues, "开局规则版本未知。") end
     if draft.worldId ~= "mortal" then table.insert(issues, "当前仅支持凡世开局。") end
     local period = Data.Period(draft.periodId)
     if not period then table.insert(issues, "请选择有效时期。")
@@ -194,7 +221,12 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
         for _, year in ipairs(period.years) do if year == draft.calendar then validYear = true end end
         if not validYear then table.insert(issues, "年份必须属于当前时期。") end
     end
-    if not Data.Origin(draft.originId) or not Data.Place(draft.placeId) then table.insert(issues, "来历或地区无效。") end
+    local origin = Data.Origin(draft.originId)
+    if not origin or not Data.Place(draft.placeId) then table.insert(issues, "来历或地区无效。") end
+    if draft.backgroundId ~= nil then
+        local background = Data.Background(draft.backgroundId)
+        if not background or (origin and background.originId ~= origin.id) then table.insert(issues, "背景定义与来历不匹配。") end
+    end
     if not State.ValidName(draft.family) then table.insert(issues, "家族称谓须为 1–20 字，不能留空或包含换行。") end
     if not Data.Home(draft.homeId) or not Data.Habit(draft.habitId) or not Data.Tie(draft.tieId) then table.insert(issues, "住宅、家风或关系无效。") end
     local members = List(draft.members)
@@ -280,6 +312,18 @@ function State.NewRun(draft, profile)
     local issues = State.ValidateDraft(draft, profile, false)
     if #issues > 0 then return nil, issues end
     local period, origin = Data.Period(draft.periodId), Data.Origin(draft.originId)
+    local newRules = not UsesLegacyOpeningRules(draft)
+    local rulesVersion = newRules and Data.RULES_VERSION or (draft.rulesVersion or 1)
+    if not KNOWN_RULES_VERSIONS[rulesVersion] then return nil, { "开局规则版本未知，不能开始。" } end
+    local background = State.BackgroundDefinition(draft)
+    if newRules and not background then return nil, { "当前开局缺少有效背景定义，不能开始。" } end
+    local runId = "run-" .. tostring(os.time())
+    local openingSnapshot = State.Copy(draft)
+    openingSnapshot.rulesVersion = rulesVersion
+    if background then
+        openingSnapshot.backgroundId = background.id
+        openingSnapshot.backgroundDefinition = State.Copy(background)
+    end
     local members = {}
     for _, draftMember in ipairs(draft.members) do
         local member = State.Copy(draftMember)
@@ -305,12 +349,13 @@ function State.NewRun(draft, profile)
     local reputation = (origin.id == "gentry" and 25 or 0) + (draft.tieId == "neighbor" and 12 or 0)
     if draft.homeId == "estate" then reputation = reputation + 8 end
     local run = {
-        runId = "run-" .. tostring(os.time()), schemaVersion = 1, rulesVersion = Data.RULES_VERSION,
-        openingSnapshot = State.Copy(draft), worldId = draft.worldId, yearIndex = 0, calendar = draft.calendar, eraId = period.era, eraSinceYear = 0,
+        runId = runId, schemaVersion = 1, rulesVersion = rulesVersion,
+        openingSnapshot = openingSnapshot, backgroundId = background and background.id or nil, backgroundDefinition = background and State.Copy(background) or nil,
+        worldId = draft.worldId, yearIndex = 0, calendar = draft.calendar, eraId = period.era, eraSinceYear = 0,
         placeId = draft.placeId, originId = draft.originId, habitId = draft.habitId, tieId = draft.tieId,
         members = members, leaderId = draft.leaderId, leaderTerms = { { memberId = draft.leaderId, startYear = 0, endYear = nil, effective = false, reason = "开局任命" } },
         money = draft.money, grain = draft.grain, land = draft.land, homeId = draft.homeId, workshop = draft.workshop, shop = draft.shop,
-        reputation = reputation, relicInstances = relicInstances, events = {}, logs = {}, facts = {}, annualLedgers = {}, ending = nil, revision = 0,
+        reputation = reputation, relicInstances = relicInstances, events = {}, logs = {}, facts = {}, annualLedgers = {}, habitProgress = {}, habitFormations = {}, ending = nil, revision = 0,
         rngState = draft.rngSeed, processedCommands = {}, flags = {}, metrics = { stable = 0, foodYears = 0, aid = 0, migrations = 0, lastMove = 0 },
     }
     for _, member in ipairs(run.members) do
@@ -375,13 +420,38 @@ function State.RecordAnnualLedger(run, ledger, yearStart)
     return record
 end
 
-local function IsInteger(value)
-    return type(value) == "number" and value == math.floor(value) and value ~= math.huge and value ~= -math.huge
+local KNOWN_SAVE_VERSIONS = { [1] = true, [2] = true }
+
+---@return integer?, string?
+local function ResolveCurrentSaveVersion(value)
+    if type(value) ~= "table" then return nil, "存档顶层结构无效。" end
+    local version = value.saveSchemaVersion
+    if version == nil then
+        if type(value.profile) == "table" and type(value.draft) == "table" then return 1 end
+        return nil, "存档缺少可识别版本。"
+    end
+    if not IsInteger(version) or not KNOWN_SAVE_VERSIONS[version] then return nil, "存档版本未知，未执行迁移。" end
+    return version
 end
 
-local function IsNonNegativeInteger(value)
-    return IsInteger(value) and value >= 0
+---@return boolean, string?
+local function NormalizeMemberArt(members, identity, label)
+    if type(members) ~= "table" then return false, label .. "成员列表结构无效。" end
+    for index, member in ipairs(members) do
+        if type(member) ~= "table" then return false, label .. "第 " .. tostring(index) .. " 位成员结构无效。" end
+        local artId, message = Art.Assign(member, identity)
+        if not artId then return false, label .. "第 " .. tostring(index) .. " 位成员的 artId 无法规范化：" .. tostring(message or "未知错误") end
+    end
+    return true
 end
+
+---@class JiayeSavePayload
+---@field saveSchemaVersion integer
+---@field profile table
+---@field draft table
+---@field run table?
+---@field saveRevision integer?
+---@field importReceipt string?
 
 local function ImportReceipt(raw)
     local checksum = 0
@@ -389,20 +459,25 @@ local function ImportReceipt(raw)
     return "import-" .. tostring(#raw) .. "-" .. tostring(checksum)
 end
 
-local function LegacyNameSource(family, name)
-    if type(family) == "string" and type(name) == "string" and name:sub(1, #family) == family then return "family" end
-    return "custom"
-end
-
-local function MapLegacyMember(member, family, runtime)
+local function MapLegacyMember(member, _family, runtime)
     if type(member) ~= "table" then return nil, "旧档成员结构无效。" end
-    local mapped = {
-        id = member.id, name = member.name, nameSource = member.nameSource or LegacyNameSource(family, member.name), sex = member.sex,
-        age = member.age, artId = member.artId, artVersion = member.artVersion, ageAtDeath = member.ageAtDeath, artStageAtDeath = member.artStageAtDeath,
-        parents = State.Copy(member.parents or {}), spouseId = member.spouseId or member.spouse,
-        talent = member.talent, focus = member.focus, experienceId = member.experienceId or member.experience,
-        trait = member.trait, jobId = member.jobId or member.job,
-    }
+    local mapped = State.Copy(member)
+    mapped.id = member.id
+    mapped.name = member.name
+    mapped.nameSource = member.nameSource or "custom"
+    mapped.sex = member.sex
+    mapped.age = member.age
+    mapped.artId = member.artId
+    mapped.artVersion = member.artVersion
+    mapped.ageAtDeath = member.ageAtDeath
+    mapped.artStageAtDeath = member.artStageAtDeath
+    mapped.parents = State.Copy(member.parents or {})
+    mapped.spouseId = member.spouseId or member.spouse
+    mapped.talent = member.talent
+    mapped.focus = member.focus
+    mapped.experienceId = member.experienceId or member.experience
+    mapped.trait = member.trait
+    mapped.jobId = member.jobId or member.job
     if runtime then
         local experience = Data.Experience(mapped.experienceId)
         local sourceStats = type(member.stats) == "table" and member.stats or member
@@ -433,15 +508,26 @@ end
 
 local function MapLegacyDraft(legacy, profile)
     if type(legacy) ~= "table" then return nil, "旧版草案缺失。" end
-    local draft = {
-        family = legacy.family, worldId = legacy.worldId or legacy.world, periodId = legacy.periodId or legacy.era,
-        calendar = legacy.calendar, originId = legacy.originId or legacy.origin, placeId = legacy.placeId or legacy.place,
-        habitId = legacy.habitId or legacy.habit, tieId = legacy.tieId or legacy.tie,
-        money = legacy.money, grain = legacy.grain, land = legacy.land, homeId = legacy.homeId or legacy.home,
-        workshop = legacy.workshop, shop = legacy.shop, selectedRelicIds = State.Copy(legacy.selectedRelicIds or legacy.relics or {}),
-        leaderId = legacy.leaderId or legacy.leader, rngSeed = legacy.rngSeed or legacy.seed, nextId = legacy.nextId,
-        members = {},
-    }
+    local draft = State.Copy(legacy)
+    draft.family = legacy.family
+    draft.worldId = legacy.worldId or legacy.world
+    draft.periodId = legacy.periodId or legacy.era
+    draft.calendar = legacy.calendar
+    draft.originId = legacy.originId or legacy.origin
+    draft.placeId = legacy.placeId or legacy.place
+    draft.habitId = legacy.habitId or legacy.habit
+    draft.tieId = legacy.tieId or legacy.tie
+    draft.money = legacy.money
+    draft.grain = legacy.grain
+    draft.land = legacy.land
+    draft.homeId = legacy.homeId or legacy.home
+    draft.workshop = legacy.workshop
+    draft.shop = legacy.shop
+    draft.selectedRelicIds = State.Copy(legacy.selectedRelicIds or legacy.relics or {})
+    draft.leaderId = legacy.leaderId or legacy.leader
+    draft.rngSeed = legacy.rngSeed or legacy.seed
+    draft.nextId = legacy.nextId
+    draft.members = {}
     for _, member in ipairs(legacy.members or {}) do
         local mapped, message = MapLegacyMember(member, draft.family, false)
         if not mapped then return nil, message end
@@ -456,7 +542,11 @@ local function MapLegacyProfile(legacy)
     if type(legacy) ~= "table" or type(legacy.unlocked) ~= "table" or type(legacy.records) ~= "table" or type(legacy.endings) ~= "table" then
         return nil, "旧版收藏或终章记录结构无效。"
     end
-    local profile = { schemaVersion = 1, unlockedRelicIds = {}, endingRecords = State.Copy(legacy.endings), relicUnlockRecords = State.Copy(legacy.records) }
+    local profile = State.Copy(legacy)
+    profile.schemaVersion = 1
+    profile.unlockedRelicIds = {}
+    profile.endingRecords = State.Copy(legacy.endings)
+    profile.relicUnlockRecords = State.Copy(legacy.records)
     for _, relicId in ipairs(legacy.unlocked) do
         if not Data.Relic(relicId) then return nil, "旧版包含未知信物：" .. tostring(relicId) end
         profile.unlockedRelicIds[relicId] = true
@@ -470,17 +560,45 @@ local function MapLegacyRun(legacy, draft, profile)
     end
     local openingSnapshot, message = MapLegacyDraft(legacy.config or draft, profile)
     if not openingSnapshot then return nil, message end
-    local run = {
-        runId = legacy.runId or "v5-run-" .. tostring(legacy.seed or 0), schemaVersion = 1, rulesVersion = Data.RULES_VERSION,
-        openingSnapshot = openingSnapshot, worldId = openingSnapshot.worldId, yearIndex = legacy.elapsed, calendar = legacy.calendar,
-        eraId = legacy.era, eraSinceYear = legacy.eraSince or 0, placeId = legacy.place, originId = openingSnapshot.originId,
-        habitId = openingSnapshot.habitId, tieId = openingSnapshot.tieId, members = {}, leaderId = legacy.leader,
-        leaderTerms = {}, money = legacy.money, grain = legacy.grain, land = legacy.land, homeId = legacy.home,
-        workshop = legacy.workshop == true, shop = legacy.shop == true, reputation = legacy.reputation or 0,
-        relicInstances = {}, events = {}, logs = {}, facts = {}, annualLedgers = {}, ending = nil, revision = legacy.revision or 0,
-        rngState = ((legacy.rng or legacy.seed or 1) % 2147483646) + 1, processedCommands = {}, flags = State.Copy(legacy.flags or {}),
-        metrics = State.Copy(legacy.metrics or {}), migratedFrom = "v5-schema-3",
-    }
+    local run = State.Copy(legacy)
+    run.runId = legacy.runId or "v5-run-" .. tostring(legacy.seed or 0)
+    run.schemaVersion = 1
+    run.rulesVersion = legacy.rulesVersion or 1
+    run.openingSnapshot = openingSnapshot
+    run.openingSnapshot.rulesVersion = run.rulesVersion
+    run.worldId = openingSnapshot.worldId
+    run.yearIndex = legacy.elapsed
+    run.calendar = legacy.calendar
+    run.eraId = legacy.era
+    run.eraSinceYear = legacy.eraSince or 0
+    run.placeId = legacy.place
+    run.originId = openingSnapshot.originId
+    run.habitId = openingSnapshot.habitId
+    run.tieId = openingSnapshot.tieId
+    run.members = {}
+    run.leaderId = legacy.leader
+    run.leaderTerms = {}
+    run.money = legacy.money
+    run.grain = legacy.grain
+    run.land = legacy.land
+    run.homeId = legacy.home
+    run.workshop = legacy.workshop == true
+    run.shop = legacy.shop == true
+    run.reputation = legacy.reputation or 0
+    run.relicInstances = {}
+    run.events = {}
+    run.logs = {}
+    run.facts = {}
+    run.annualLedgers = {}
+    run.ending = nil
+    run.revision = legacy.revision or 0
+    run.rngState = ((legacy.rng or legacy.seed or 1) % 2147483646) + 1
+    run.processedCommands = {}
+    run.flags = State.Copy(legacy.flags or {})
+    run.metrics = State.Copy(legacy.metrics or {})
+    run.habitProgress = State.Copy(legacy.habitProgress or {})
+    run.habitFormations = State.Copy(legacy.habitFormations or {})
+    run.migratedFrom = "v5-schema-3"
     run.metrics.stable = run.metrics.stable or 0; run.metrics.foodYears = run.metrics.foodYears or 0
     run.metrics.aid = run.metrics.aid or 0; run.metrics.migrations = run.metrics.migrations or 0; run.metrics.lastMove = run.metrics.lastMove or 0
     for _, member in ipairs(legacy.members) do
@@ -506,7 +624,7 @@ local function MapLegacyRun(legacy, draft, profile)
         if type(entry) ~= "table" then return nil, "旧版年鉴条目无效。" end
         local text = tostring(entry.title or "旧版家史")
         if type(entry.body) == "string" and entry.body ~= "" then text = text .. "：" .. entry.body end
-        table.insert(run.logs, 1, { id = "legacy-history-" .. tostring(index), year = openingSnapshot.calendar + (entry.year or 0), text = text, legacyEffects = State.Copy(entry.effects or {}) })
+        table.insert(run.logs, 1, { id = "legacy-history-" .. tostring(index), year = openingSnapshot.calendar + (entry.year or 0), text = text, effects = State.Copy(entry.effects or {}), legacyEffects = State.Copy(entry.effects or {}) })
     end
     for index, term in ipairs(legacy.leaders or {}) do
         if type(term) ~= "table" then return nil, "旧版任期记录无效。" end
@@ -552,9 +670,12 @@ local function ValidateRun(run)
         or not Data.Period(run.eraId) or not Data.Place(run.placeId) or not Data.Origin(run.originId) or not Data.Habit(run.habitId) or not Data.Tie(run.tieId)
         or not Data.Home(run.homeId) or type(run.members) ~= "table" or type(run.logs) ~= "table" or type(run.events) ~= "table"
         or type(run.leaderTerms) ~= "table" or type(run.relicInstances) ~= "table" or type(run.facts) ~= "table" or type(run.annualLedgers) ~= "table"
+        or type(run.habitProgress) ~= "table" or type(run.habitFormations) ~= "table"
+        or not IsInteger(run.rulesVersion) or not KNOWN_RULES_VERSIONS[run.rulesVersion]
         or not IsInteger(run.rngState) or run.rngState < 1 or run.rngState >= 2147483647 then
         return false, "家谱结构、版本或基础引用无效。"
     end
+    if run.rulesVersion >= 2 and (not Data.Background(run.backgroundId) or type(run.backgroundDefinition) ~= "table") then return false, "新规则家谱缺少背景定义。" end
     local memberIds, relicIds = {}, {}
     for _, member in ipairs(run.members) do
         if type(member) ~= "table" or not IsNonNegativeInteger(member.id) or member.id < 1 or memberIds[member.id]
@@ -592,10 +713,10 @@ local function ValidateRun(run)
     return true
 end
 
-function State.ValidateSavePayload(value)
-    if type(value) ~= "table" or (value.saveSchemaVersion ~= nil and value.saveSchemaVersion ~= 1 and value.saveSchemaVersion ~= State.SAVE_SCHEMA_VERSION) then
-        return false, "存档版本无效。"
-    end
+---@return boolean, string?
+local function ValidateSavePayloadInternal(value)
+    local version, versionMessage = ResolveCurrentSaveVersion(value)
+    if not version then return false, versionMessage end
     local profile, draft, run = value.profile, value.draft, value.run
     local profileOk, profileMessage = ValidateProfile(profile)
     if not profileOk then return false, profileMessage end
@@ -608,37 +729,89 @@ function State.ValidateSavePayload(value)
     return true
 end
 
-local function NormalizeCurrentPayload(value)
+---@return boolean, string?
+function State.ValidateSavePayload(value)
+    local protected, valid, message = pcall(ValidateSavePayloadInternal, value)
+    if not protected or type(valid) ~= "boolean" then return false, "存档结构校验异常，当前内容未采用。" end
+    return valid, type(message) == "string" and message or nil
+end
+
+---@return JiayeSavePayload?, string?
+local function NormalizeCurrentPayload(value, sourceVersion)
+    if not KNOWN_SAVE_VERSIONS[sourceVersion] then return nil, "存档版本未知，未执行迁移。" end
+    ---@type JiayeSavePayload
     local candidate = State.Copy(value)
-    candidate.saveSchemaVersion = State.SAVE_SCHEMA_VERSION
+    if type(candidate) ~= "table" then return nil, "存档顶层结构无效。" end
     candidate.profile = candidate.profile or State.NewProfile()
     candidate.profile.schemaVersion = candidate.profile.schemaVersion or 1
     candidate.profile.unlockedRelicIds = candidate.profile.unlockedRelicIds or { book = true, ruler = true, letter = true }
     candidate.profile.endingRecords = candidate.profile.endingRecords or {}
+    local identity = candidate.run and candidate.run.runId or (candidate.draft and candidate.draft.rngSeed) or "draft"
+    if candidate.draft then
+        if type(candidate.draft) ~= "table" then return nil, "开局草案结构无效。" end
+        local draftArtOk, draftArtMessage = NormalizeMemberArt(candidate.draft.members, identity, "开局草案")
+        if not draftArtOk then return nil, draftArtMessage end
+    end
     if candidate.run then
         local run = candidate.run
+        if type(run) ~= "table" then return nil, "运行家谱结构无效。" end
         run.schemaVersion = run.schemaVersion or 1
-        run.rulesVersion = run.rulesVersion or Data.RULES_VERSION
         run.openingSnapshot = run.openingSnapshot or State.Copy(candidate.draft)
+        if type(run.openingSnapshot) ~= "table" then return nil, "开局快照结构无效。" end
+        local rulesVersion = run.rulesVersion
+        local snapshotVersion = run.openingSnapshot.rulesVersion
+        if snapshotVersion ~= nil and (not IsInteger(snapshotVersion) or not KNOWN_RULES_VERSIONS[snapshotVersion]) then
+            return nil, "开局快照规则版本未知，未迁移。"
+        end
+        if rulesVersion == nil then
+            local generatorVersion = run.openingSnapshot.generatorVersion
+            if snapshotVersion == nil and generatorVersion ~= nil and generatorVersion ~= 1 and generatorVersion ~= 2 then
+                return nil, "开局生成版本未知，无法确认运行规则。"
+            end
+            rulesVersion = snapshotVersion or (generatorVersion == 2 and 2 or 1)
+        end
+        if not IsInteger(rulesVersion) or not KNOWN_RULES_VERSIONS[rulesVersion] then return nil, "运行规则版本未知，未迁移。" end
+        if snapshotVersion and snapshotVersion ~= rulesVersion then return nil, "开局快照与运行规则版本不一致。" end
+        run.rulesVersion = rulesVersion
+        run.openingSnapshot.rulesVersion = rulesVersion
+        if rulesVersion >= 2 then
+            local background = State.BackgroundDefinition(run.openingSnapshot)
+            if not background then return nil, "新规则家谱缺少有效背景定义。" end
+            if run.backgroundId ~= nil and run.backgroundId ~= background.id then return nil, "运行家谱背景定义与开局快照不一致。" end
+            run.openingSnapshot.backgroundId = background.id
+            run.openingSnapshot.backgroundDefinition = run.openingSnapshot.backgroundDefinition or State.Copy(background)
+            if type(run.openingSnapshot.backgroundDefinition) ~= "table" or run.openingSnapshot.backgroundDefinition.id ~= background.id then return nil, "开局快照背景定义结构无效。" end
+            run.backgroundId = background.id
+            if run.backgroundDefinition == nil then run.backgroundDefinition = State.Copy(background) end
+            if type(run.backgroundDefinition) ~= "table" or run.backgroundDefinition.id ~= background.id then return nil, "运行家谱背景定义结构无效。" end
+        end
         run.facts = run.facts or {}
         run.annualLedgers = run.annualLedgers or {}
+        run.habitProgress = run.habitProgress or {}
+        run.habitFormations = run.habitFormations or {}
+        if type(run.habitProgress) ~= "table" or type(run.habitFormations) ~= "table" then return nil, "家风进度结构无效。" end
         run.processedCommands = run.processedCommands or {}
         run.revision = run.revision or 0
         run.metrics = run.metrics or {}
-        run.metrics.stable = run.metrics.stable or 0; run.metrics.foodYears = run.metrics.foodYears or 0
-        run.metrics.aid = run.metrics.aid or 0; run.metrics.migrations = run.metrics.migrations or 0; run.metrics.lastMove = run.metrics.lastMove or 0
-        for _, member in ipairs(run.openingSnapshot.members or {}) do Art.Assign(member, run.runId or "run") end
-        for _, member in ipairs(run.members or {}) do
-            Art.Assign(member, run.runId or "run")
+        run.metrics.stable = run.metrics.stable or 0
+        run.metrics.foodYears = run.metrics.foodYears or 0
+        run.metrics.aid = run.metrics.aid or 0
+        run.metrics.migrations = run.metrics.migrations or 0
+        run.metrics.lastMove = run.metrics.lastMove or 0
+        local runIdentity = run.runId or identity
+        local snapshotArtOk, snapshotArtMessage = NormalizeMemberArt(run.openingSnapshot.members, runIdentity, "开局快照")
+        if not snapshotArtOk then return nil, snapshotArtMessage end
+        local runArtOk, runArtMessage = NormalizeMemberArt(run.members, runIdentity, "运行家谱")
+        if not runArtOk then return nil, runArtMessage end
+        for _, member in ipairs(run.members) do
             member.factIds = member.factIds or {}
             member.biography = member.biography or {}
             member.stats = member.stats or State.Copy((Data.Experience(member.experienceId) or Data.Experience("none")).values)
             member.jobYears = member.jobYears or {}
         end
     end
-    if candidate.draft then
-        for _, member in ipairs(candidate.draft.members or {}) do Art.Assign(member, candidate.draft.rngSeed or "draft") end
-    end
+    candidate.saveSchemaVersion = State.SAVE_SCHEMA_VERSION
+    if sourceVersion == 1 then candidate.migratedFromSaveSchemaVersion = 1 end
     return candidate
 end
 
@@ -648,14 +821,17 @@ local SAVE_PATHS = { "jiaye_save.json", "jiaye_save.backup.json" }
 ---@type string?
 local failedSavePath = nil
 
+---@return string?
 local function ReadFile(path)
     local file = File(path, FILE_READ)
     if not file:IsOpen() then return nil end
-    local ok, raw = pcall(function() return file:ReadString() end)
+    local protected, raw = pcall(function() return file:ReadString() end)
     file:Close()
-    return ok and raw or nil
+    if not protected or type(raw) ~= "string" then return nil end
+    return raw
 end
 
+---@return JiayeSavePayload?, string?, string?
 local function ReadSlot(path)
     -- 本进程未确认成功的候选不参与选档；首次保存失败后仍能原地重试。
     -- 重启后没有此标记，仍按磁盘内容检查，绝不自行覆盖未知坏档。
@@ -665,26 +841,39 @@ local function ReadSlot(path)
     if not raw then return nil, "unreadable" end
     local ok, value = pcall(cjson.decode, raw)
     if not ok or type(value) ~= "table" then return nil, "invalid" end
-    value = NormalizeCurrentPayload(value)
-    local valid = State.ValidateSavePayload(value)
-    if not valid then return nil, "invalid" end
-    local revision = value.saveRevision or 0 -- 兼容现有未编号存档。
+    local versionProtected, sourceVersion, versionMessage = pcall(ResolveCurrentSaveVersion, value)
+    if not versionProtected or not sourceVersion then return nil, "invalid", versionProtected and versionMessage or "存档版本校验异常。" end
+    local normalizedProtected, normalized, normalizeMessage = pcall(NormalizeCurrentPayload, value, sourceVersion)
+    if not normalizedProtected or type(normalized) ~= "table" then return nil, "invalid", normalizedProtected and normalizeMessage or "存档归一化异常。" end
+    ---@type JiayeSavePayload
+    local save = normalized
+    local valid, validationMessage = State.ValidateSavePayload(save)
+    if not valid then return nil, "invalid", validationMessage end
+    local revision = save.saveRevision or 0 -- 兼容现有未编号存档。
     if type(revision) ~= "number" or revision < 0 or revision ~= math.floor(revision) or revision == math.huge then return nil, "invalid" end
-    value.saveRevision = revision
-    return value, "ok"
+    save.saveRevision = revision
+    return save, "ok"
 end
 
+---@return JiayeSavePayload?, integer?, boolean, boolean
 local function LatestSave()
     local latest, index, problem, unreadable = nil, nil, false, false
     for slot, path in ipairs(SAVE_PATHS) do
-        local value, status = ReadSlot(path)
-        if value and (not latest or value.saveRevision > latest.saveRevision) then latest, index = value, slot end
-        if status == "invalid" or status == "unreadable" then problem = true end
-        if status == "unreadable" then unreadable = true end
+        local protected, value, status = pcall(ReadSlot, path)
+        if protected then
+            if type(value) == "table" and (not latest or value.saveRevision > latest.saveRevision) then latest, index = value, slot end
+            if status == "invalid" or status == "unreadable" then problem = true end
+            if status == "unreadable" then unreadable = true end
+        else
+            -- 单个槽的文件、解析或校验异常不得打断另一个槽的读取。
+            problem = true
+            unreadable = true
+        end
     end
     return latest, index, problem, unreadable
 end
 
+---@return boolean
 local function WriteVerified(path, raw)
     local file = File(path, FILE_WRITE)
     if not file:IsOpen() then return false end
@@ -694,21 +883,29 @@ local function WriteVerified(path, raw)
     return ok and written == true and ReadFile(path) == raw
 end
 
+---@return boolean, string
 function State.Save(profile, draft, run, metadata)
     local previous, index, problem, unreadable = LatestSave()
     local allowRecoveryOverwrite = type(metadata) == "table" and metadata.allowRecoveryOverwrite == true
     if (unreadable or (problem and not previous)) and not allowRecoveryOverwrite then return false, "旧存档无法安全读取，已停止覆盖；请保留原文件并导出当前进度。" end
+    ---@type JiayeSavePayload
     local payload = {
-        saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = profile, draft = draft, run = run,
+        saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = State.Copy(profile), draft = State.Copy(draft), run = State.Copy(run),
         saveRevision = (previous and previous.saveRevision or 0) + 1,
     }
     if type(metadata) == "table" and type(metadata.importReceipt) == "string" then payload.importReceipt = metadata.importReceipt end
+    local normalizedProtected, normalized, normalizeMessage = pcall(NormalizeCurrentPayload, payload, State.SAVE_SCHEMA_VERSION)
+    if not normalizedProtected or type(normalized) ~= "table" then return false, normalizedProtected and (normalizeMessage or "当前进度归一化失败。") or "当前进度归一化异常，未写入。" end
+    ---@type JiayeSavePayload
+    local normalizedPayload = normalized
+    payload = normalizedPayload
     local valid, validationMessage = State.ValidateSavePayload(payload)
-    if not valid then return false, "当前进度无法保存：" .. validationMessage end
+    if not valid then return false, "当前进度无法保存：" .. tostring(validationMessage or "结构校验失败。") end
     local encoded, raw = pcall(cjson.encode, payload)
-    if not encoded then return false, "存档编码失败，当前进度仍在内存中。" end
+    if not encoded or type(raw) ~= "string" then return false, "存档编码失败，当前进度仍在内存中。" end
     local targetPath = index == 1 and SAVE_PATHS[2] or SAVE_PATHS[1]
-    if not WriteVerified(targetPath, raw) then
+    local written, verified = pcall(WriteVerified, targetPath, raw)
+    if not written or not verified then
         failedSavePath = targetPath
         return false, "存档写入或回读失败，当前进度仍在内存中，已有可读存档未覆盖；请重试保存或导出。"
     end
@@ -716,6 +913,7 @@ function State.Save(profile, draft, run, metadata)
     return true, "进度已保存并回读核对，上次可读存档仍保留。"
 end
 
+---@return JiayeSavePayload?, string, string
 function State.Load()
     local value, _, problem = LatestSave()
     if value then
@@ -724,15 +922,18 @@ function State.Load()
     return nil, problem and "本地存档不可读，已停止开新局以保护旧进度；请保留原文件。" or "尚无本地存档。", problem and "invalid" or "missing"
 end
 
+---@return JiayeSavePayload?, string, string
 function State.PreflightImport(raw)
     if type(raw) ~= "string" or raw == "" then return nil, "请粘贴完整的备份 JSON。", "invalid" end
     if #raw > 15000000 then return nil, "备份文件超过 15MB，已停止解析。", "invalid" end
     local ok, value = pcall(cjson.decode, raw)
     if not ok or type(value) ~= "table" then return nil, "备份 JSON 无法解析，当前进度未改动。", "invalid" end
-    local candidate, source
-    if type(value.profile) == "table" and value.profile.schemaVersion == 1 then
-        candidate = NormalizeCurrentPayload(value); source = "当前格式"
-    elseif value.schema == 3 then
+    ---@type JiayeSavePayload?
+    local candidate = nil
+    ---@type string?
+    local source = nil
+    if value.schema == 3 then
+        if value.saveSchemaVersion ~= nil then return nil, "备份同时包含未知的顶层版本标记，当前进度未改动。", "invalid" end
         local profile, profileMessage = MapLegacyProfile(value.profile)
         if not profile then return nil, profileMessage, "invalid" end
         local draft, draftMessage = MapLegacyDraft(value.draft, profile)
@@ -743,13 +944,23 @@ function State.PreflightImport(raw)
         candidate = { saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = profile, draft = draft, run = run, migratedFrom = "v5-schema-3" }
         source = "V5 存档"
     else
-        return nil, "备份版本无法识别，当前进度未改动。", "invalid"
+        local versionProtected, sourceVersion, versionMessage = pcall(ResolveCurrentSaveVersion, value)
+        if not versionProtected or not sourceVersion then return nil, versionProtected and versionMessage or "备份版本校验异常，当前进度未改动。", "invalid" end
+        local normalizedProtected, normalized, normalizeMessage = pcall(NormalizeCurrentPayload, value, sourceVersion)
+        if not normalizedProtected or type(normalized) ~= "table" then return nil, normalizedProtected and normalizeMessage or "备份归一化异常，当前进度未改动。", "invalid" end
+        candidate = normalized
+        source = "当前格式"
     end
-    candidate.saveSchemaVersion = State.SAVE_SCHEMA_VERSION
+    if type(candidate) ~= "table" or type(source) ~= "string" then return nil, "备份结构未形成可确认候选，当前进度未改动。", "invalid" end
+    local normalizedProtected, normalized, normalizeMessage = pcall(NormalizeCurrentPayload, candidate, State.SAVE_SCHEMA_VERSION)
+    if not normalizedProtected or type(normalized) ~= "table" then return nil, normalizedProtected and (normalizeMessage or "备份归一化失败，当前进度未改动。") or "备份归一化异常，当前进度未改动。", "invalid" end
+    ---@type JiayeSavePayload
+    local normalizedCandidate = normalized
+    candidate = normalizedCandidate
     candidate.saveRevision = nil
     candidate.importReceipt = ImportReceipt(raw)
     local valid, message = State.ValidateSavePayload(candidate)
-    if not valid then return nil, "备份校验失败：" .. message, "invalid" end
+    if not valid then return nil, "备份校验失败：" .. tostring(message or "结构校验失败。"), "invalid" end
     local pending = candidate.run and #candidate.run.events or 0
     local years = candidate.run and candidate.run.yearIndex or 0
     return candidate, source .. "已通过结构、版本与引用校验：经营 " .. tostring(years) .. " 年，待决家事 " .. tostring(pending) .. " 件。确认后才会替换当前进度。", "ready"
@@ -759,10 +970,11 @@ function State.Import(raw)
     return State.PreflightImport(raw)
 end
 
+---@param candidate JiayeSavePayload
 function State.CommitImport(candidate)
     if type(candidate) ~= "table" then return false, "没有可确认的导入内容。", "invalid" end
     local valid, validationMessage = State.ValidateSavePayload(candidate)
-    if not valid then return false, "导入内容已失效：" .. validationMessage, "invalid" end
+    if not valid then return false, "导入内容已失效：" .. tostring(validationMessage or "结构校验失败。"), "invalid" end
     local latest = LatestSave()
     if latest and latest.importReceipt and latest.importReceipt == candidate.importReceipt then
         return true, "这份备份已经导入，当前进度保持不变。", "duplicate"
@@ -772,12 +984,19 @@ function State.CommitImport(candidate)
     return true, "备份已原子写入并回读核对。", "committed"
 end
 
+---@return string?, string
 function State.Export(profile, draft, run)
-    local payload = { saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = profile, draft = draft, run = run }
+    ---@type JiayeSavePayload
+    local payload = { saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = State.Copy(profile), draft = State.Copy(draft), run = State.Copy(run) }
+    local normalizedProtected, normalized, normalizeMessage = pcall(NormalizeCurrentPayload, payload, State.SAVE_SCHEMA_VERSION)
+    if not normalizedProtected or type(normalized) ~= "table" then return nil, normalizedProtected and (normalizeMessage or "当前进度归一化失败，未导出。") or "当前进度归一化异常，未导出。" end
+    ---@type JiayeSavePayload
+    local normalizedPayload = normalized
+    payload = normalizedPayload
     local valid, validationMessage = State.ValidateSavePayload(payload)
-    if not valid then return nil, "当前进度无法导出：" .. validationMessage end
-    local ok, raw = pcall(cjson.encode, payload)
-    if not ok then return nil, "备份编码失败，未导出。" end
+    if not valid then return nil, "当前进度无法导出：" .. tostring(validationMessage or "结构校验失败。") end
+    local encoded, raw = pcall(cjson.encode, payload)
+    if not encoded or type(raw) ~= "string" then return nil, "备份编码失败，未导出。" end
     if not WriteVerified("jiaye_export.json", raw) then return nil, "备份写入或回读失败，未确认导出成功。" end
     return raw, "备份已写入 jiaye_export.json 并回读核对。"
 end
