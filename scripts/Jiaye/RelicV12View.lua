@@ -476,8 +476,7 @@ function View.OpenAction(app, actionId, sourceInput)
     table.insert(actionChildren, text("预估", { fontSize = 16, fontWeight = "bold", marginTop = 4 }))
     table.insert(actionChildren, quoteLabel)
     table.insert(actionChildren, reasonLabel)
-    body:AddChild(Visual.Paper(actionChildren, {
-    }, { padding = 14, gap = 10 }))
+    body:AddChild(Visual.Paper(actionChildren, { padding = 14, gap = 10 }))
     modal:SetFooter(UI.Row { gap = 8, children = {
         button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
         (function()

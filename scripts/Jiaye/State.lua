@@ -848,8 +848,15 @@ end
 -- 两个交替存档位：只写非最新的一份，失败时保留上次可读进度。
 ---@type string[]
 local SAVE_PATHS = { "jiaye_save.json", "jiaye_save.backup.json" }
+local exportPath = "jiaye_export.json"
 ---@type string?
 local failedSavePath = nil
+
+function State.UseVerificationStorage()
+    SAVE_PATHS = { "jiaye_v12_verification.json", "jiaye_v12_verification.backup.json" }
+    exportPath = "jiaye_v12_verification.export.json"
+    failedSavePath = nil
+end
 
 ---@return string?
 local function ReadFile(path)
@@ -1010,7 +1017,7 @@ function State.Import(raw)
 end
 
 function State.ReadExport()
-    local raw = ReadFile("jiaye_export.json")
+    local raw = ReadFile(exportPath)
     if not raw then return nil, "本机尚无可读取的家谱备份。" end
     return State.PreflightImport(raw)
 end
@@ -1042,8 +1049,8 @@ function State.Export(profile, draft, run)
     if not valid then return nil, "当前进度无法导出：" .. tostring(validationMessage or "结构校验失败。") end
     local encoded, raw = pcall(cjson.encode, payload)
     if not encoded or type(raw) ~= "string" then return nil, "备份编码失败，未导出。" end
-    if not WriteVerified("jiaye_export.json", raw) then return nil, "备份写入或回读失败，未确认导出成功。" end
-    return raw, "备份已写入 jiaye_export.json 并回读核对。"
+    if not WriteVerified(exportPath, raw) then return nil, "备份写入或回读失败，未确认导出成功。" end
+    return raw, "备份已写入 " .. exportPath .. " 并回读核对。"
 end
 
 return State
