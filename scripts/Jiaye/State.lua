@@ -1,5 +1,8 @@
 local Data = require "Jiaye.Data"
 local Art = require "Jiaye.Art"
+local RelicDefinitions = require "Jiaye.RelicDefinitions"
+local RelicState = require "Jiaye.RelicState"
+local RelicValidation = require "Jiaye.RelicValidation"
 ---@diagnostic disable: undefined-global -- UrhoX runtime injects File/fileSystem/cjson.
 
 local State = {}
@@ -31,7 +34,9 @@ function State.Copy(value)
 end
 
 function State.NewProfile()
-    return { schemaVersion = 1, unlockedRelicIds = { book = true, ruler = true, letter = true }, endingRecords = {} }
+    local profile = { schemaVersion = 1, unlockedRelicIds = { book = true, ruler = true, letter = true }, endingRecords = {} }
+    RelicState.EnsureProfile(profile)
+    return profile
 end
 
 function State.BackgroundDefinition(draft)
@@ -131,9 +136,14 @@ function State.PointLines(draft)
         end
     end
     local seen = {}
-    for _, id in ipairs(type(draft.selectedRelicIds) == "table" and draft.selectedRelicIds or {}) do
-        local relic = Data.Relic(id)
-        if relic and not seen[id] then add("relics", relic.name, relic.cost, relic.desc); seen[id] = true end
+    local newRelics = draft.relicRulesVersion == RelicDefinitions.VERSION
+    local selected = newRelics and draft.selectedRelicFormIds or draft.selectedRelicIds
+    for _, id in ipairs(type(selected) == "table" and selected or {}) do
+        local relic = newRelics and RelicDefinitions.Form(id) or Data.Relic(id)
+        if relic and not seen[id] then
+            add("relics", relic.name, newRelics and relic.openingPoints or relic.cost, newRelics and relic.description or relic.desc)
+            seen[id] = true
+        end
     end
     return rows
 end
@@ -212,6 +222,7 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
     profile = type(profile) == "table" and profile or {}
     local unlockedRelicIds = type(profile.unlockedRelicIds) == "table" and profile.unlockedRelicIds or {}
     local issues, ids = {}, {}
+    if draft.relicRulesVersion ~= nil and draft.relicRulesVersion ~= RelicDefinitions.VERSION then table.insert(issues, "信物规则版本未知。") end
     if draft.rulesVersion ~= nil and (not IsInteger(draft.rulesVersion) or not KNOWN_RULES_VERSIONS[draft.rulesVersion]) then table.insert(issues, "开局规则版本未知。") end
     if draft.worldId ~= "mortal" then table.insert(issues, "当前仅支持凡世开局。") end
     local period = Data.Period(draft.periodId)
@@ -279,13 +290,17 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
     end
     local leader = State.FindMember(members, draft.leaderId)
     if not State.IsAdult(leader) then table.insert(issues, "需要指定一位成年首任族长。") end
-    local relicSeen = {}
-    if type(draft.selectedRelicIds) ~= "table" then table.insert(issues, "信物选择数据无效。") end
-    for _, relicId in ipairs(List(draft.selectedRelicIds)) do
-        if relicSeen[relicId] then table.insert(issues, "同一件信物不能重复带入。") end
-        relicSeen[relicId] = true
-        if not Data.Relic(relicId) then table.insert(issues, "信物不存在。") end
-        if not unlockedRelicIds[relicId] then table.insert(issues, "尚未解锁信物：" .. tostring(relicId)) end
+    if draft.relicRulesVersion == RelicDefinitions.VERSION then
+        for _, issue in ipairs(RelicValidation.Draft(draft, profile)) do table.insert(issues, issue) end
+    else
+        local relicSeen = {}
+        if type(draft.selectedRelicIds) ~= "table" then table.insert(issues, "信物选择数据无效。") end
+        for _, relicId in ipairs(List(draft.selectedRelicIds)) do
+            if relicSeen[relicId] then table.insert(issues, "同一件信物不能重复带入。") end
+            relicSeen[relicId] = true
+            if not Data.Relic(relicId) then table.insert(issues, "信物不存在。") end
+            if not unlockedRelicIds[relicId] then table.insert(issues, "尚未解锁信物：" .. tostring(relicId)) end
+        end
     end
     local prices = Data.OpeningCosts
     if not ValidOpeningAmount(draft.money, prices.moneyUnit)
@@ -340,7 +355,7 @@ local function CreateRun(draft, profile, allowOverBudget)
         table.insert(members, member)
     end
     local relicInstances = {}
-    for index, relicId in ipairs(draft.selectedRelicIds) do
+    for index, relicId in ipairs(draft.relicRulesVersion and {} or draft.selectedRelicIds) do
         table.insert(relicInstances, {
             instanceId = "relic-" .. tostring(index), definitionId = relicId, status = "held", stage = "idle",
             source = "开局带入", custodianId = draft.leaderId, executorId = nil, rewardState = "none",
@@ -358,6 +373,7 @@ local function CreateRun(draft, profile, allowOverBudget)
         reputation = reputation, relicInstances = relicInstances, events = {}, logs = {}, facts = {}, annualLedgers = {}, habitProgress = {}, habitFormations = {}, ending = nil, revision = 0,
         rngState = draft.rngSeed, processedCommands = {}, flags = {}, metrics = { stable = 0, foodYears = 0, aid = 0, migrations = 0, lastMove = 0 },
     }
+    if draft.relicRulesVersion == RelicDefinitions.VERSION then RelicState.InitNewRun(run, draft, profile) end
     for _, member in ipairs(run.members) do
         State.AddFact(run, "opening", member.name .. "以“" .. Data.Jobs[member.jobId].name .. "”开始这一段人生。", { member.id }, { recordLog = false })
     end
@@ -418,8 +434,8 @@ function State.RecordAnnualLedger(run, ledger, yearStart)
     run.nextLedgerId = run.nextLedgerId or (#run.annualLedgers + 1)
     local record = State.Copy(ledger)
     record.id = "ledger-" .. tostring(run.nextLedgerId)
-    record.year = run.calendar
-    record.yearIndex = run.yearIndex + 1
+    record.year = yearStart.calendar or run.calendar
+    record.yearIndex = (yearStart.yearIndex or run.yearIndex) + 1
     record.yearStart = State.Copy(yearStart)
     run.nextLedgerId = run.nextLedgerId + 1
     table.insert(run.annualLedgers, 1, record)
@@ -670,6 +686,8 @@ local function ValidateProfile(profile)
     if type(profile) ~= "table" or profile.schemaVersion ~= 1 or type(profile.unlockedRelicIds) ~= "table" or type(profile.endingRecords) ~= "table" then return false, "收藏或终章记录结构无效。" end
     for relicId, unlocked in pairs(profile.unlockedRelicIds) do if unlocked and not Data.Relic(relicId) then return false, "收藏包含未知信物。" end end
     for _, record in ipairs(profile.endingRecords) do if type(record) ~= "table" or not Data.Ending(record.id) then return false, "终章记录包含未知引用。" end end
+    local relicOk, relicMessage = RelicValidation.Profile(profile)
+    if not relicOk then return false, relicMessage end
     return true
 end
 
@@ -717,6 +735,8 @@ local function ValidateRun(run)
         if type(fact) ~= "table" or type(fact.memberIds) ~= "table" then return false, "事实记录结构无效。" end
         for _, memberId in ipairs(fact.memberIds) do if not memberIds[memberId] then return false, "事实记录参与人无效。" end end
     end
+    local relicOk, relicMessage = RelicValidation.Run(run, memberIds, relicIds)
+    if not relicOk then return false, relicMessage end
     if run.ending and (type(run.ending) ~= "table" or not Data.Ending(run.ending.id)) then return false, "终章引用无效。" end
     return true
 end
@@ -754,6 +774,8 @@ local function NormalizeCurrentPayload(value, sourceVersion)
     candidate.profile.schemaVersion = candidate.profile.schemaVersion or 1
     candidate.profile.unlockedRelicIds = candidate.profile.unlockedRelicIds or { book = true, ruler = true, letter = true }
     candidate.profile.endingRecords = candidate.profile.endingRecords or {}
+    if candidate.profile.unlockedRelicForms ~= nil and type(candidate.profile.unlockedRelicForms) ~= "table" then return nil, "信物形态收藏结构无效。" end
+    RelicState.EnsureProfile(candidate.profile)
     local identity = candidate.run and candidate.run.runId or (candidate.draft and candidate.draft.rngSeed) or "draft"
     if candidate.draft then
         if type(candidate.draft) ~= "table" then return nil, "开局草案结构无效。" end

@@ -2,13 +2,104 @@
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Art = require "Jiaye.Art"
+local RelicDefinitions = require "Jiaye.RelicDefinitions"
+local RelicState = require "Jiaye.RelicState"
 local Opening = {}
 Opening.Fields = {
     world = { "worldId", "periodId", "calendar", "originId", "backgroundId", "placeId" },
     people = { "members", "leaderId", "nextId" },
     estate = { "money", "grain", "land", "homeId", "workshop", "shop" },
-    relics = { "selectedRelicIds" },
+    relics = { "relicRulesVersion", "selectedRelicFormIds", "relicUsers", "selectedRelicIds" },
 }
+
+local function isNewRelicDraft(draft)
+    return type(draft) == "table" and draft.relicRulesVersion == RelicDefinitions.VERSION
+end
+
+local function unlockedForms(profile)
+    local result = {}
+    local unlocked = type(profile) == "table" and profile.unlockedRelicForms or {}
+    if type(unlocked) == "table" then
+        for _, form in ipairs(RelicDefinitions.Forms or {}) do
+            local allowed = unlocked[form.id] == true
+            if not allowed then
+                for _, formId in ipairs(unlocked) do if formId == form.id then allowed = true break end end
+            end
+            if allowed then table.insert(result, form) end
+        end
+    end
+    return result
+end
+
+local function formFamily(formId)
+    local form = RelicDefinitions.Form(formId)
+    return form and form.familyId or nil
+end
+
+local function hasFamily(selected, familyId)
+    for _, formId in ipairs(selected) do
+        if formFamily(formId) == familyId then return true end
+    end
+    return false
+end
+
+function Opening.IsNewRelicDraft(draft)
+    return isNewRelicDraft(draft)
+end
+
+function Opening.UnlockedRelicForms(profile)
+    return unlockedForms(profile)
+end
+
+function Opening.EnsureRelicUsers(draft, profile)
+    if not isNewRelicDraft(draft) then return draft end
+    draft.selectedRelicFormIds = type(draft.selectedRelicFormIds) == "table" and draft.selectedRelicFormIds or {}
+    draft.relicUsers = type(draft.relicUsers) == "table" and draft.relicUsers or {}
+    local selected = {}
+    for _, formId in ipairs(draft.selectedRelicFormIds) do
+        local form = RelicDefinitions.Form(formId)
+        if form and not selected[formId] then
+            selected[formId] = true
+            if draft.relicUsers[formId] ~= nil and not State.FindMember(draft.members, draft.relicUsers[formId]) then draft.relicUsers[formId] = nil end
+        end
+    end
+    for formId in pairs(draft.relicUsers) do
+        if not selected[formId] then draft.relicUsers[formId] = nil end
+    end
+    return draft
+end
+
+function Opening.AssignRelicUserDefaults(draft)
+    if not isNewRelicDraft(draft) then return draft end
+    draft.selectedRelicFormIds = type(draft.selectedRelicFormIds) == "table" and draft.selectedRelicFormIds or {}
+    draft.relicUsers = type(draft.relicUsers) == "table" and draft.relicUsers or {}
+    local members = State.Copy(draft.members or {})
+    for _, member in ipairs(members) do
+        if type(member.stats) ~= "table" then
+            local experience = Data.Experience(member.experienceId)
+            member.stats = experience and State.Copy(experience.values) or {}
+        end
+    end
+    for _, formId in ipairs(draft.selectedRelicFormIds) do
+        if draft.relicUsers[formId] == nil then draft.relicUsers[formId] = RelicState.SuggestUser(members, formId) end
+    end
+    return Opening.EnsureRelicUsers(draft)
+end
+
+function Opening.SetRelicUser(draft, formId, memberId)
+    if not isNewRelicDraft(draft) then return false, "旧版草案使用旧信物绑定。" end
+    local form = RelicDefinitions.Form(formId)
+    if not form then return false, "形态不存在，未改变使用者。" end
+    local selected = false
+    for _, selectedId in ipairs(draft.selectedRelicFormIds or {}) do
+        if selectedId == formId then selected = true break end
+    end
+    if not selected then return false, "请先选入该形态。" end
+    if memberId ~= nil and not State.FindMember(draft.members, memberId) then return false, "使用者不存在，未改变绑定。" end
+    draft.relicUsers = draft.relicUsers or {}
+    draft.relicUsers[formId] = memberId
+    return true, "使用者已保存。"
+end
 
 function Opening.Equal(a, b)
     if type(a) ~= type(b) then return false end
@@ -148,6 +239,15 @@ local function randomPage(candidate, page, profile, roll, pick)
         candidate.homeId = pick(Data.Homes).id
         candidate.workshop = roll(1, 4) == 1; candidate.shop = roll(1, 4) == 1
         candidate.habitId = "none"; candidate.tieId = "none"
+    elseif page == "relics" and isNewRelicDraft(candidate) then
+        candidate.selectedRelicFormIds = {}
+        candidate.relicUsers = {}
+        for _, form in ipairs(unlockedForms(profile)) do
+            if roll(1, 2) == 1 and not hasFamily(candidate.selectedRelicFormIds, form.familyId) then
+                table.insert(candidate.selectedRelicFormIds, form.id)
+            end
+        end
+        Opening.AssignRelicUserDefaults(candidate)
     elseif page == "relics" then
         candidate.selectedRelicIds = {}
         for _, relic in ipairs(Data.Relics) do
@@ -158,6 +258,7 @@ end
 
 function Opening.RandomPage(draft, page, profile)
     if not Opening.Fields[page] then return nil, "此页没有随机配置。" end
+    profile = RelicState.EnsureProfile(profile or {})
     local source, roll, pick = randomSource(draft.rngSeed)
     for _ = 1, 256 do
         local candidate = State.Copy(draft)
@@ -172,11 +273,16 @@ end
 
 function Opening.Generate(profile, seed, worldId)
     if worldId and worldId ~= "mortal" then return nil, "当前仅支持凡世，草案未改变。" end
+    profile = RelicState.EnsureProfile(profile or {})
     local source, roll, pick = randomSource(seed)
     for _ = 1, 512 do
         local draft = State.NewDraft()
         draft.generatorVersion = 2
         draft.rulesVersion = Data.RULES_VERSION
+        draft.relicRulesVersion = RelicDefinitions.VERSION
+        draft.selectedRelicFormIds = {}
+        draft.relicUsers = {}
+        draft.selectedRelicIds = nil
         draft.family = pick(Data.Surnames)
         draft.habitId = "none"
         draft.tieId = "none"
@@ -186,6 +292,7 @@ function Opening.Generate(profile, seed, worldId)
         draft.backgroundId = background and background.id or nil
         draft.rngSeed = source.rngState
         for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed) end
+        Opening.AssignRelicUserDefaults(draft)
         if #State.ValidateDraft(draft, profile, false) == 0 then
             draft.rngSeed = source.rngState
             draft.nameSeed = draft.rngSeed
@@ -218,6 +325,7 @@ function Opening.EditMember(draft, editing, leaderId, profile)
         end
     end
     candidate.leaderId = leaderId
+    Opening.EnsureRelicUsers(candidate, profile)
     local issues = State.ValidateDraft(candidate, profile, true)
     if #issues > 0 then return nil, table.concat(issues, "\n") end
     return candidate

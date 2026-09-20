@@ -5,6 +5,8 @@ local Simulation = require "Jiaye.Simulation"
 local Visual = require "Jiaye.Visual"
 local V7 = require "Jiaye.V7"
 local EventView = require "Jiaye.EventView"
+local RelicState = require "Jiaye.RelicState"
+local RelicV12View = require "Jiaye.RelicV12View"
 
 local RelicsView = {}
 local C = V7.Colors
@@ -269,6 +271,7 @@ local function collectionCard(relic, unlocked, instance)
 end
 
 function RelicsView.Build(app)
+    if RelicState.IsNew(app.run) then return RelicV12View.Build(app) end
     local run = app.run
     local actual = {}
     local collection = {}

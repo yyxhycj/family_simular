@@ -1,6 +1,8 @@
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Opening = require "Jiaye.Opening"
+local RelicDefinitions = require "Jiaye.RelicDefinitions"
+local RelicState = require "Jiaye.RelicState"
 local V7 = require "Jiaye.V7"
 
 ---@class OpeningEditorController
@@ -49,6 +51,11 @@ local function prepareNewDraftFields(draft)
     if draft.rulesVersion == nil then draft.rulesVersion = Data.RULES_VERSION end
     if draft.habitId == nil then draft.habitId = "none" end
     if draft.tieId == nil then draft.tieId = "none" end
+    if Opening.IsNewRelicDraft(draft) then
+        draft.selectedRelicFormIds = type(draft.selectedRelicFormIds) == "table" and draft.selectedRelicFormIds or {}
+        draft.relicUsers = type(draft.relicUsers) == "table" and draft.relicUsers or {}
+        Opening.EnsureRelicUsers(draft)
+    end
     local background = backgroundForOrigin(draft.originId)
     draft.backgroundId = background and background.id or nil
     for _, member in ipairs(draft.members or {}) do
@@ -78,6 +85,9 @@ end
 function OpeningEditor.SetDraftField(self, page, key, value)
     local draft = editDraft(self)
     draft[key] = State.Copy(value)
+    if page == "relics" and Opening.IsNewRelicDraft(draft) then
+        Opening.EnsureRelicUsers(draft, self.profile)
+    end
     if page == "world" and key == "originId" then
         local background = backgroundForOrigin(draft.originId)
         draft.backgroundId = background and background.id or nil
@@ -270,6 +280,38 @@ end
 ---@param self OpeningEditorController
 function OpeningEditor.ToggleRelic(self, id)
     local draft = editDraft(self)
+    if Opening.IsNewRelicDraft(draft) then
+        local form = RelicDefinitions.Form(id)
+        if not form then
+            self.openingFeedback = "找不到该信物形态。"
+            render(self)
+            return
+        end
+        local selected = State.Copy(draft.selectedRelicFormIds or {})
+        local found
+        for index, value in ipairs(selected) do
+            if value == id then
+                table.remove(selected, index)
+                found = true
+                break
+            end
+        end
+        if not found then
+            for index = #selected, 1, -1 do
+                local existing = RelicDefinitions.Form(selected[index])
+                if existing and existing.familyId == form.familyId then table.remove(selected, index) end
+            end
+            table.insert(selected, id)
+        end
+        draft.selectedRelicFormIds = selected
+        Opening.EnsureRelicUsers(draft, self.profile)
+        if not found then draft.relicUsers[id] = RelicState.SuggestUser(draft.members, id) end
+        self.undo.relics = nil
+        self.houseUndo = nil
+        self.openingFeedback = found and "已移出本局。" or "已选入该形态；同一成长线只保留一件。"
+        render(self)
+        return
+    end
     local selected = State.Copy(draft.selectedRelicIds or {})
     local found = false
     for index, value in ipairs(selected) do
@@ -281,6 +323,18 @@ function OpeningEditor.ToggleRelic(self, id)
     end
     if not found then table.insert(selected, id) end
     OpeningEditor.SetDraftField(self, "relics", "selectedRelicIds", selected)
+end
+
+---@param self OpeningEditorController
+function OpeningEditor.SetRelicUser(self, formId, memberId)
+    local draft = editDraft(self)
+    local ok, message = Opening.SetRelicUser(draft, formId, memberId)
+    self.openingFeedback = message
+    if ok then
+        self.undo.relics = nil
+        self.houseUndo = nil
+    end
+    render(self)
 end
 
 ---@param self OpeningEditorController
@@ -380,6 +434,7 @@ function OpeningEditor.SaveDraftMember(self)
     end
     local removed = self.memberRemoving
     if self.openingEditDraft then self.openingEditDraft = candidate else self.draft = candidate end
+    Opening.EnsureRelicUsers(candidate, self.profile)
     self.undo.people = nil
     self.houseUndo = nil
     self.memberEditing = nil

@@ -3,6 +3,8 @@ local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Opening = require "Jiaye.Opening"
 local Economy = require "Jiaye.Economy"
+local RelicDefinitions = require "Jiaye.RelicDefinitions"
+local RelicState = require "Jiaye.RelicState"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
 
@@ -176,12 +178,30 @@ end
 
 local function relicSummary(app)
     local result = {}
-    for _, id in ipairs(draftOf(app).selectedRelicIds or {}) do
-        local relic = Data.Relic(id)
-        if relic then table.insert(result, relic.name .. " · " .. relic.cost .. " 点") end
+    local draft = draftOf(app)
+    if Opening.IsNewRelicDraft(draft) then
+        for _, id in ipairs(draft.selectedRelicFormIds or {}) do
+            local form = RelicDefinitions.Form(id)
+            if form then
+                local userId = draft.relicUsers and draft.relicUsers[id]
+                local user = userId and State.FindMember(draft.members, userId)
+                table.insert(result, form.name .. " · " .. form.openingPoints .. " 点" .. (user and " · " .. user.name or ""))
+            end
+        end
+    else
+        for _, id in ipairs(draft.selectedRelicIds or {}) do
+            local relic = Data.Relic(id)
+            if relic then table.insert(result, relic.name .. " · " .. relic.cost .. " 点") end
+        end
     end
     if #result == 0 then return "未带信物 · 可以空手开篇" end
     return table.concat(result, "；")
+end
+
+local function relicArtId(form)
+    if form.legacyId then return form.legacyId end
+    local family = RelicDefinitions.Family(form.familyId)
+    return family and family.legacyId or form.familyId
 end
 
 function View.Summary(app)
@@ -221,9 +241,10 @@ function View.Summary(app)
     table.insert(children, UI.SimpleGrid { columns = math.min(4, math.max(1, #tiles)), gap = 7, children = tiles })
     if #draft.members > #tiles then table.insert(children, button("查看全部 " .. #draft.members .. " 人  ›", function() app:OpenOpeningDetail("people") end, true)) end
     local firstRelic = draft.selectedRelicIds and draft.selectedRelicIds[1]
+    local firstForm = draft.selectedRelicFormIds and RelicDefinitions.Form(draft.selectedRelicFormIds[1])
     table.insert(children, UI.Panel { onClick = function() app:BeginOpeningEdit("relics") end, height = 60, padding = 5, gap = 8, flexDirection = "row", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line, children = {
-        firstRelic and Visual.Relic(firstRelic, 46) or text("物", 25, C.gold),
-        UI.Panel { flex = 1, minWidth = 0, children = { text(firstRelic and Data.Relic(firstRelic).name or "本局未带入旧物", 15), text(relicSummary(app), 12, C.muted, { maxLines = 1 }) } },
+        firstForm and Visual.Relic(relicArtId(firstForm), 46) or (firstRelic and Visual.Relic(firstRelic, 46) or text("物", 25, C.gold)),
+        UI.Panel { flex = 1, minWidth = 0, children = { text(firstForm and firstForm.name or (firstRelic and Data.Relic(firstRelic).name or "本局未带入旧物"), 15), text(relicSummary(app), 12, C.muted, { maxLines = 1 }) } },
         text("›", 22, C.muted),
     } })
     table.insert(children, row({ text("首年预计 · 不含突发", 14, C.muted), button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { flex = 1, height = 44, fontSize = 14 }) }))
@@ -234,8 +255,12 @@ local function ledgerView(app)
     local ledger = preview(app)
     if not ledger then return card({ text("草案存在错误，修正后即可查看首年预计收支。", 16, C.warning) }) end
     local children = { text("首年账本", 23), text("按当前安排和年初数值计算，不含突发事件。", 14, C.muted), text("现有 " .. ledger.beforeMoney .. " 两 / " .. ledger.beforeGrain .. " 石", 18) }
-    for _, entry in ipairs(ledger.members or {}) do table.insert(children, text(entry.name .. " · " .. entry.job .. "：" .. signed(entry.money) .. " 两，" .. signed(entry.grain) .. " 石")) end
+    for _, entry in ipairs(ledger.members or {}) do
+        table.insert(children, text(entry.name .. " · " .. entry.job .. "：" .. signed(entry.money) .. " 两，" .. signed(entry.grain) .. " 石"))
+        if entry.executed == false then table.insert(children, text(entry.reason, 14, C.warning)) end
+    end
     table.insert(children, text("谋生收入 +" .. ledger.income .. " 两 · 产业 +" .. ledger.industryIncome .. " 两", 15))
+    if ledger.relicIncome then table.insert(children, text("信物定额收入 +" .. ledger.relicIncome .. " 两（已计入对应使用者）", 15)) end
     table.insert(children, text("培养支出 −" .. ledger.training .. " 两 · 生活开支 −" .. ledger.livingExpense .. " 两", 15))
     table.insert(children, text("预计年末 " .. ledger.money .. " 两 / " .. ledger.grain .. " 石", 17))
     return card(children)
@@ -263,7 +288,78 @@ local function peopleView(app)
     return card(children)
 end
 
+local function openingUserEligibility(form, member)
+    return RelicState.EligibleUser({}, form.id, member)
+end
+
+local function formUnlocked(profile, formId)
+    local unlocked = profile and profile.unlockedRelicForms
+    if type(unlocked) ~= "table" then return false end
+    if unlocked[formId] == true then return true end
+    for _, unlockedId in ipairs(unlocked) do if unlockedId == formId then return true end end
+    return false
+end
+
+local function openingUserOptions(app, form)
+    local draft = draftOf(app)
+    local values = { { value = 0, label = "暂不指定使用者" } }
+    for _, member in ipairs(draft.members or {}) do
+        local eligible, reason = openingUserEligibility(form, member)
+        table.insert(values, { value = member.id, label = member.name .. " · " .. tostring(member.age) .. "岁" .. (eligible and "" or " · " .. reason), disabled = not eligible })
+    end
+    return values
+end
+
+local function newRelicView(app, editing)
+    local draft = draftOf(app)
+    local children = { text(editing and "信物选择" or "本局信物与收藏", 23), text("六条成长线各选一件；已选形态共享 100 点预算，使用者只在本次编辑中确认。", 14, C.muted) }
+    for _, form in ipairs(RelicDefinitions.Forms or {}) do
+        local selected = false
+        for _, id in ipairs(draft.selectedRelicFormIds or {}) do if id == form.id then selected = true break end end
+        local unlocked = formUnlocked(app.profile, form.id)
+        local userId = draft.relicUsers and draft.relicUsers[form.id]
+        local user = userId and State.FindMember(draft.members, userId)
+        local effect = form.description or "形态作用待定义"
+        if form.annual then
+            local annual = {}
+            for key, value in pairs(form.annual) do if value and value ~= 0 then table.insert(annual, key .. " +" .. tostring(value)) end end
+            if #annual > 0 then effect = effect .. " · 年度 " .. table.concat(annual, "、") end
+        end
+        local history = form.openingHistory
+        local unlockDescription = "完成上一形态的真实经历后解锁。"
+        if form.familyId == "jade" and form.tier == 3 then
+            unlockDescription = "完成相认后选择合璧传家或各执半佩。"
+        elseif form.familyId == "notes" and form.tier == 3 then
+            unlockDescription = "完成病例与编订后选择家传或刊行。"
+        end
+        local lines = {
+            text(form.name .. " · " .. tostring(form.openingPoints) .. " 点", 18),
+            text(effect, 14, C.muted),
+            text("出售 " .. tostring(form.saleSilver or 0) .. " 两 · " .. (selected and ("使用者：" .. (user and user.name or "待确认")) or (unlocked and "可选入本局" or "尚未解锁")), 13, C.muted),
+        }
+        if form.tier and form.tier > 1 then
+            table.insert(lines, text("开局经历：" .. tostring(history or "以该形态带入；此前奖励与事实不会补发。"), 13, C.gold))
+        elseif not unlocked then
+            table.insert(lines, text("解锁条件：" .. tostring(history or unlockDescription), 13, C.warning))
+        end
+        if editing and unlocked then
+            table.insert(lines, button(selected and "✓ 已带入" or "选入本局", function() app:ToggleRelic(form.id) end, not selected, { width = 112, disabled = false }))
+            if selected then
+                table.insert(lines, text("本线只能保留一件形态。", 12, C.muted))
+                table.insert(lines, choose(openingUserOptions(app, form), userId or 0, function(value)
+                    app:SetRelicUser(form.id, value ~= 0 and value or nil)
+                end))
+            end
+        elseif not editing then
+            table.insert(lines, text(unlocked and (selected and "✓ 本局带入" or "已解锁 · 本局未带入") or "尚未解锁", 13, unlocked and C.muted or C.warning))
+        end
+        table.insert(children, card({ row({ Visual.Relic(relicArtId(form), 48), UI.Panel { flex = 1, minWidth = 0, gap = 3, children = lines } }) }))
+    end
+    return card(children)
+end
+
 local function relicView(app, editing)
+    if Opening.IsNewRelicDraft(draftOf(app)) then return newRelicView(app, editing) end
     local draft = draftOf(app)
     local children = { text(editing and "信物选择" or "本局信物与收藏", 23), text("解锁是可选资格；只有选中的物件带入本局，共享 100 点。", 14, C.muted) }
     for _, relic in ipairs(Data.Relics) do

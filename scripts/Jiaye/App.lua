@@ -13,6 +13,8 @@ local MemberView = require "Jiaye.MemberView"
 local HistoryView = require "Jiaye.HistoryView"
 local EventView = require "Jiaye.EventView"
 local RelicsView = require "Jiaye.RelicsView"
+local RelicV12View = require "Jiaye.RelicV12View"
+local RelicState = require "Jiaye.RelicState"
 
 local App = {}
 App.__index = App
@@ -183,10 +185,18 @@ end
 function App:Export()
     local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
     if not raw then self:Notify(message, "error"); return end
-    local modal = UI.Modal { title = "家谱备份已保存", size = "sm", closeOnOverlay = true }
+    local modal = UI.Modal { title = "保存家谱备份", size = "sm", closeOnOverlay = true }
     modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal" }))
-    modal:AddContent(Label("备份包含家谱、人物经历与收藏，可从家谱事务中恢复。本机备份与当前进度分开保存；请保留当前浏览器的数据。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
-    modal:SetFooter(Button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }))
+    modal:AddContent(Label("备份包含家谱、信物任务、人物经历与收藏，共 " .. tostring(#raw) .. " 字节。网页关闭或刷新前，请复制完整备份并保存到外部文本文件；以后可通过“导入备份”恢复。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    modal:SetFooter(UI.Panel { gap = 8, children = {
+        Button("复制完整备份", function()
+            ui:SetUseSystemClipboard(true)
+            ui:SetClipboardText(raw)
+            if ui:GetClipboardText() ~= raw then self:Notify("剪贴板写入未确认，请保持当前页面。", "error"); return end
+            self:Notify("完整备份已交给剪贴板，请粘贴到文本文件保存。", "success")
+        end, { width = "100%" }),
+        Button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }),
+    } })
     modal:Open()
 end
 
@@ -344,7 +354,7 @@ function App:RunAction(fn)
     local previousRun, previousProfile = self.run, self.profile
     self.run, self.profile = State.Copy(previousRun), State.Copy(previousProfile)
     self.actionBusy = true
-    local executed, ok, message = pcall(fn)
+    local executed, ok, message = pcall(fn, self.run, self.profile)
     self.actionBusy = false
     if not executed or not ok then
         self.run, self.profile = previousRun, previousProfile
@@ -507,6 +517,13 @@ function App:BuildFamilyMap()
     return FamilyTree.Build(self)
 end
 
+function App:OpenRelic(instanceId)
+    if RelicState.IsNew(self.run) then return RelicV12View.Open(self, instanceId) end
+    for _, instance in ipairs(self.run.relicInstances) do
+        if instance.instanceId == instanceId then return EventView.OpenRelic(self, instance) end
+    end
+end
+
 function App:BuildFamilyTab()
     local leader = State.FindMember(self.run.members, self.run.leaderId)
     local _, foodNeed = self:GetRunOverview()
@@ -534,25 +551,37 @@ function App:BuildFamilyTab()
         for _, event in ipairs(pending) do table.insert(children, self:BuildPendingEvent(event)) end
     else
         for _, instance in ipairs(self.run.relicInstances) do
-            local relic = Data.Relic(instance.definitionId)
-            if relic.basic and instance.status == "held" and instance.stage ~= "completed" and instance.rewardState ~= "granted" then
+            local newRelics = RelicState.IsNew(self.run)
+            local relic = newRelics and RelicState.Form(instance) or Data.Relic(instance.definitionId)
+            if instance.status == "held" and (newRelics or relic.basic and instance.stage ~= "completed" and instance.rewardState ~= "granted") then
                 table.insert(children, Card({ UI.Row { gap = 10, alignItems = "center", children = {
-                    Visual.Relic(relic.id, 42),
+                    Visual.Relic(instance.definitionId, 42),
                     UI.Panel { flex = 1, gap = 4, children = {
                         Label(relic.name, { fontSize = 18 }),
-                        Label("家传旧物 · " .. relic.desc, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
+                        Label("家传旧物 · " .. (newRelics and relic.description or relic.desc), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
                     } },
                     Visual.Icon("forward", 18),
-                } } }, { onClick = function() EventView.OpenRelic(self, instance) end, borderColor = C.gold }))
+                } } }, { onClick = function() self:OpenRelic(instance.instanceId) end, borderColor = C.gold }))
                 break
             end
         end
         local guidance = self.run.grain < foodNeed and "存粮偏少，可安排耕作或在家业中购粮。" or "本年安排会持续；点家人头像即可调整。"
         table.insert(children, Label(guidance, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
     end
+    for _, task in ipairs(self.run.relicTasks or {}) do
+        if task.status == "ready" then
+            table.insert(children, Card({
+                Label("信物已有结果", { fontSize = 17, fontColor = C.green }),
+                Label("结果保留在藏阁，可继续推进年度。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
+                Button("查看并决定", function() self:OpenRelic(task.instanceId) end, { height = 44, role = "secondary" }),
+            }))
+        end
+    end
     table.insert(children, self:BuildFamilyMap())
     for _, habit in pairs(self.run.habitFormations or {}) do
-        table.insert(children, Label("家风 · " .. habit.name .. (habit.status == "active" and "" or " · 暂时沉寂") .. "（原型，无额外属性）", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }))
+        local status = ({ active = "已形成", paused = "暂歇", inactive = "失效" })[habit.status] or habit.status
+        local effect = RelicState.IsNew(self.run) and " · 有效读书年度学识 +1" or "（原型，无额外属性）"
+        table.insert(children, Label("家风 · " .. habit.name .. " · " .. status .. effect, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }))
     end
     local ledger = TableValue(self.run.annualLedgers)[1]
     if ledger then
@@ -640,8 +669,10 @@ function App:BuildEstateTab()
         for _, place in ipairs(Data.Places) do
             local placeId = place.id
             table.insert(placeButtons, Button("迁居 " .. place.short .. "\n" .. place.desc .. " " .. place.burden, function()
-                local fee = 18 + place.cost * 2
-                self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(fee) .. " 两安置费。\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
+                local quote, reason = Simulation.MigrationQuote(self.run, placeId)
+                if not quote then self:Notify(reason, "warning"); return end
+                local benefit = quote.discount > 0 and ("\n通家玉佩抵扣 " .. tostring(quote.discount) .. " 两，本次实迁后进入冷却。") or ""
+                self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(quote.cost) .. " 两安置费。" .. benefit .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
             end, {
                 height = 76,
                 backgroundColor = self.run.placeId == placeId and C.green or C.pale,

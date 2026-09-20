@@ -4,6 +4,7 @@ local State = require "Jiaye.State"
 local Simulation = require "Jiaye.Simulation"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
+local RelicState = require "Jiaye.RelicState"
 
 local MemberView = {}
 
@@ -236,7 +237,7 @@ local function BuildArrangement(app, member, modal)
 
         for _, relic in ipairs(app.run.relicInstances or {}) do
             if relic.status ~= "sold" and relic.custodianId ~= member.id then
-                local definition = Data.Relic(relic.definitionId)
+                local definition = RelicState.IsNew(app.run) and RelicState.Form(relic) or Data.Relic(relic.definitionId)
                 if definition then
                     table.insert(children, Button("交由" .. member.name .. "保管 · " .. definition.name, function()
                         app:ConfirmRunAction("确认更换保管人", "物件：" .. definition.name .. "\n结果：保管人改为" .. member.name .. "，当前调查进度保持不变。", function()

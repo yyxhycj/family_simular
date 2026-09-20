@@ -2,6 +2,9 @@ local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Economy = require "Jiaye.Economy"
 local Art = require "Jiaye.Art"
+local RelicState = require "Jiaye.RelicState"
+local RelicSystem = require "Jiaye.RelicSystem"
+local Habits = require "Jiaye.Habits"
 
 local Simulation = {}
 
@@ -22,6 +25,10 @@ local function EnsureHabitTracking(run)
 end
 
 local function UpdateHabitFormation(run, ledger)
+    if RelicState.IsNew(run) then
+        Habits.Advance(run, ledger)
+        return
+    end
     EnsureHabitTracking(run)
     local definition = Data.HabitFormation("education")
     if not definition then return end
@@ -153,7 +160,10 @@ end
 
 local function EffectiveHandovers(run)
     local total = 0
-    for _, term in ipairs(run.leaderTerms) do if term.effective then total = total + 1 end end
+    for _, term in ipairs(run.leaderTerms) do
+        local effective = RelicState.IsNew(run) and term.realHandover or not RelicState.IsNew(run) and term.effective
+        if effective then total = total + 1 end
+    end
     return total
 end
 
@@ -263,7 +273,9 @@ function Simulation.AppointLeader(run, memberId, reason)
     end
     local old = State.FindMember(run.members, run.leaderId)
     local wasEffective = false
+    local firstAppointment = true
     for _, term in ipairs(run.leaderTerms) do
+        if term.memberId == memberId then firstAppointment = false end
         if term.memberId == run.leaderId and not term.endYear then
             term.endYear = run.yearIndex
             term.effective = run.yearIndex - term.startYear >= 1
@@ -272,16 +284,18 @@ function Simulation.AppointLeader(run, memberId, reason)
     end
     local effective = false
     local term = { memberId = memberId, startYear = run.yearIndex, endYear = nil, effective = effective, reason = reason or "主动交接" }
+    if RelicState.IsNew(run) then term.realHandover = old ~= nil and wasEffective and firstAppointment end
     table.insert(run.leaderTerms, term)
     run.leaderId = memberId
     CloseLeaderEvents(run, memberId)
-    if HasRelic(run, "newbook") and old and wasEffective then
+    if not RelicState.IsNew(run) and HasRelic(run, "newbook") and old and wasEffective then
         run.reputation = run.reputation + 3
         State.AddLog(run, "补完的族谱为这次有效交接添了 3 点声望。")
     end
     local members = old and { old.id, target.id } or { target.id }
-    local fact = State.AddFact(run, "leadership", (old and old.name or "前任") .. "将族长之位交给了" .. target.name .. "。", members, { reason = term.reason, leaderTermStart = #run.leaderTerms })
+    local fact = State.AddFact(run, "leadership", (old and old.name or "前任") .. "将族长之位交给了" .. target.name .. "。", members, { reason = term.reason, leaderTermStart = #run.leaderTerms, realHandover = term.realHandover })
     term.factId = fact.id
+    if RelicState.IsNew(run) then RelicSystem.OnSuccession(run, old and old.id, target.id, term, wasEffective) end
     return true, "族长已更替，其他族人的安排保持不变。"
 end
 
@@ -318,16 +332,27 @@ function Simulation.Adopt(run, guardianId)
     return true, "收养已完成。"
 end
 
-function Simulation.MoveFamily(run, placeId)
+function Simulation.MigrationQuote(run, placeId)
     local closed, message = IsClosed(run)
-    if closed then return false, message end
+    if closed then return nil, message end
     local place = Data.Place(placeId)
-    if not place then return false, "目的地不存在。" end
-    if run.placeId == placeId then return false, "家族已经在这里。" end
-    local fee = 18 + place.cost * 2
+    if not place then return nil, "目的地不存在。" end
+    if run.placeId == placeId then return nil, "家族已经在这里。" end
+    local baseCost = 18 + place.cost * 2
+    local quote = RelicState.IsNew(run) and RelicSystem.MigrationQuote(run, baseCost) or { cost = baseCost, discount = 0 }
+    quote.baseCost = baseCost
+    quote.placeId = placeId
+    return quote
+end
+
+function Simulation.MoveFamily(run, placeId)
+    local quote, message = Simulation.MigrationQuote(run, placeId)
+    if not quote then return false, message end
+    local place, fee = Data.Place(placeId), quote.cost
     if run.money < fee then return false, "迁居需要 " .. tostring(fee) .. " 两安置费。" end
     run.money = run.money - fee; run.placeId = placeId; run.metrics.migrations = run.metrics.migrations + 1; run.metrics.lastMove = run.yearIndex; run.homeState = "relocated"
-    State.AddFact(run, "migration", "全家迁居至" .. place.short .. "，花费 " .. tostring(fee) .. " 两。", {}, { placeId = placeId, fee = fee, migrationCount = run.metrics.migrations })
+    if RelicState.IsNew(run) then RelicSystem.RecordMigration(run, quote, placeId) end
+    State.AddFact(run, "migration", "全家迁居至" .. place.short .. "，花费 " .. tostring(fee) .. " 两。", {}, { placeId = placeId, fee = fee, discount = quote.discount, migrationCount = run.metrics.migrations })
     return true, "迁居已记入家史。"
 end
 
@@ -365,6 +390,7 @@ function Simulation.BuyGrain(run, amount)
 end
 
 function Simulation.SellRelic(run, instanceId)
+    if RelicState.IsNew(run) then return RelicSystem.Sell(run, instanceId) end
     local closed, message = IsClosed(run)
     if closed then return false, message end
     local relic = RelicInstance(run, instanceId)
@@ -378,6 +404,7 @@ function Simulation.SellRelic(run, instanceId)
 end
 
 function Simulation.TransferRelic(run, instanceId, memberId)
+    if RelicState.IsNew(run) then return RelicSystem.AssignCustodian(run, instanceId, memberId) end
     local closed, message = IsClosed(run)
     if closed then return false, message end
     local relic = RelicInstance(run, instanceId)
@@ -804,7 +831,7 @@ local function QueueRoutineEvents(run)
         if member.alive and member.jobId == "craft" and not craftMember then craftMember = member end
     end
     local plan = HasRelic(run, "plan")
-    if plan and craftMember and run.yearIndex % 4 == 0 and run.flags.planWorkYear ~= run.yearIndex then
+    if not RelicState.IsNew(run) and plan and craftMember and run.yearIndex % 4 == 0 and run.flags.planWorkYear ~= run.yearIndex then
         run.flags.planWorkYear = run.yearIndex
         plan.executorId = craftMember.id; plan.stage = "work_offered"
         local event = AddEvent(run, { type = "plan_work", relicInstanceId = plan.instanceId, executorId = craftMember.id, title = "旧图纸上的修缮活", blocking = false })
@@ -869,14 +896,28 @@ function Simulation.AdvanceYear(run, profile)
     local place = CurrentPlace(run)
     local yearStart = { money = run.money, grain = run.grain, land = run.land, members = {} }
     for _, member in ipairs(living) do table.insert(yearStart.members, { id = member.id, age = member.age, jobId = member.jobId }) end
+    local newRelics = RelicState.IsNew(run)
+    if newRelics then
+        yearStart = {}
+        for _, key in ipairs({ "money", "grain", "land", "yearIndex", "calendar", "relicRulesVersion", "members", "leaderId", "relicInstances", "primaryRelics", "relicTasks", "habitFormations", "habitId" }) do
+            yearStart[key] = State.Copy(run[key])
+        end
+    end
     EnsureHabitTracking(run)
     run.lastLedger = Economy.Settle(run)
-    State.RecordAnnualLedger(run, run.lastLedger, yearStart)
+    if not newRelics then State.RecordAnnualLedger(run, run.lastLedger, yearStart) end
     ApplyPlaceBurden(run, living, place)
     run.yearIndex = run.yearIndex + 1; run.calendar = run.calendar + 1
+    if newRelics then
+        local settled, settleMessage = RelicSystem.Tick(run, profile, yearStart, run.lastLedger)
+        if not settled then error(settleMessage) end
+        State.RecordAnnualLedger(run, run.lastLedger, yearStart)
+    end
     UpdateHabitFormation(run, run.lastLedger)
-    TryBirths(run); AgeAndLife(run, living); QueueGrowthEvents(run); QueueDueRelicEvents(run); HandleLeadership(run); MaybeShiftEra(run)
-    if not HasRelic(run, "notes") and not run.flags.notesOffered then
+    TryBirths(run); AgeAndLife(run, living); QueueGrowthEvents(run)
+    if newRelics then RelicSystem.AfterDeaths(run) else QueueDueRelicEvents(run) end
+    HandleLeadership(run); MaybeShiftEra(run)
+    if not newRelics and not HasRelic(run, "notes") and not run.flags.notesOffered then
         for _, member in ipairs(run.members) do
             if member.alive and (member.jobYears.doctor or 0) >= 4 and (member.stats.medicine or 0) >= 55 then
                 run.flags.notesOffered = true
@@ -932,7 +973,8 @@ end
 local function EffectiveHandoverFactIds(run)
     local ids = {}
     for _, term in ipairs(run.leaderTerms or {}) do
-        if term.effective and term.factId then table.insert(ids, term.factId) end
+        local effective = RelicState.IsNew(run) and term.realHandover or not RelicState.IsNew(run) and term.effective
+        if effective and term.factId then table.insert(ids, term.factId) end
     end
     return ids
 end
@@ -1029,6 +1071,7 @@ function Simulation.FinalizeEnding(run, ending, profile)
     if run.ending then return false, "本局已经有主终章。" end
     if not ending then return false, "终章不存在。" end
     profile.endingRecords = profile.endingRecords or {}
+    if RelicState.IsNew(run) then RelicSystem.Archive(run) end
     local closingEventIds = ClosePendingEvents(run, ending.id)
     local memberIds = {}
     for _, member in ipairs(run.members) do table.insert(memberIds, member.id) end

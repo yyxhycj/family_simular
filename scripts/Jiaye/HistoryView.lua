@@ -4,6 +4,7 @@ local State = require "Jiaye.State"
 local Simulation = require "Jiaye.Simulation"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
+local RelicDefinitions = require "Jiaye.RelicDefinitions"
 
 local HistoryView = {}
 
@@ -96,9 +97,39 @@ end
 local function BuildLedgers(app)
     return PagedCards(app, "ledgers", app.run.annualLedgers or {}, 4, "年度账本", "推进第一年后，这里会保留每一年的年初快照与结算分项。", function(ledger)
         local start = TableValue(ledger.yearStart)
+        local details = {}
+        if ledger.relicIncome ~= nil then
+            table.insert(details, Text("信物年度收益：" .. tostring(ledger.relicIncome) .. " 两", { fontSize = 14, fontColor = C.primary }))
+            for _, row in ipairs(ledger.members or {}) do
+                local lines = { tostring(row.name) .. " · " .. tostring(row.job) }
+                if row.executed then
+                    table.insert(lines, "职业 " .. tostring((row.money or 0) - (row.relicIncome or 0)) .. " 两 · 信物 " .. tostring(row.relicIncome or 0) .. " 两")
+                    local growth = row.growth or {}
+                    if growth.stat and growth.stat ~= "health" then
+                        table.insert(lines, (Data.FocusNames[growth.stat] or growth.stat) .. "实际 +" .. tostring(growth.amount or 0) .. "；来源：基础 " .. tostring(row.baseGrowth or 0) .. "、信物 " .. tostring(row.relicGrowth or 0) .. "、家风 " .. tostring(row.habitGrowth or 0))
+                    elseif growth.health and growth.health ~= 0 then
+                        table.insert(lines, "体魄 +" .. tostring(growth.health))
+                    end
+                    for _, source in ipairs(row.relicSources or {}) do
+                        local form = RelicDefinitions.Form(source.formId)
+                        table.insert(lines, "来源物件：" .. (form and form.name or source.formId) .. " · " .. source.instanceId)
+                    end
+                else
+                    table.insert(lines, "未执行：" .. tostring(row.reason or "条件未满足"))
+                end
+                table.insert(details, Text(table.concat(lines, "\n"), { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }))
+            end
+            local categories = { relic_action_cost = "行动费用", relic_principal_return = "本金返还", relic_project_profit = "项目净报酬", relic_migration_discount = "迁居减免", relic_aid = "外部援助", relic_sale = "出售所得", relic_growth = "额外成长" }
+            for _, entry in ipairs(ledger.relicTransactions or {}) do
+                local amount = "银 " .. tostring(entry.money) .. " 两 · 粮 " .. tostring(entry.grain) .. " 石"
+                if entry.discount then amount = "本次少付 " .. tostring(entry.discount) .. " 两" end
+                table.insert(details, Text((categories[entry.category] or entry.category) .. "：" .. amount, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }))
+            end
+        end
         return Card({
             Text("大晟历 " .. tostring(ledger.year) .. " 年账本", { fontSize = 16, fontWeight = "bold" }),
             Text("年初：银 " .. tostring(start.money or ledger.beforeMoney or 0) .. " 两 · 粮 " .. tostring(start.grain or ledger.beforeGrain or 0) .. " 石\n收入 " .. tostring(ledger.income or 0) .. " 两 · 培养 " .. tostring(ledger.training or 0) .. " 两 · 产业 " .. tostring(ledger.industryIncome or 0) .. " 两 · 生活 " .. tostring(ledger.livingExpense or 0) .. " 两\n粮食：需 " .. tostring(ledger.foodNeed or 0) .. " 石 · 缺 " .. tostring(ledger.foodShortfall or 0) .. " 石 · 净变 " .. tostring(ledger.netGrain or 0) .. " 石", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
+            UI.Panel { gap = 8, children = details },
         })
     end)
 end
@@ -108,6 +139,7 @@ local function BuildFacts(app)
         job = "人生安排", marriage = "婚配", adoption = "收养", birth = "出生", exam = "应试", leadership = "族长交接",
         migration = "迁居", asset_purchase = "置办家业", grain_purchase = "公市购粮", community_aid = "乡里接济",
         relic = "信物故事", growth = "成长节点", annual_ledger = "年度结算", ending = "终章", habit = "家风经历", opening = "家谱开篇",
+        relic_upgrade = "信物进阶", relic_project = "信物项目", relic_use = "信物使用", relic_task = "信物办理", relic_acquired = "信物入藏",
     }
     return PagedCards(app, "facts", app.run.facts or {}, 5, "事实记录", "尚无带参与人的事实记录。年度推进、人生安排和家业动作会从这里开始保留。", function(fact)
         local participants = {}
