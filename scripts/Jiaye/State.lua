@@ -74,11 +74,16 @@ function State.BirthAgeRange(member)
     return Data.AgeRules.birth
 end
 
-function State.CanPlanBirth(member)
+function State.CanPlanBirth(member, members)
     if type(member) ~= "table" or member.alive == false then return false, "只有在世族人可以安排添丁计划。" end
     local range = State.BirthAgeRange(member)
     if member.age < range.min then return false, "添丁计划需满 " .. tostring(range.min) .. " 岁。" end
     if member.age > range.max then return false, "当前年龄已超过可安排窗口。" end
+    if type(members) ~= "table" then return true, "" end
+    if not member.spouseId then return false, "需先有一位在世配偶共同安排。" end
+    local spouse = State.FindMember(members, member.spouseId)
+    if not spouse or not spouse.alive then return false, "需有一位在世配偶共同安排。" end
+    if spouse.age < range.min or spouse.age > range.max then return false, "配偶当前不在可安排窗口内。" end
     return true, ""
 end
 
@@ -320,7 +325,9 @@ function State.CanUseJob(member, jobId)
     local job = Data.Jobs[jobId]
     if not job then return false, "岗位不存在。" end
     if member.age < job.min then return false, "年龄不足，需要 " .. tostring(job.min) .. " 岁。" end
-    if job.req and (member.stats[job.req[1]] or 0) < job.req[2] then return false, "需要 " .. job.req[1] .. " 达到 " .. tostring(job.req[2]) .. "。" end
+    if job.req and (member.stats[job.req[1]] or 0) < job.req[2] then
+        return false, "需要 " .. (Data.FocusNames[job.req[1]] or job.req[1]) .. " 达到 " .. tostring(job.req[2]) .. "。"
+    end
     if job.exam and not member.examPassed then return false, "需先通过本局应试。" end
     return true, ""
 end

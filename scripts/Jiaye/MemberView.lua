@@ -28,6 +28,14 @@ local function Card(children, props)
     return Visual.Card(children, props)
 end
 
+local function ActionStatus(label, detail)
+    return UI.Panel {
+        paddingHorizontal = 10, paddingVertical = 8, backgroundColor = C.selected,
+        borderLeftWidth = 2, borderLeftColor = C.gold,
+        children = { Text(label .. "：" .. detail, { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 }) },
+    }
+end
+
 local function TableValue(value)
     return type(value) == "table" and value or {}
 end
@@ -155,6 +163,7 @@ end
 
 local function BuildArrangement(app, member, modal)
     local run = app.run
+    local spouse = member.spouseId and State.FindMember(run.members, member.spouseId)
     if not member.alive or run.ending then
         return UI.Panel {
             gap = 12,
@@ -201,42 +210,64 @@ local function BuildArrangement(app, member, modal)
     end
 
     if State.IsAdult(member) then
+        local canExam, examReason = Simulation.GetExamReason(run, member.id)
+        if canExam then
         table.insert(children, Button("应试（10 两）", function()
             app:ConfirmRunAction("确认应试 · " .. member.name, "成本：10 两盘缠。结果由本人的学识与本局随机结果共同决定，并完整写入人生经历。", function()
                 return Simulation.TakeExam(app.run, member.id)
             end, "确认应试", modal)
         end, { height = 46, role = "primary" }))
-        table.insert(children, Button("安排婚配（12 两）", function()
+        else
+            table.insert(children, ActionStatus("应试", examReason))
+        end
+
+        local canMarry, marriageReason = Simulation.GetMarriageReason(run, member.id)
+        if canMarry then
+            table.insert(children, Button("安排婚配（12 两）", function()
             app:ConfirmRunAction("确认婚配 · " .. member.name, "成本：12 两安置费。结果：新配偶加入家谱，原有族人资料保持不变。", function()
                 return Simulation.Marry(app.run, member.id)
             end, "确认婚配", modal)
         end, { height = 46 }))
-        table.insert(children, Button("收养孩子（8 两）", function()
+        else
+            table.insert(children, ActionStatus("婚配", spouse and ("已与" .. spouse.name .. "结为配偶。") or marriageReason))
+        end
+
+        local canAdopt, adoptionReason = Simulation.GetAdoptionReason(run, member.id)
+        if canAdopt then
+            table.insert(children, Button("收养孩子（8 两）", function()
             app:ConfirmRunAction("确认收养 · " .. member.name, "成本：8 两安置费。结果：孩子加入家谱，拥有与其他族人同等的成长与继任资格。", function()
                 return Simulation.Adopt(app.run, member.id)
             end, "确认收养", modal)
         end, { height = 46 }))
+        else
+            table.insert(children, ActionStatus("收养", adoptionReason))
+        end
 
-        local canPlanBirth, birthReason = State.CanPlanBirth(member)
+        local canPlanBirth, birthReason = State.CanPlanBirth(member, run.members)
         if canPlanBirth then
             table.insert(children, Button(member.birthPlan == false and "愿意迎接孩子" or "暂缓迎接孩子", function()
                 local nextPlan = member.birthPlan == false
-                app:ConfirmRunAction("确认添丁计划 · " .. member.name, nextPlan and "结果：记录为愿意迎接孩子；是否添丁仍由后续年度的真实家庭条件决定。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function()
+                app:ConfirmRunAction("确认添丁计划 · " .. member.name, nextPlan and "结果：记录为愿意迎接孩子；两位配偶都愿意后，才会进入后续年度结算。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function()
                     return Simulation.SetBirthPlan(app.run, member.id, nextPlan)
                 end, "确认记录", modal)
             end, { height = 46 }))
         else
-            table.insert(children, Text("添丁计划：" .. birthReason, { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }))
+            table.insert(children, ActionStatus("添丁计划", birthReason))
         end
 
-        table.insert(children, Button("任命为族长", function()
+        local canLead, leaderReason = Simulation.GetLeaderReason(run, member.id)
+        if canLead then
+            table.insert(children, Button("任命为族长", function()
             app:ConfirmRunAction("确认交接 · " .. member.name, "结果：开始新的族长任期，现有安排与资产保持原样。", function()
                 return Simulation.AppointLeader(app.run, member.id, "主动交接")
             end, "确认交接", modal)
         end, { height = 46 }))
+        else
+            table.insert(children, ActionStatus("族长", leaderReason))
+        end
 
         for _, relic in ipairs(app.run.relicInstances or {}) do
-            if relic.status ~= "sold" and relic.custodianId ~= member.id then
+            if relic.status == "held" and relic.custodianId ~= member.id then
                 local definition = RelicState.IsNew(app.run) and RelicState.Form(relic) or Data.Relic(relic.definitionId)
                 if definition then
                     table.insert(children, Button("交由" .. member.name .. "保管 · " .. definition.name, function()

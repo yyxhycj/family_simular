@@ -76,7 +76,7 @@ local function newRun(options)
     local run, issues = State.NewRun(draft, profile)
     check(options.caseId, "State.NewRun", run ~= nil, issues and table.concat(issues, "；") or "开局返回空运行家谱")
     for _, member in ipairs(run.members) do
-        local canPlan = State.CanPlanBirth(member)
+        local canPlan = State.CanPlanBirth(member, run.members)
         if canPlan then
             local ok, message = Simulation.SetBirthPlan(run, member.id, false)
             check(options.caseId, "Simulation.SetBirthPlan(" .. tostring(member.id) .. ")", ok, message or "暂缓添丁失败")

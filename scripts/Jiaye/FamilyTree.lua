@@ -39,6 +39,18 @@ function Tree:Render(nvg)
                 married[member.id], married[member.spouseId] = true, true
                 local left, right = child.x < spouse.x and child or spouse, child.x < spouse.x and spouse or child
                 line(nvg, { { left.x + left.radius, left.y }, { right.x - right.radius, right.y } })
+                local label = "配偶"
+                nvgFontFace(nvg, "sans")
+                nvgFontSize(nvg, V7.Font(10))
+                nvgTextAlign(nvg, NVG_ALIGN_CENTER + NVG_ALIGN_MIDDLE)
+                local labelWidth = nvgTextBounds(nvg, 0, 0, label, nil, nil)
+                local labelX, labelY = (left.x + right.x) / 2, left.y
+                nvgBeginPath(nvg)
+                nvgRoundedRect(nvg, labelX - labelWidth / 2 - 3, labelY - 7, labelWidth + 6, 14, 4)
+                nvgFillColor(nvg, nvgRGBA(V7.Colors.paper[1], V7.Colors.paper[2], V7.Colors.paper[3], 235))
+                nvgFill(nvg)
+                nvgFillColor(nvg, nvgRGBA(V7.Colors.secondary[1], V7.Colors.secondary[2], V7.Colors.secondary[3], 255))
+                nvgText(nvg, labelX, labelY, label, nil)
             end
             local parents = {}
             for _, parentId in ipairs(member.parents or {}) do

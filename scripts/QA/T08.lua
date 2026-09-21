@@ -67,8 +67,11 @@ end
 local function DisableBirths(run)
     for _, member in ipairs(run.members) do
         if member.alive and member.age >= 18 then
-            local ok, message = Simulation.SetBirthPlan(run, member.id, false)
-            assert(ok, message)
+            local canPlan = State.CanPlanBirth(member, run.members)
+            if canPlan then
+                local ok, message = Simulation.SetBirthPlan(run, member.id, false)
+                assert(ok, message)
+            end
         end
     end
 end
@@ -214,6 +217,34 @@ local function CheckBoundaryRules(lines)
     table.insert(lines, "边界：同年交接、同代婚入与开局年份均不伪造传承")
 end
 
+local function CheckActionEligibility(lines)
+    local profile = State.NewProfile()
+    local run = assert(State.NewRun(State.NewDraft(), profile))
+    local paired = run.members[1]
+    local pairedBefore = State.Copy(run)
+    local ok = Simulation.Marry(run, paired.id)
+    assert(not ok and Same(pairedBefore, run), "已有配偶仍可再次婚配。")
+
+    local unmarried = run.members[3]
+    assert(not State.CanPlanBirth(unmarried, run.members), "无配偶族人仍可安排添丁计划。")
+    assert(Simulation.Marry(run, unmarried.id), "在世成年未婚族人无法婚配。")
+    local marriedBefore = State.Copy(run)
+    ok = Simulation.Marry(run, unmarried.id)
+    assert(not ok and Same(marriedBefore, run), "完成婚配后仍可重复婚配。")
+
+    local firstCount = #run.members
+    assert(Simulation.Adopt(run, paired.id), "第一次收养失败。")
+    assert(Simulation.Adopt(run, paired.id), "第二次收养失败。")
+    local firstChild, secondChild = run.members[firstCount + 1], run.members[firstCount + 2]
+    assert(firstChild.name ~= secondChild.name, "多次收养生成了同名孩子。")
+
+    paired.examPassed = true
+    local examBefore = State.Copy(run)
+    ok = Simulation.TakeExam(run, paired.id)
+    assert(not ok and Same(examBefore, run), "已取得任职资格后仍可重复应试。")
+    table.insert(lines, "行动资格：婚配、添丁、收养命名与应试均按当前家谱状态约束")
+end
+
 function Start()
     UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
     assert(#Data.Endings == 14 and Data.Ending("last").automatic and Data.Ending("collapse").automatic, "终章登记不完整。")
@@ -222,6 +253,7 @@ function Start()
     CheckNaturalEnding(lines)
     CheckResourceCollapse(lines)
     CheckBoundaryRules(lines)
+    CheckActionEligibility(lines)
     UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", alignItems = "center", children = {
         UI.Panel { width = 420, maxWidth = "100%", gap = 12, padding = 16, children = (function()
             local children = { UI.Label { text = lines[1], fontSize = 24 } }
