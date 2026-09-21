@@ -19,6 +19,10 @@ local function Adults(members)
     return adults
 end
 
+local function SelectedRelicCount(draft)
+    return #(draft.selectedRelicFormIds or draft.selectedRelicIds or {})
+end
+
 local function GeneratedDraft(profile, predicate)
     for seed = 1, 4096 do
         local draft = Opening.Generate(profile, seed, "mortal")
@@ -81,7 +85,7 @@ local function CheckDevelopmentEnding(lines)
     local run = NewRun(profile, function(draft)
         local adults = Adults(draft.members)
         return #adults >= 2 and adults[1].age <= 44 and adults[2].age <= 44
-            and draft.money >= 60 and draft.grain >= 12 and #draft.selectedRelicIds == 0
+            and draft.money >= 60 and draft.grain >= 12 and SelectedRelicCount(draft) == 0
     end)
     local adults = Adults(run.members)
     for _, member in ipairs(adults) do
@@ -165,7 +169,7 @@ end
 
 local function CheckResourceCollapse(lines)
     local profile = State.NewProfile()
-    local run, draft = NewRun(profile, function(draft) return #Adults(draft.members) >= 1 and #draft.selectedRelicIds == 0 end)
+    local run, draft = NewRun(profile, function(draft) return #Adults(draft.members) >= 1 and SelectedRelicCount(draft) == 0 end)
     for _, member in ipairs(run.members) do
         member.age, member.health, member.jobId, member.birthPlan = 30, 100, "play", false
     end

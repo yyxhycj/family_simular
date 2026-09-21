@@ -74,19 +74,6 @@ local function pendingEvent(run, instance)
     return nil
 end
 
-local function unlockText(relic)
-    local conditions = {
-        book = "开局收藏中默认可选",
-        ruler = "开局收藏中默认可选",
-        letter = "开局收藏中默认可选",
-        newbook = "完成一本旧族谱的重修",
-        plan = "完成老木尺调查并修复图样",
-        jade = "完成一封未拆家书的旧约",
-        notes = "从医馆收下批注医案",
-    }
-    return conditions[relic.id] or ("来源 · " .. tostring(relic.story.source or "本局经历"))
-end
-
 local function actionModal(app, title, detail, action, confirmText, extra)
     local modal = UI.Modal {
         title = title, size = "fullscreen", backgroundColor = C.paperLight,
@@ -249,15 +236,14 @@ local function instanceCard(app, instance, relic)
     }, { padding = 10, gap = 9, borderColor = instance.status == "sold" and C.rule or C.gold })
 end
 
-local function collectionCard(relic, unlocked, instance)
+local function collectionCard(relic, instance)
     local tags = {}
     if instance and instance.status ~= "sold" then
         table.insert(tags, Visual.Text("本局持有", { fontSize = 12, fontColor = C.primary, backgroundColor = C.selected, paddingHorizontal = 7, paddingVertical = 3, borderRadius = 3 }))
     elseif instance and instance.status == "sold" then
         table.insert(tags, Visual.Text("本局曾持有 · 已出售", { fontSize = 12, fontColor = C.danger, backgroundColor = C.paper, paddingHorizontal = 7, paddingVertical = 3, borderRadius = 3 }))
     end
-    table.insert(tags, Visual.Text(unlocked and "已解锁 · 下局可按预算带入" or "未解锁 · 仅显示目录", { fontSize = 12, fontColor = unlocked and C.primary or C.secondary, backgroundColor = unlocked and C.selected or C.disabledSurface, paddingHorizontal = 7, paddingVertical = 3, borderRadius = 3 }))
-    local condition = unlocked and "收藏资格已写入 Profile。" or ("解锁条件 · " .. unlockText(relic) .. "。")
+    table.insert(tags, Visual.Text("已解锁 · 下局可按预算带入", { fontSize = 12, fontColor = C.primary, backgroundColor = C.selected, paddingHorizontal = 7, paddingVertical = 3, borderRadius = 3 }))
     return Visual.Card({
         UI.Row { gap = 10, alignItems = "center", children = {
             Visual.Relic(relic.id, 64),
@@ -266,7 +252,7 @@ local function collectionCard(relic, unlocked, instance)
                 UI.Row { gap = 5, flexWrap = "wrap", children = tags },
             } },
         } },
-        Visual.Text(condition .. "\n来源 · " .. tostring(relic.story.source or "本局经历") .. "\n" .. relic.desc, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
+        Visual.Text("收藏资格已写入 Profile。\n来源 · " .. tostring(relic.story.source or "本局经历") .. "\n" .. relic.desc, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
     }, { padding = 10, gap = 7, backgroundColor = C.paper, borderColor = C.rule })
 end
 
@@ -279,7 +265,7 @@ function RelicsView.Build(app)
         local instance = findInstance(run, relic.id)
         if instance then table.insert(actual, instanceCard(app, instance, relic)) end
         local unlocked = app.profile.unlockedRelicIds and app.profile.unlockedRelicIds[relic.id] == true
-        table.insert(collection, collectionCard(relic, unlocked, instance))
+        if unlocked then table.insert(collection, collectionCard(relic, instance)) end
     end
     local cards = {
         Visual.Decor("branch_line", { width = "100%", height = 12, opacity = 0.42, pointerEvents = "none" }),
@@ -288,9 +274,11 @@ function RelicsView.Build(app)
     }
     for _, card in ipairs(actual) do table.insert(cards, card) end
     if #actual == 0 then table.insert(cards, Visual.Card({ Visual.Text("本局尚未带入信物。", { fontSize = 15, fontColor = C.secondary }) }, { padding = 12 })) end
-    table.insert(cards, Visual.Text("七件物件目录 · 收藏资格", { fontSize = 19, fontWeight = "bold", marginTop = 8 }))
-    table.insert(cards, Visual.Text("目录固定展示七件信物；标签同时说明已解锁、未解锁与本局持有状态。出售本局物件不会抹掉已解锁资格。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }))
-    for _, card in ipairs(collection) do table.insert(cards, card) end
+    if #collection > 0 then
+        table.insert(cards, Visual.Text("已解锁信物 · 收藏资格", { fontSize = 19, fontWeight = "bold", marginTop = 8 }))
+        table.insert(cards, Visual.Text("出售本局物件不会抹掉已解锁资格。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }))
+        for _, card in ipairs(collection) do table.insert(cards, card) end
+    end
     return UI.Panel { gap = 10, paddingBottom = 10, children = cards }
 end
 

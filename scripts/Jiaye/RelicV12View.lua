@@ -6,6 +6,7 @@ local Visual = require "Jiaye.Visual"
 local Defs = require "Jiaye.RelicDefinitions"
 local RelicState = require "Jiaye.RelicState"
 local RelicSystem = require "Jiaye.RelicSystem"
+local Opening = require "Jiaye.Opening"
 
 local View = {}
 local C = V7.Colors
@@ -773,26 +774,37 @@ local function actionCard(app, action)
 end
 
 local function openFormCatalog(app)
+    local unlockedForms = Opening.UnlockedRelicForms(app.profile)
     local modal = UI.Modal {
-        title = "信物图鉴 · 20 种形态", size = "fullscreen", backgroundColor = C.paperLight,
+        title = "信物图鉴 · 已解锁形态", size = "fullscreen", backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
     }
     local content = UI.Panel { gap = 8 }
-    for _, family in ipairs(Defs.Families or {}) do
-        content:AddChild(text(family.name or family.id, { fontSize = 18, fontWeight = "bold", marginTop = 5 }))
-        for _, form in ipairs(Defs.Forms or {}) do
-            if form.familyId == family.id then
-                content:AddChild(card({
-                    UI.Row { gap = 8, alignItems = "center", children = {
-                        Visual.Relic(form.id, 50),
-                        UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
-                            text(form.name or form.id, { fontSize = 15, fontWeight = "bold" }),
-                            text("第 " .. tostring(form.tier) .. " 阶 · " .. (form.branch and displayValue(form.branch, "branch") or "固定形态"), { fontSize = 12, fontColor = C.secondary }),
+    if #unlockedForms == 0 then
+        content:AddChild(card({
+            text("当前尚未解锁可查看的信物形态。", { fontSize = 15, fontColor = C.secondary }),
+        }, { padding = 12, backgroundColor = C.paper }))
+    else
+        for _, family in ipairs(Defs.Families or {}) do
+            local familyForms = {}
+            for _, form in ipairs(unlockedForms) do
+                if form.familyId == family.id then table.insert(familyForms, form) end
+            end
+            if #familyForms > 0 then
+                content:AddChild(text(family.name or family.id, { fontSize = 18, fontWeight = "bold", marginTop = 5 }))
+                for _, form in ipairs(familyForms) do
+                    content:AddChild(card({
+                        UI.Row { gap = 8, alignItems = "center", children = {
+                            Visual.Relic(form.id, 50),
+                            UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
+                                text(form.name or form.id, { fontSize = 15, fontWeight = "bold" }),
+                                text("第 " .. tostring(form.tier) .. " 阶 · " .. (form.branch and displayValue(form.branch, "branch") or "固定形态"), { fontSize = 12, fontColor = C.secondary }),
+                            } },
                         } },
-                    } },
-                    text(form.description or "形态说明待行动解锁。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.35 }),
-                }, { padding = 9, gap = 6, backgroundColor = C.paper }))
+                        text(form.description or "形态说明待行动解锁。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.35 }),
+                    }, { padding = 9, gap = 6, backgroundColor = C.paper }))
+                end
             end
         end
     end
@@ -803,12 +815,13 @@ end
 
 function View.Build(app)
     local run = app.run
+    local unlockedForms = Opening.UnlockedRelicForms(app.profile)
     local children = {
         Visual.Decor("branch_line", { width = "100%", height = 12, opacity = 0.42, pointerEvents = "none" }),
         text("本局藏阁", { fontSize = 22, fontWeight = "bold" }),
-        text("20 种形态沿六条成长线记录。保管、使用、执行彼此独立；每次行动都会先显示成本、回报和门槛。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 }),
+        text("已解锁形态沿六条成长线记录。保管、使用、执行彼此独立；每次行动都会先显示成本、回报和门槛。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 }),
         UI.Row { gap = 8, children = {
-            button("20 种形态图鉴", function() openFormCatalog(app) end, { flex = 1, role = "secondary" }),
+            button("已解锁形态 · " .. tostring(#unlockedForms), function() openFormCatalog(app) end, { flex = 1, role = "secondary" }),
             button("27 项行动", function() View.OpenAction(app, nil, {}) end, { flex = 1, role = "secondary" }),
         } },
     }
