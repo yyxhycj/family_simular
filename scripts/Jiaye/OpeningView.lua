@@ -295,14 +295,6 @@ local function openingUserEligibility(form, member)
     return RelicState.EligibleUser({}, form.id, member)
 end
 
-local function formUnlocked(profile, formId)
-    local unlocked = profile and profile.unlockedRelicForms
-    if type(unlocked) ~= "table" then return false end
-    if unlocked[formId] == true then return true end
-    for _, unlockedId in ipairs(unlocked) do if unlockedId == formId then return true end end
-    return false
-end
-
 local function openingUserOptions(app, form)
     local draft = draftOf(app)
     local values = { { value = 0, label = "暂不指定使用者" } }
@@ -316,10 +308,13 @@ end
 local function newRelicView(app, editing)
     local draft = draftOf(app)
     local children = { text(editing and "信物选择" or "本局信物与收藏", 23), text("六条成长线各选一件；已选形态共享 100 点预算，使用者只在本次编辑中确认。", 14, C.muted) }
-    for _, form in ipairs(RelicDefinitions.Forms or {}) do
+    local unlockedForms = Opening.UnlockedRelicForms(app.profile)
+    if #unlockedForms == 0 then
+        table.insert(children, text("当前尚未获得可带入的信物。", 15, C.muted))
+    end
+    for _, form in ipairs(unlockedForms) do
         local selected = false
         for _, id in ipairs(draft.selectedRelicFormIds or {}) do if id == form.id then selected = true break end end
-        local unlocked = formUnlocked(app.profile, form.id)
         local userId = draft.relicUsers and draft.relicUsers[form.id]
         local user = userId and State.FindMember(draft.members, userId)
         local effect = form.description or "形态作用待定义"
@@ -329,23 +324,15 @@ local function newRelicView(app, editing)
             if #annual > 0 then effect = effect .. " · 年度 " .. table.concat(annual, "、") end
         end
         local history = form.openingHistory
-        local unlockDescription = "完成上一形态的真实经历后解锁。"
-        if form.familyId == "jade" and form.tier == 3 then
-            unlockDescription = "完成相认后选择合璧传家或各执半佩。"
-        elseif form.familyId == "notes" and form.tier == 3 then
-            unlockDescription = "完成病例与编订后选择家传或刊行。"
-        end
         local lines = {
             text(form.name .. " · " .. tostring(form.openingPoints) .. " 点", 18),
             text(effect, 14, C.muted),
-            text("出售 " .. tostring(form.saleSilver or 0) .. " 两 · " .. (selected and ("使用者：" .. (user and user.name or "待确认")) or (unlocked and "可选入本局" or "尚未解锁")), 13, C.muted),
+            text("出售 " .. tostring(form.saleSilver or 0) .. " 两 · " .. (selected and ("使用者：" .. (user and user.name or "待确认")) or "可选入本局"), 13, C.muted),
         }
         if form.tier and form.tier > 1 then
             table.insert(lines, text("开局经历：" .. tostring(history or "以该形态带入；此前奖励与事实不会补发。"), 13, C.gold))
-        elseif not unlocked then
-            table.insert(lines, text("解锁条件：" .. tostring(history or unlockDescription), 13, C.warning))
         end
-        if editing and unlocked then
+        if editing then
             table.insert(lines, button(selected and "✓ 已带入" or "选入本局", function() app:ToggleRelic(form.id) end, not selected, { width = 112, disabled = false }))
             if selected then
                 table.insert(lines, text("本线只能保留一件形态。", 12, C.muted))
@@ -354,7 +341,7 @@ local function newRelicView(app, editing)
                 end))
             end
         elseif not editing then
-            table.insert(lines, text(unlocked and (selected and "✓ 本局带入" or "已解锁 · 本局未带入") or "尚未解锁", 13, unlocked and C.muted or C.warning))
+            table.insert(lines, text(selected and "✓ 本局带入" or "已解锁 · 本局未带入", 13, C.muted))
         end
         table.insert(children, card({ row({ Visual.Relic(relicArtId(form), 48), UI.Panel { flex = 1, minWidth = 0, gap = 3, children = lines } }) }))
     end
@@ -365,13 +352,18 @@ local function relicView(app, editing)
     if Opening.IsNewRelicDraft(draftOf(app)) then return newRelicView(app, editing) end
     local draft = draftOf(app)
     local children = { text(editing and "信物选择" or "本局信物与收藏", 23), text("解锁是可选资格；只有选中的物件带入本局，共享 100 点。", 14, C.muted) }
+    local unlockedIds = type(app.profile.unlockedRelicIds) == "table" and app.profile.unlockedRelicIds or {}
+    local visible = 0
     for _, relic in ipairs(Data.Relics) do
-        local selected = false
-        for _, id in ipairs(draft.selectedRelicIds or {}) do if id == relic.id then selected = true end end
-        local unlocked = app.profile.unlockedRelicIds[relic.id]
-        local action = editing and button(not unlocked and "尚未解锁" or (selected and "✓ 已带入" or "选入本局"), function() app:ToggleRelic(relic.id) end, not selected, { disabled = not unlocked }) or text(not unlocked and "尚未解锁" or (selected and "✓ 本局带入" or "已解锁 · 本局未带入"), 14, C.muted)
-        table.insert(children, card({ row({ Visual.Relic(relic.id, 42), UI.Panel { flex = 1, minWidth = 0, children = { text(relic.name .. " · " .. relic.cost .. " 点", 18), text(relic.desc, 14, C.muted) } }, action }) }))
+        if unlockedIds[relic.id] then
+            visible = visible + 1
+            local selected = false
+            for _, id in ipairs(draft.selectedRelicIds or {}) do if id == relic.id then selected = true end end
+            local action = editing and button(selected and "✓ 已带入" or "选入本局", function() app:ToggleRelic(relic.id) end, not selected) or text(selected and "✓ 本局带入" or "已解锁 · 本局未带入", 14, C.muted)
+            table.insert(children, card({ row({ Visual.Relic(relic.id, 42), UI.Panel { flex = 1, minWidth = 0, children = { text(relic.name .. " · " .. relic.cost .. " 点", 18), text(relic.desc, 14, C.muted) } }, action }) }))
+        end
     end
+    if visible == 0 then table.insert(children, text("当前尚未获得可带入的信物。", 15, C.muted)) end
     return card(children)
 end
 
