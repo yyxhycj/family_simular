@@ -721,7 +721,7 @@ end
 function T14.Run()
     local domainPassed = T14.RunDomain()
     testPersistence("T14-persistence")
-    print(PREFIX .. " COMPLETE domain=" .. (domainPassed and "passed" or "failed") .. " file_api=passed storage=jiaye_origin_verification plus " .. FILE_PATH)
+    print(PREFIX .. " COMPLETE domain=" .. (domainPassed and "passed" or "failed") .. " file_api=passed storage=jiaye_t14_verification plus " .. FILE_PATH)
 end
 
 function T14.Start()
