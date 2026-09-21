@@ -211,7 +211,11 @@ local function instanceCard(app, instance, relic)
             table.insert(actions, Visual.Button("处理这件家事", function() EventView.Open(app, pending) end, { role = "secondary", height = 44 }))
         end
         for _, button in ipairs(followUp(app, instance, relic)) do table.insert(actions, button) end
-        table.insert(actions, Visual.Button("更换保管人", function() personActionModal(app, instance, "custodian") end, { role = "secondary", height = 44 }))
+        if instance.status == "held" then
+            table.insert(actions, Visual.Button("更换保管人", function() personActionModal(app, instance, "custodian") end, { role = "secondary", height = 44 }))
+        else
+            table.insert(actions, Visual.Text("当前办理进行中，保管人保持不变。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }))
+        end
         table.insert(actions, Visual.Button("指定执行人", function() personActionModal(app, instance, "executor") end, { role = "secondary", height = 44 }))
         if instance.status == "investigating" then
             table.insert(actions, Visual.Button("暂缓调查", function() EventView.OpenRelic(app, instance) end, { role = "secondary", height = 44 }))

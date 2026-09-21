@@ -246,7 +246,20 @@ local function CheckActionEligibility(lines)
     local examBefore = State.Copy(run)
     ok = Simulation.TakeExam(run, paired.id)
     assert(not ok and Same(examBefore, run), "已取得任职资格后仍可重复应试。")
-    table.insert(lines, "行动资格：婚配、添丁、收养命名与应试均按当前家谱状态约束")
+
+    local relic = run.relicInstances[1]
+    relic.status = "investigating"
+    local relicBefore = State.Copy(run)
+    ok = Simulation.TransferRelic(run, relic.instanceId, paired.id)
+    assert(not ok and Same(relicBefore, run), "调查中的信物仍可更换保管人。")
+
+    local branchRun = assert(State.NewRun(State.NewDraft(), State.NewProfile()))
+    local branchRelic = branchRun.relicInstances[1]
+    branchRelic.definitionId = "newbook"
+    branchRun.members[3].name = branchRun.openingSnapshot.family .. "怀远"
+    assert(Simulation.InviteBranch(branchRun, branchRelic.instanceId), "旁支归家失败。")
+    assert(branchRun.members[#branchRun.members].name ~= branchRun.openingSnapshot.family .. "怀远", "旁支归家生成了同名族人。")
+    table.insert(lines, "行动资格：婚配、添丁、收养命名、应试与信物保管均按当前家谱状态约束")
 end
 
 function Start()

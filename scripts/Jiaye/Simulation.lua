@@ -334,8 +334,12 @@ local function HasMemberName(run, name)
     return false
 end
 
-local function GeneratedMemberName(run, surname, sex)
+local function GeneratedMemberName(run, surname, sex, preferredGivenName)
     local names = sex == "男" and Data.GivenNames.male or Data.GivenNames.female
+    if preferredGivenName then
+        local preferredName = surname .. preferredGivenName
+        if not HasMemberName(run, preferredName) then return preferredName end
+    end
     local start = ((NextMemberId(run) - 1) % #names) + 1
     for offset = 0, #names - 1 do
         local name = surname .. names[((start + offset - 1) % #names) + 1]
@@ -505,7 +509,7 @@ function Simulation.InviteBranch(run, instanceId)
     local id = NextMemberId(run)
     local leader = State.FindMember(run.members, run.leaderId)
     local member = {
-        id = id, name = run.openingSnapshot.family .. "怀远", sex = "男", age = 22, parents = {}, spouseId = nil,
+        id = id, name = GeneratedMemberName(run, run.openingSnapshot.family, "男", "怀远"), sex = "男", age = 22, parents = {}, spouseId = nil,
         talent = 2, focus = "general", experienceId = "basic", trait = "念旧", jobId = "farm", alive = true, health = 72,
         stats = State.Copy(Data.Experience("basic").values), jobYears = {}, birthPlan = true, lastBirthYear = -5,
         hadHomeAfterGuard = false, generation = leader and leader.generation or 1,
