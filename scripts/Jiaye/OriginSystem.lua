@@ -41,7 +41,7 @@ end
 local function Benefit(run, kind, amount, uses, memberId, window)
     local o = assert(O.Get(run))
     o.benefits[kind] = { kind = kind, amount = amount, remainingUses = uses, memberId = memberId,
-        firstEligibleYear = run.yearIndex + 1, expiresAfterYear = window and run.yearIndex + window,
+        firstEligibleYear = kind == "workshop_discount" and run.yearIndex or run.yearIndex + 1, expiresAfterYear = window and run.yearIndex + window,
         active = true, sourceOpportunityInstanceId = o.instanceId }
 end
 

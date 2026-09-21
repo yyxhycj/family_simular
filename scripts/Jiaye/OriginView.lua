@@ -64,7 +64,7 @@ local function quoteText(quote)
 end
 
 local function reasonsText(quote)
-    if quote.allowed then return "当前人选满足门槛，可以确认。" end
+    if quote.allowed then return "当前条件已满足，可以确认。" end
     local reasons = quote.reasons or {}
     if #reasons == 0 then return "暂不可执行：当前家谱条件未满足。" end
     return "暂不可执行：\n· " .. table.concat(reasons, "\n· ")
@@ -116,7 +116,7 @@ local function actionCard(app, parentModal, action)
             text(action.inputKind == "none" and "家族" or "选人", { fontSize = 12, fontColor = C.secondary, backgroundColor = C.selected, paddingHorizontal = 7, paddingVertical = 3, borderRadius = 3 }),
         } },
         text(preview, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.35, maxLines = 4 }),
-        button("查看详情与人选", function() View.OpenAction(app, action.id, parentModal) end, { role = "secondary", height = 44 }),
+        button(actionNeedsMember(action) and "查看详情与人选" or "查看收支明细", function() View.OpenAction(app, action.id, parentModal) end, { role = "secondary", height = 44 }),
     }, { padding = 10, gap = 7, backgroundColor = C.paper })
 end
 
@@ -263,9 +263,19 @@ function View.OpenAction(app, actionId, parentModal)
         local quote = refreshQuoteAndButton()
         if not quote.allowed then return end
         local candidate = { actionId = action.id, input = copyInput(currentInput()) }
+        local chosen = {}
+        if candidate.input.memberId then
+            table.insert(chosen, "选定族人：" .. memberLabel(State.FindMember(app.run.members, candidate.input.memberId)))
+        end
+        for _, id in ipairs(candidate.input.attachedInstanceIds) do
+            local instance = assert(RelicState.Find(app.run, id))
+            table.insert(chosen, "参与工程的信物：" .. RelicState.Form(instance).name)
+        end
+        table.insert(chosen, tostring(quote.description or "按当前家谱事实结算。"))
+        table.insert(chosen, quoteText(quote))
         app:ConfirmRunAction(
             quote.label or action.label or action.id,
-            tostring(quote.description or "按当前家谱事实结算。") .. "\n\n" .. quoteText(quote),
+            table.concat(chosen, "\n\n"),
             function(run, profile)
                 return OriginSystem.Execute(run, candidate.actionId, candidate.input)
             end,
