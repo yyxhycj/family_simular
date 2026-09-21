@@ -10,6 +10,8 @@ local missing = {}
 local function Check(path, source, resourceType)
     assert(type(path) == "string" and path ~= "", source .. " 返回空资源路径。")
     table.insert(checked, { path = path, source = source, resourceType = resourceType or "Texture2D" })
+    local info = cache:GetResInfo(path)
+    if not info or info.fsPath ~= path then table.insert(missing, { path = path, source = source }) end
 end
 
 local function Member(artId, age, version)
@@ -104,23 +106,12 @@ local function Finish()
     print("T14_RESOURCE_AUDIT_PLATFORM_WARNINGS uuid://-73mcwx1QB6NyLrwJxv8Kg uuid://u05oYbz5RtecsyHB9-bmKQ source=Maker固定预加载；工程源码与.meta无对应引用。")
 end
 
-local function ResolveResources()
-    local remaining = #checked
-    for _, item in ipairs(checked) do
-        cache:GetResourceAsync(item.resourceType, item.path, function(resource)
-            if not resource then table.insert(missing, { path = item.path, source = item.source }) end
-            remaining = remaining - 1
-            if remaining == 0 then Finish() end
-        end)
-    end
-end
-
 function Audit.Start()
     UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
     AuditArtPaths()
     AuditLegacyUiPaths()
     AuditFonts()
-    ResolveResources()
+    Finish()
 end
 
 function Audit.Stop()
