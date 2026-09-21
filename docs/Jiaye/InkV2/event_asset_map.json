@@ -1,0 +1,310 @@
+{
+  "version": "ink_v2_review",
+  "images": {
+    "ruler": {
+      "native": "assets/events/ink_v2/ruler_native.png",
+      "display": "assets/events/ink_v2/ruler_1200x560.png",
+      "safeArea": [
+        91,
+        0,
+        1018,
+        560
+      ],
+      "sourcePixels": [
+        471,
+        259
+      ],
+      "name": "旧匠号与木尺"
+    },
+    "book": {
+      "native": "assets/events/ink_v2/book_native.png",
+      "display": "assets/events/ink_v2/book_1200x560.png",
+      "safeArea": [
+        93,
+        0,
+        1014,
+        560
+      ],
+      "sourcePixels": [
+        469,
+        259
+      ],
+      "name": "查阅家谱"
+    },
+    "letter": {
+      "native": "assets/events/ink_v2/letter_native.png",
+      "display": "assets/events/ink_v2/letter_1200x560.png",
+      "safeArea": [
+        92,
+        0,
+        1016,
+        560
+      ],
+      "sourcePixels": [
+        470,
+        259
+      ],
+      "name": "送信与旧约"
+    },
+    "medical": {
+      "native": "assets/events/ink_v2/medical_native.png",
+      "display": "assets/events/ink_v2/medical_1200x560.png",
+      "safeArea": [
+        91,
+        0,
+        1018,
+        560
+      ],
+      "sourcePixels": [
+        471,
+        259
+      ],
+      "name": "医案与问诊"
+    },
+    "repair": {
+      "native": "assets/events/ink_v2/repair_native.png",
+      "display": "assets/events/ink_v2/repair_1200x560.png",
+      "safeArea": [
+        93,
+        0,
+        1014,
+        560
+      ],
+      "sourcePixels": [
+        469,
+        259
+      ],
+      "name": "匠作修缮"
+    },
+    "neighbors": {
+      "native": "assets/events/ink_v2/neighbors_native.png",
+      "display": "assets/events/ink_v2/neighbors_1200x560.png",
+      "safeArea": [
+        92,
+        0,
+        1016,
+        560
+      ],
+      "sourcePixels": [
+        470,
+        259
+      ],
+      "name": "邻里往来"
+    },
+    "school": {
+      "native": "assets/events/ink_v2/school_native.png",
+      "display": "assets/events/ink_v2/school_1200x560.png",
+      "safeArea": [
+        91,
+        0,
+        1018,
+        560
+      ],
+      "sourcePixels": [
+        471,
+        259
+      ],
+      "name": "灯下求学"
+    },
+    "roof": {
+      "native": "assets/events/ink_v2/roof_native.png",
+      "display": "assets/events/ink_v2/roof_1200x560.png",
+      "safeArea": [
+        93,
+        0,
+        1014,
+        560
+      ],
+      "sourcePixels": [
+        469,
+        259
+      ],
+      "name": "风雨屋顶"
+    },
+    "jade": {
+      "native": "assets/events/ink_v2/jade_native.png",
+      "display": "assets/events/ink_v2/jade_1200x560.png",
+      "safeArea": [
+        92,
+        0,
+        1016,
+        560
+      ],
+      "sourcePixels": [
+        470,
+        259
+      ],
+      "name": "玉佩查证"
+    },
+    "reunion": {
+      "native": "assets/events/ink_v2/reunion_native.png",
+      "display": "assets/events/ink_v2/reunion_1200x560.png",
+      "safeArea": [
+        93,
+        0,
+        1014,
+        560
+      ],
+      "sourcePixels": [
+        471,
+        260
+      ],
+      "name": "亲族归来"
+    },
+    "leadership": {
+      "native": "assets/events/ink_v2/leadership_native.png",
+      "display": "assets/events/ink_v2/leadership_1200x560.png",
+      "safeArea": [
+        95,
+        0,
+        1010,
+        560
+      ],
+      "sourcePixels": [
+        469,
+        260
+      ],
+      "name": "族长交接"
+    },
+    "migration": {
+      "native": "assets/events/ink_v2/migration_native.png",
+      "display": "assets/events/ink_v2/migration_1200x560.png",
+      "safeArea": [
+        94,
+        0,
+        1012,
+        560
+      ],
+      "sourcePixels": [
+        470,
+        260
+      ],
+      "name": "迁居新址"
+    }
+  },
+  "routes": [
+    {
+      "eventType": "relic_resolution",
+      "relicId": "ruler",
+      "artId": "ruler",
+      "file": "assets/events/ink_v2/ruler_1200x560.png"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "book",
+      "artId": "book",
+      "file": "assets/events/ink_v2/book_1200x560.png"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "letter",
+      "artId": "letter",
+      "file": "assets/events/ink_v2/letter_1200x560.png"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "plan",
+      "artId": "repair",
+      "file": "assets/events/ink_v2/repair_1200x560.png"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "newbook",
+      "artId": "reunion",
+      "file": "assets/events/ink_v2/reunion_1200x560.png"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "jade",
+      "artId": "jade",
+      "file": "assets/events/ink_v2/jade_1200x560.png"
+    },
+    {
+      "eventType": "relic_resolution",
+      "relicId": "notes",
+      "artId": "medical",
+      "file": "assets/events/ink_v2/medical_1200x560.png"
+    },
+    {
+      "eventType": "medical_find",
+      "artId": "medical",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/medical_1200x560.png"
+    },
+    {
+      "eventType": "notes_choice",
+      "artId": "medical",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/medical_1200x560.png"
+    },
+    {
+      "eventType": "plan_work",
+      "artId": "repair",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/repair_1200x560.png"
+    },
+    {
+      "eventType": "community_request",
+      "artId": "neighbors",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/neighbors_1200x560.png"
+    },
+    {
+      "eventType": "school",
+      "artId": "school",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/school_1200x560.png"
+    },
+    {
+      "eventType": "roof",
+      "artId": "roof",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/roof_1200x560.png"
+    },
+    {
+      "eventType": "jade_search",
+      "artId": "jade",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/jade_1200x560.png"
+    },
+    {
+      "eventType": "leader",
+      "artId": "leadership",
+      "scope": "existing event type",
+      "file": "assets/events/ink_v2/leadership_1200x560.png"
+    },
+    {
+      "eventType": "migration",
+      "artId": "migration",
+      "scope": "fact/action display only",
+      "file": "assets/events/ink_v2/migration_1200x560.png"
+    },
+    {
+      "eventType": "invite_branch",
+      "artId": "reunion",
+      "scope": "fact/action display only",
+      "file": "assets/events/ink_v2/reunion_1200x560.png"
+    },
+    {
+      "eventType": "growth",
+      "jobId": "doctor",
+      "artId": "medical",
+      "file": "assets/events/ink_v2/medical_1200x560.png"
+    },
+    {
+      "eventType": "growth",
+      "jobId": "craft",
+      "artId": "repair",
+      "file": "assets/events/ink_v2/repair_1200x560.png"
+    },
+    {
+      "eventType": "growth",
+      "artId": "school",
+      "scope": "generic visual fallback",
+      "file": "assets/events/ink_v2/school_1200x560.png"
+    }
+  ],
+  "unknown": "return nil; use plain paper without unrelated scene",
+  "storyArtNotActorIdentity": true,
+  "newLogicPolicy": "v1.2任务按剧情语义映射对应eventArtId；插画不新增奖励或决定事件结果。"
+}

@@ -1,0 +1,1658 @@
+[
+  {
+    "category": "character",
+    "id": "portrait_m01.infant",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      0,
+      0,
+      290,
+      295
+    ],
+    "trimWithinCrop": [
+      25,
+      38,
+      264,
+      295
+    ],
+    "nativeContentSize": [
+      239,
+      257
+    ],
+    "artId": "portrait_m01",
+    "artVersion": "ink_v2_review",
+    "stage": "infant",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m01/infant_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m01.child",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      290,
+      0,
+      570,
+      295
+    ],
+    "trimWithinCrop": [
+      9,
+      9,
+      243,
+      295
+    ],
+    "nativeContentSize": [
+      234,
+      286
+    ],
+    "artId": "portrait_m01",
+    "artVersion": "ink_v2_review",
+    "stage": "child",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m01/child_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m01.young",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      570,
+      0,
+      866,
+      295
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      282,
+      295
+    ],
+    "nativeContentSize": [
+      282,
+      295
+    ],
+    "artId": "portrait_m01",
+    "artVersion": "ink_v2_review",
+    "stage": "young",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m01/young_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m01.adult",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      866,
+      0,
+      1158,
+      295
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      281,
+      295
+    ],
+    "nativeContentSize": [
+      281,
+      295
+    ],
+    "artId": "portrait_m01",
+    "artVersion": "ink_v2_review",
+    "stage": "adult",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m01/adult_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m01.elder",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      1158,
+      0,
+      1448,
+      295
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      284,
+      295
+    ],
+    "nativeContentSize": [
+      284,
+      295
+    ],
+    "artId": "portrait_m01",
+    "artVersion": "ink_v2_review",
+    "stage": "elder",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m01/elder_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f01.infant",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      0,
+      295,
+      290,
+      568
+    ],
+    "trimWithinCrop": [
+      15,
+      35,
+      260,
+      266
+    ],
+    "nativeContentSize": [
+      245,
+      231
+    ],
+    "artId": "portrait_f01",
+    "artVersion": "ink_v2_review",
+    "stage": "infant",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f01/infant_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f01.child",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      290,
+      295,
+      569,
+      568
+    ],
+    "trimWithinCrop": [
+      4,
+      0,
+      245,
+      273
+    ],
+    "nativeContentSize": [
+      241,
+      273
+    ],
+    "artId": "portrait_f01",
+    "artVersion": "ink_v2_review",
+    "stage": "child",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f01/child_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f01.young",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      569,
+      295,
+      869,
+      568
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      262,
+      273
+    ],
+    "nativeContentSize": [
+      262,
+      273
+    ],
+    "artId": "portrait_f01",
+    "artVersion": "ink_v2_review",
+    "stage": "young",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f01/young_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f01.adult",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      869,
+      295,
+      1158,
+      568
+    ],
+    "trimWithinCrop": [
+      3,
+      0,
+      258,
+      273
+    ],
+    "nativeContentSize": [
+      255,
+      273
+    ],
+    "artId": "portrait_f01",
+    "artVersion": "ink_v2_review",
+    "stage": "adult",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f01/adult_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f01.elder",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      1158,
+      295,
+      1448,
+      568
+    ],
+    "trimWithinCrop": [
+      9,
+      0,
+      261,
+      273
+    ],
+    "nativeContentSize": [
+      252,
+      273
+    ],
+    "artId": "portrait_f01",
+    "artVersion": "ink_v2_review",
+    "stage": "elder",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f01/elder_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m02.infant",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      0,
+      568,
+      290,
+      835
+    ],
+    "trimWithinCrop": [
+      31,
+      12,
+      280,
+      267
+    ],
+    "nativeContentSize": [
+      249,
+      255
+    ],
+    "artId": "portrait_m02",
+    "artVersion": "ink_v2_review",
+    "stage": "infant",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m02/infant_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m02.child",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      290,
+      568,
+      569,
+      835
+    ],
+    "trimWithinCrop": [
+      15,
+      0,
+      270,
+      267
+    ],
+    "nativeContentSize": [
+      255,
+      267
+    ],
+    "artId": "portrait_m02",
+    "artVersion": "ink_v2_review",
+    "stage": "child",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m02/child_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m02.young",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      569,
+      568,
+      866,
+      835
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      259,
+      267
+    ],
+    "nativeContentSize": [
+      259,
+      267
+    ],
+    "artId": "portrait_m02",
+    "artVersion": "ink_v2_review",
+    "stage": "young",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m02/young_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m02.adult",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      866,
+      568,
+      1153,
+      835
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      266,
+      267
+    ],
+    "nativeContentSize": [
+      266,
+      267
+    ],
+    "artId": "portrait_m02",
+    "artVersion": "ink_v2_review",
+    "stage": "adult",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m02/adult_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_m02.elder",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      1153,
+      568,
+      1448,
+      835
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      289,
+      267
+    ],
+    "nativeContentSize": [
+      289,
+      267
+    ],
+    "artId": "portrait_m02",
+    "artVersion": "ink_v2_review",
+    "stage": "elder",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_m02/elder_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f02.infant",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      0,
+      835,
+      290,
+      1086
+    ],
+    "trimWithinCrop": [
+      47,
+      12,
+      278,
+      246
+    ],
+    "nativeContentSize": [
+      231,
+      234
+    ],
+    "artId": "portrait_f02",
+    "artVersion": "ink_v2_review",
+    "stage": "infant",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f02/infant_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f02.child",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      290,
+      835,
+      576,
+      1086
+    ],
+    "trimWithinCrop": [
+      19,
+      0,
+      255,
+      251
+    ],
+    "nativeContentSize": [
+      236,
+      251
+    ],
+    "artId": "portrait_f02",
+    "artVersion": "ink_v2_review",
+    "stage": "child",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f02/child_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f02.young",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      576,
+      835,
+      869,
+      1086
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      259,
+      251
+    ],
+    "nativeContentSize": [
+      259,
+      251
+    ],
+    "artId": "portrait_f02",
+    "artVersion": "ink_v2_review",
+    "stage": "young",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f02/young_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f02.adult",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      869,
+      835,
+      1158,
+      1086
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      264,
+      251
+    ],
+    "nativeContentSize": [
+      264,
+      251
+    ],
+    "artId": "portrait_f02",
+    "artVersion": "ink_v2_review",
+    "stage": "adult",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f02/adult_native.png"
+  },
+  {
+    "category": "character",
+    "id": "portrait_f02.elder",
+    "sourceSheet": "sources/portraits_age_sheet.png",
+    "sourceCrop": [
+      1158,
+      835,
+      1448,
+      1086
+    ],
+    "trimWithinCrop": [
+      0,
+      0,
+      258,
+      251
+    ],
+    "nativeContentSize": [
+      258,
+      251
+    ],
+    "artId": "portrait_f02",
+    "artVersion": "ink_v2_review",
+    "stage": "elder",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; dark preview available",
+    "usage": "角色图，游戏姓名/属性不得烘焙",
+    "native": "assets/characters/ink_v2/portrait_f02/elder_native.png"
+  },
+  {
+    "category": "house",
+    "id": "rented.normal",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      0,
+      0,
+      362,
+      277
+    ],
+    "nativeContentSize": [
+      362,
+      277
+    ],
+    "houseId": "rented",
+    "state": "normal",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "租屋 / 正常；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/rented_normal_native.png"
+  },
+  {
+    "category": "house",
+    "id": "rented.damaged",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      362,
+      0,
+      724,
+      277
+    ],
+    "nativeContentSize": [
+      362,
+      277
+    ],
+    "houseId": "rented",
+    "state": "damaged",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "租屋 / 破损；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/rented_damaged_native.png"
+  },
+  {
+    "category": "house",
+    "id": "rented.upgraded",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      724,
+      0,
+      1086,
+      277
+    ],
+    "nativeContentSize": [
+      362,
+      277
+    ],
+    "houseId": "rented",
+    "state": "upgraded",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "租屋 / 修整完成；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/rented_upgraded_native.png"
+  },
+  {
+    "category": "house",
+    "id": "rented.relocated",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      1086,
+      0,
+      1448,
+      277
+    ],
+    "nativeContentSize": [
+      362,
+      277
+    ],
+    "houseId": "rented",
+    "state": "relocated",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "租屋 / 迁居新址；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/rented_relocated_native.png"
+  },
+  {
+    "category": "house",
+    "id": "simple.normal",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      0,
+      277,
+      362,
+      546
+    ],
+    "nativeContentSize": [
+      362,
+      269
+    ],
+    "houseId": "simple",
+    "state": "normal",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "土屋 / 正常；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/simple_normal_native.png"
+  },
+  {
+    "category": "house",
+    "id": "simple.damaged",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      362,
+      277,
+      724,
+      546
+    ],
+    "nativeContentSize": [
+      362,
+      269
+    ],
+    "houseId": "simple",
+    "state": "damaged",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "土屋 / 破损；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/simple_damaged_native.png"
+  },
+  {
+    "category": "house",
+    "id": "simple.upgraded",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      724,
+      277,
+      1086,
+      546
+    ],
+    "nativeContentSize": [
+      362,
+      269
+    ],
+    "houseId": "simple",
+    "state": "upgraded",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "土屋 / 修整完成；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/simple_upgraded_native.png"
+  },
+  {
+    "category": "house",
+    "id": "simple.relocated",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      1086,
+      277,
+      1448,
+      546
+    ],
+    "nativeContentSize": [
+      362,
+      269
+    ],
+    "houseId": "simple",
+    "state": "relocated",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "土屋 / 迁居新址；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/simple_relocated_native.png"
+  },
+  {
+    "category": "house",
+    "id": "courtyard.normal",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      0,
+      546,
+      362,
+      802
+    ],
+    "nativeContentSize": [
+      362,
+      256
+    ],
+    "houseId": "courtyard",
+    "state": "normal",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "小院 / 正常；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/courtyard_normal_native.png"
+  },
+  {
+    "category": "house",
+    "id": "courtyard.damaged",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      362,
+      546,
+      724,
+      802
+    ],
+    "nativeContentSize": [
+      362,
+      256
+    ],
+    "houseId": "courtyard",
+    "state": "damaged",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "小院 / 破损；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/courtyard_damaged_native.png"
+  },
+  {
+    "category": "house",
+    "id": "courtyard.upgraded",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      724,
+      546,
+      1086,
+      802
+    ],
+    "nativeContentSize": [
+      362,
+      256
+    ],
+    "houseId": "courtyard",
+    "state": "upgraded",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "小院 / 修整完成；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/courtyard_upgraded_native.png"
+  },
+  {
+    "category": "house",
+    "id": "courtyard.relocated",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      1086,
+      546,
+      1448,
+      802
+    ],
+    "nativeContentSize": [
+      362,
+      256
+    ],
+    "houseId": "courtyard",
+    "state": "relocated",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "小院 / 迁居新址；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/courtyard_relocated_native.png"
+  },
+  {
+    "category": "house",
+    "id": "estate.normal",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      0,
+      802,
+      362,
+      1086
+    ],
+    "nativeContentSize": [
+      362,
+      284
+    ],
+    "houseId": "estate",
+    "state": "normal",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "深院 / 正常；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/estate_normal_native.png"
+  },
+  {
+    "category": "house",
+    "id": "estate.damaged",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      362,
+      802,
+      724,
+      1086
+    ],
+    "nativeContentSize": [
+      362,
+      284
+    ],
+    "houseId": "estate",
+    "state": "damaged",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "深院 / 破损；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/estate_damaged_native.png"
+  },
+  {
+    "category": "house",
+    "id": "estate.upgraded",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      724,
+      802,
+      1086,
+      1086
+    ],
+    "nativeContentSize": [
+      362,
+      284
+    ],
+    "houseId": "estate",
+    "state": "upgraded",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "深院 / 修整完成；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/estate_upgraded_native.png"
+  },
+  {
+    "category": "house",
+    "id": "estate.relocated",
+    "sourceSheet": "sources/houses_sheet.png",
+    "sourceCrop": [
+      1086,
+      802,
+      1448,
+      1086
+    ],
+    "nativeContentSize": [
+      362,
+      284
+    ],
+    "houseId": "estate",
+    "state": "relocated",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper",
+    "usage": "深院 / 迁居新址；场景图不决定建筑规则",
+    "native": "assets/houses/ink_v2/estate_relocated_native.png"
+  },
+  {
+    "category": "event",
+    "id": "ruler",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      8,
+      5,
+      479,
+      264
+    ],
+    "nativeContentSize": [
+      471,
+      259
+    ],
+    "eventArtId": "ruler",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "旧匠号与木尺；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/ruler_native.png"
+  },
+  {
+    "category": "event",
+    "id": "book",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      490,
+      5,
+      959,
+      264
+    ],
+    "nativeContentSize": [
+      469,
+      259
+    ],
+    "eventArtId": "book",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "查阅家谱；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/book_native.png"
+  },
+  {
+    "category": "event",
+    "id": "letter",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      970,
+      5,
+      1440,
+      264
+    ],
+    "nativeContentSize": [
+      470,
+      259
+    ],
+    "eventArtId": "letter",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "送信与旧约；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/letter_native.png"
+  },
+  {
+    "category": "event",
+    "id": "medical",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      8,
+      276,
+      479,
+      535
+    ],
+    "nativeContentSize": [
+      471,
+      259
+    ],
+    "eventArtId": "medical",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "医案与问诊；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/medical_native.png"
+  },
+  {
+    "category": "event",
+    "id": "repair",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      490,
+      276,
+      959,
+      535
+    ],
+    "nativeContentSize": [
+      469,
+      259
+    ],
+    "eventArtId": "repair",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "匠作修缮；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/repair_native.png"
+  },
+  {
+    "category": "event",
+    "id": "neighbors",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      970,
+      276,
+      1440,
+      535
+    ],
+    "nativeContentSize": [
+      470,
+      259
+    ],
+    "eventArtId": "neighbors",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "邻里往来；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/neighbors_native.png"
+  },
+  {
+    "category": "event",
+    "id": "school",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      8,
+      545,
+      479,
+      804
+    ],
+    "nativeContentSize": [
+      471,
+      259
+    ],
+    "eventArtId": "school",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "灯下求学；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/school_native.png"
+  },
+  {
+    "category": "event",
+    "id": "roof",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      490,
+      545,
+      959,
+      804
+    ],
+    "nativeContentSize": [
+      469,
+      259
+    ],
+    "eventArtId": "roof",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "风雨屋顶；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/roof_native.png"
+  },
+  {
+    "category": "event",
+    "id": "jade",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      970,
+      545,
+      1440,
+      804
+    ],
+    "nativeContentSize": [
+      470,
+      259
+    ],
+    "eventArtId": "jade",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "玉佩查证；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/jade_native.png"
+  },
+  {
+    "category": "event",
+    "id": "reunion",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      8,
+      815,
+      479,
+      1075
+    ],
+    "nativeContentSize": [
+      471,
+      260
+    ],
+    "eventArtId": "reunion",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "亲族归来；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/reunion_native.png"
+  },
+  {
+    "category": "event",
+    "id": "leadership",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      490,
+      815,
+      959,
+      1075
+    ],
+    "nativeContentSize": [
+      469,
+      260
+    ],
+    "eventArtId": "leadership",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "族长交接；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/leadership_native.png"
+  },
+  {
+    "category": "event",
+    "id": "migration",
+    "sourceSheet": "sources/events_sheet.png",
+    "sourceCrop": [
+      970,
+      815,
+      1440,
+      1075
+    ],
+    "nativeContentSize": [
+      470,
+      260
+    ],
+    "eventArtId": "migration",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "opaque image on light paper",
+    "usage": "迁居新址；画中人物为示意演员，不绑定玩家家族身份",
+    "native": "assets/events/ink_v2/migration_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "genealogy.1",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      0,
+      0,
+      290,
+      281
+    ],
+    "trimWithinCrop": [
+      40,
+      38,
+      285,
+      281
+    ],
+    "nativeContentSize": [
+      245,
+      243
+    ],
+    "formId": "genealogy.1",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "残缺旧谱；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/genealogy_1_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "genealogy.2",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      290,
+      0,
+      579,
+      281
+    ],
+    "trimWithinCrop": [
+      24,
+      41,
+      275,
+      281
+    ],
+    "nativeContentSize": [
+      251,
+      240
+    ],
+    "formId": "genealogy.2",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "补完的族谱；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/genealogy_2_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "genealogy.3",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      579,
+      0,
+      869,
+      281
+    ],
+    "trimWithinCrop": [
+      0,
+      42,
+      284,
+      281
+    ],
+    "nativeContentSize": [
+      284,
+      239
+    ],
+    "formId": "genealogy.3",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "续修世系谱；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/genealogy_3_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "ruler.1",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      869,
+      0,
+      1158,
+      281
+    ],
+    "trimWithinCrop": [
+      20,
+      46,
+      261,
+      281
+    ],
+    "nativeContentSize": [
+      241,
+      235
+    ],
+    "formId": "ruler.1",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "磨损的老木尺；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/ruler_1_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "ruler.2",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      1158,
+      0,
+      1448,
+      281
+    ],
+    "trimWithinCrop": [
+      6,
+      46,
+      261,
+      281
+    ],
+    "nativeContentSize": [
+      255,
+      235
+    ],
+    "formId": "ruler.2",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "校准的木尺；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/ruler_2_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "ruler.3",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      0,
+      281,
+      290,
+      550
+    ],
+    "trimWithinCrop": [
+      30,
+      21,
+      284,
+      266
+    ],
+    "nativeContentSize": [
+      254,
+      245
+    ],
+    "formId": "ruler.3",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "传家的匠尺；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/ruler_3_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "letter.1",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      290,
+      281,
+      587,
+      550
+    ],
+    "trimWithinCrop": [
+      24,
+      25,
+      297,
+      259
+    ],
+    "nativeContentSize": [
+      273,
+      234
+    ],
+    "formId": "letter.1",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "未送达的家书；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/letter_1_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "letter.2",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      587,
+      281,
+      869,
+      550
+    ],
+    "trimWithinCrop": [
+      5,
+      11,
+      282,
+      269
+    ],
+    "nativeContentSize": [
+      277,
+      258
+    ],
+    "formId": "letter.2",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "有了回音的家书；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/letter_2_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "letter.3",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      869,
+      281,
+      1150,
+      550
+    ],
+    "trimWithinCrop": [
+      4,
+      37,
+      265,
+      256
+    ],
+    "nativeContentSize": [
+      261,
+      219
+    ],
+    "formId": "letter.3",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "家藏往来书札；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/letter_3_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "plan.1",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      1150,
+      281,
+      1448,
+      550
+    ],
+    "trimWithinCrop": [
+      0,
+      45,
+      283,
+      252
+    ],
+    "nativeContentSize": [
+      283,
+      207
+    ],
+    "formId": "plan.1",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "修复的营造图；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/plan_1_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "plan.2",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      0,
+      550,
+      313,
+      790
+    ],
+    "trimWithinCrop": [
+      21,
+      20,
+      313,
+      240
+    ],
+    "nativeContentSize": [
+      292,
+      220
+    ],
+    "formId": "plan.2",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "增订的营造图；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/plan_2_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "plan.3",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      313,
+      550,
+      619,
+      790
+    ],
+    "trimWithinCrop": [
+      1,
+      11,
+      306,
+      240
+    ],
+    "nativeContentSize": [
+      305,
+      229
+    ],
+    "formId": "plan.3",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "传世营造图；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/plan_3_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "jade.1",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      619,
+      550,
+      869,
+      790
+    ],
+    "trimWithinCrop": [
+      55,
+      24,
+      211,
+      240
+    ],
+    "nativeContentSize": [
+      156,
+      216
+    ],
+    "formId": "jade.1",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "来历未明的半佩；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/jade_1_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "jade.2",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      869,
+      550,
+      1158,
+      790
+    ],
+    "trimWithinCrop": [
+      49,
+      30,
+      281,
+      240
+    ],
+    "nativeContentSize": [
+      232,
+      210
+    ],
+    "formId": "jade.2",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "来历确证的半佩；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/jade_2_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "jade.3.heirloom",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      1158,
+      550,
+      1448,
+      790
+    ],
+    "trimWithinCrop": [
+      31,
+      14,
+      267,
+      240
+    ],
+    "nativeContentSize": [
+      236,
+      226
+    ],
+    "formId": "jade.3.heirloom",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "合璧传家；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/jade_3_heirloom_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "jade.3.alliance",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      0,
+      790,
+      303,
+      1086
+    ],
+    "trimWithinCrop": [
+      46,
+      36,
+      303,
+      260
+    ],
+    "nativeContentSize": [
+      257,
+      224
+    ],
+    "formId": "jade.3.alliance",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "各执半佩；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/jade_3_alliance_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "notes.1",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      303,
+      790,
+      585,
+      1086
+    ],
+    "trimWithinCrop": [
+      14,
+      14,
+      282,
+      264
+    ],
+    "nativeContentSize": [
+      268,
+      250
+    ],
+    "formId": "notes.1",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "批注医案；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/notes_1_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "notes.2",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      585,
+      790,
+      872,
+      1086
+    ],
+    "trimWithinCrop": [
+      7,
+      19,
+      287,
+      263
+    ],
+    "nativeContentSize": [
+      280,
+      244
+    ],
+    "formId": "notes.2",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "校订医案；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/notes_2_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "notes.3.private",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      872,
+      790,
+      1158,
+      1086
+    ],
+    "trimWithinCrop": [
+      12,
+      18,
+      275,
+      266
+    ],
+    "nativeContentSize": [
+      263,
+      248
+    ],
+    "formId": "notes.3.private",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "家传医案；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/notes_3_private_native.png"
+  },
+  {
+    "category": "relic",
+    "id": "notes.3.public",
+    "sourceSheet": "sources/relic_forms_sheet.png",
+    "sourceCrop": [
+      1158,
+      790,
+      1448,
+      1086
+    ],
+    "trimWithinCrop": [
+      2,
+      22,
+      262,
+      266
+    ],
+    "nativeContentSize": [
+      260,
+      244
+    ],
+    "formId": "notes.3.public",
+    "quality": "review_export_not_native_hd",
+    "recommendedBackground": "light paper; no embedded UI labels",
+    "usage": "刊行医案；外观不能代替本局真实升级证据",
+    "native": "assets/relics/ink_v2/notes_3_public_native.png"
+  }
+]

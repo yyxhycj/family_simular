@@ -77,13 +77,6 @@ local function familyOf(form)
     return form and (Defs.Family(form.familyId) or { id = form.familyId, name = form.familyId }) or { id = "unknown", name = "未分类" }
 end
 
-local function legacyAsset(form)
-    if not form then return nil end
-    if form.legacyId then return form.legacyId end
-    local family = Defs.Family(form.familyId)
-    return family and family.legacyId or form.id
-end
-
 local function instances(run)
     local result = {}
     for _, item in ipairs(run.relicInstances or {}) do
@@ -566,11 +559,11 @@ local function detailContent(app, instance, tab, openTab)
     local task = taskOf(run, instance)
     local children = {
         UI.Row { gap = 10, alignItems = "center", children = {
-            Visual.Relic(legacyAsset(form) or instance.definitionId, 82),
+            Visual.Relic(form and form.id or instance.definitionId, 82),
             UI.Panel { flex = 1, minWidth = 0, gap = 4, children = {
                 text(instanceTitle(instance), { fontSize = 22, fontWeight = "bold" }),
                 text(family.name .. " · 第 " .. tostring(form and form.tier or instance.tier or 1) .. " 阶 · " .. displayValue(instance.status or "held", "status"), { fontSize = 13, fontColor = C.secondary }),
-                form and form.tier and form.tier > 1 and text("美术 · 临时复用基础图", { fontSize = 12, fontColor = C.gold, whiteSpace = "normal" }) or UI.Panel { height = 0 },
+                Visual.GetArtVersion() ~= "ink_v2_review" and form and form.tier and form.tier > 1 and text("美术 · 临时复用基础图", { fontSize = 12, fontColor = C.gold, whiteSpace = "normal" }) or UI.Panel { height = 0 },
             } },
         } },
         UI.Row { gap = 5, children = {
@@ -748,7 +741,7 @@ local function instanceCard(app, instance)
     local task = taskOf(app.run, instance)
     local children = {
         UI.Row { gap = 10, alignItems = "center", children = {
-                    Visual.Relic(legacyAsset(form) or instance.definitionId, 70),
+                    Visual.Relic(form and form.id or instance.definitionId, 70),
             UI.Panel { flex = 1, minWidth = 0, gap = 4, children = {
                 text(instanceTitle(instance), { fontSize = 19, fontWeight = "bold" }),
                 text(family.name .. " · 第 " .. tostring(form and form.tier or instance.tier or 1) .. " 阶", { fontSize = 13, fontColor = C.secondary }),
@@ -792,7 +785,7 @@ local function openFormCatalog(app)
             if form.familyId == family.id then
                 content:AddChild(card({
                     UI.Row { gap = 8, alignItems = "center", children = {
-                        Visual.Relic(legacyAsset(form), 50),
+                        Visual.Relic(form.id, 50),
                         UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
                             text(form.name or form.id, { fontSize = 15, fontWeight = "bold" }),
                             text("第 " .. tostring(form.tier) .. " 阶 · " .. (form.branch and displayValue(form.branch, "branch") or "固定形态"), { fontSize = 12, fontColor = C.secondary }),

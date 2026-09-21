@@ -1,8 +1,10 @@
 local UI = require "urhox-libs/UI"
 local Theme = require "urhox-libs/UI/Core/Theme"
 local V7 = require "Jiaye.V7"
+local Art = require "Jiaye.Art"
 
 local Visual = {}
+local currentArtVersion = nil
 
 local Tokens = V7.Tokens or {
     title = 29, panelTitle = 23, body = 16, control = 15, secondary = 13,
@@ -39,6 +41,15 @@ end
 
 local function buttonImage(role, state)
     return requireAsset(V7.ButtonImage(role, state), "V7 按钮角色或状态未登记：" .. tostring(role) .. "/" .. tostring(state))
+end
+
+function Visual.SetArtVersion(version)
+    currentArtVersion = version == nil and nil or Art.NormalizeVersion(version)
+    return currentArtVersion
+end
+
+function Visual.GetArtVersion()
+    return currentArtVersion
 end
 
 function Visual.Theme()
@@ -220,7 +231,7 @@ function Visual.Portrait(member, props)
     local result = copyProps(props)
     local size = result.size or 56
     local status = member.alive == false and "deceased" or (member.health and member.health < 35 and "sick" or nil)
-    local path = V7.Art.Portrait(member, result.detail and "detail" or "normal", status)
+    local path = Art.Portrait(member, result.detail and "detail" or "normal", status)
     local children = {
         UI.Panel {
             position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
@@ -256,7 +267,7 @@ function Visual.Relic(id, size)
     local actualSize = size or 56
     return UI.Panel {
         width = actualSize, height = actualSize, padding = 5,
-        backgroundColor = V7.Colors.paperLight, backgroundImage = requireAsset(V7.Art.Relic(id), "信物未登记：" .. tostring(id)),
+        backgroundColor = V7.Colors.paperLight, backgroundImage = requireAsset(Art.Relic(id, currentArtVersion), "信物未登记：" .. tostring(id)),
         backgroundFit = "contain", borderWidth = Tokens.border, borderColor = V7.Colors.gold,
         borderRadius = Tokens.buttonRadius,
     }
@@ -269,7 +280,8 @@ function Visual.EventImage(event, relicId, props)
     end
     local result = copyProps(props)
     result.relicId = nil
-    result.backgroundImage = requireAsset(V7.EventImage(event, relicId), "事件插画未登记：" .. tostring(event and event.type))
+    local image = Art.Event(event, relicId, currentArtVersion)
+    result.backgroundImage = requireAsset(image, "事件插画未登记：" .. tostring(event and event.type))
     result.backgroundFit = result.backgroundFit or "cover"
     result.height = result.height or 132
     result.borderWidth = result.borderWidth or Tokens.border
@@ -279,7 +291,7 @@ end
 
 function Visual.House(homeId, state, props)
     local result = copyProps(props)
-    result.backgroundImage = requireAsset(V7.HomeImage(homeId, state), "家宅状态未登记：" .. tostring(homeId) .. "/" .. tostring(state))
+    result.backgroundImage = requireAsset(Art.House(homeId, state, currentArtVersion), "家宅状态未登记：" .. tostring(homeId) .. "/" .. tostring(state))
     result.backgroundFit = result.backgroundFit or "cover"
     result.borderWidth = result.borderWidth or Tokens.border
     result.borderColor = result.borderColor or V7.Colors.gold

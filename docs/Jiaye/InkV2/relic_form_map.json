@@ -1,0 +1,217 @@
+{
+  "version": "ink_v2_review",
+  "rulesDocument": "docs/家业-七信物数值与完成逻辑-完整方案-v1.2.md",
+  "forms": {
+    "genealogy.1": {
+      "name": "残缺旧谱",
+      "native": "assets/relics/ink_v2/genealogy_1_native.png",
+      "display": "assets/relics/ink_v2/genealogy_1_512.png",
+      "icon": "assets/relics/ink_v2/genealogy_1_128.png",
+      "sourcePixels": [
+        245,
+        243
+      ]
+    },
+    "genealogy.2": {
+      "name": "补完的族谱",
+      "native": "assets/relics/ink_v2/genealogy_2_native.png",
+      "display": "assets/relics/ink_v2/genealogy_2_512.png",
+      "icon": "assets/relics/ink_v2/genealogy_2_128.png",
+      "sourcePixels": [
+        251,
+        240
+      ]
+    },
+    "genealogy.3": {
+      "name": "续修世系谱",
+      "native": "assets/relics/ink_v2/genealogy_3_native.png",
+      "display": "assets/relics/ink_v2/genealogy_3_512.png",
+      "icon": "assets/relics/ink_v2/genealogy_3_128.png",
+      "sourcePixels": [
+        284,
+        239
+      ]
+    },
+    "ruler.1": {
+      "name": "磨损的老木尺",
+      "native": "assets/relics/ink_v2/ruler_1_native.png",
+      "display": "assets/relics/ink_v2/ruler_1_512.png",
+      "icon": "assets/relics/ink_v2/ruler_1_128.png",
+      "sourcePixels": [
+        241,
+        235
+      ]
+    },
+    "ruler.2": {
+      "name": "校准的木尺",
+      "native": "assets/relics/ink_v2/ruler_2_native.png",
+      "display": "assets/relics/ink_v2/ruler_2_512.png",
+      "icon": "assets/relics/ink_v2/ruler_2_128.png",
+      "sourcePixels": [
+        255,
+        235
+      ]
+    },
+    "ruler.3": {
+      "name": "传家的匠尺",
+      "native": "assets/relics/ink_v2/ruler_3_native.png",
+      "display": "assets/relics/ink_v2/ruler_3_512.png",
+      "icon": "assets/relics/ink_v2/ruler_3_128.png",
+      "sourcePixels": [
+        254,
+        245
+      ]
+    },
+    "letter.1": {
+      "name": "未送达的家书",
+      "native": "assets/relics/ink_v2/letter_1_native.png",
+      "display": "assets/relics/ink_v2/letter_1_512.png",
+      "icon": "assets/relics/ink_v2/letter_1_128.png",
+      "sourcePixels": [
+        273,
+        234
+      ]
+    },
+    "letter.2": {
+      "name": "有了回音的家书",
+      "native": "assets/relics/ink_v2/letter_2_native.png",
+      "display": "assets/relics/ink_v2/letter_2_512.png",
+      "icon": "assets/relics/ink_v2/letter_2_128.png",
+      "sourcePixels": [
+        277,
+        258
+      ]
+    },
+    "letter.3": {
+      "name": "家藏往来书札",
+      "native": "assets/relics/ink_v2/letter_3_native.png",
+      "display": "assets/relics/ink_v2/letter_3_512.png",
+      "icon": "assets/relics/ink_v2/letter_3_128.png",
+      "sourcePixels": [
+        261,
+        219
+      ]
+    },
+    "plan.1": {
+      "name": "修复的营造图",
+      "native": "assets/relics/ink_v2/plan_1_native.png",
+      "display": "assets/relics/ink_v2/plan_1_512.png",
+      "icon": "assets/relics/ink_v2/plan_1_128.png",
+      "sourcePixels": [
+        283,
+        207
+      ]
+    },
+    "plan.2": {
+      "name": "增订的营造图",
+      "native": "assets/relics/ink_v2/plan_2_native.png",
+      "display": "assets/relics/ink_v2/plan_2_512.png",
+      "icon": "assets/relics/ink_v2/plan_2_128.png",
+      "sourcePixels": [
+        292,
+        220
+      ]
+    },
+    "plan.3": {
+      "name": "传世营造图",
+      "native": "assets/relics/ink_v2/plan_3_native.png",
+      "display": "assets/relics/ink_v2/plan_3_512.png",
+      "icon": "assets/relics/ink_v2/plan_3_128.png",
+      "sourcePixels": [
+        305,
+        229
+      ]
+    },
+    "jade.1": {
+      "name": "来历未明的半佩",
+      "native": "assets/relics/ink_v2/jade_1_native.png",
+      "display": "assets/relics/ink_v2/jade_1_512.png",
+      "icon": "assets/relics/ink_v2/jade_1_128.png",
+      "sourcePixels": [
+        156,
+        216
+      ]
+    },
+    "jade.2": {
+      "name": "来历确证的半佩",
+      "native": "assets/relics/ink_v2/jade_2_native.png",
+      "display": "assets/relics/ink_v2/jade_2_512.png",
+      "icon": "assets/relics/ink_v2/jade_2_128.png",
+      "sourcePixels": [
+        232,
+        210
+      ]
+    },
+    "jade.3.heirloom": {
+      "name": "合璧传家",
+      "native": "assets/relics/ink_v2/jade_3_heirloom_native.png",
+      "display": "assets/relics/ink_v2/jade_3_heirloom_512.png",
+      "icon": "assets/relics/ink_v2/jade_3_heirloom_128.png",
+      "sourcePixels": [
+        236,
+        226
+      ]
+    },
+    "jade.3.alliance": {
+      "name": "各执半佩",
+      "native": "assets/relics/ink_v2/jade_3_alliance_native.png",
+      "display": "assets/relics/ink_v2/jade_3_alliance_512.png",
+      "icon": "assets/relics/ink_v2/jade_3_alliance_128.png",
+      "sourcePixels": [
+        257,
+        224
+      ],
+      "semanticNote": "图中双半佩表示两家各执的关系；不代表玩家同时占有两件实体。"
+    },
+    "notes.1": {
+      "name": "批注医案",
+      "native": "assets/relics/ink_v2/notes_1_native.png",
+      "display": "assets/relics/ink_v2/notes_1_512.png",
+      "icon": "assets/relics/ink_v2/notes_1_128.png",
+      "sourcePixels": [
+        268,
+        250
+      ]
+    },
+    "notes.2": {
+      "name": "校订医案",
+      "native": "assets/relics/ink_v2/notes_2_native.png",
+      "display": "assets/relics/ink_v2/notes_2_512.png",
+      "icon": "assets/relics/ink_v2/notes_2_128.png",
+      "sourcePixels": [
+        280,
+        244
+      ]
+    },
+    "notes.3.private": {
+      "name": "家传医案",
+      "native": "assets/relics/ink_v2/notes_3_private_native.png",
+      "display": "assets/relics/ink_v2/notes_3_private_512.png",
+      "icon": "assets/relics/ink_v2/notes_3_private_128.png",
+      "sourcePixels": [
+        263,
+        248
+      ]
+    },
+    "notes.3.public": {
+      "name": "刊行医案",
+      "native": "assets/relics/ink_v2/notes_3_public_native.png",
+      "display": "assets/relics/ink_v2/notes_3_public_512.png",
+      "icon": "assets/relics/ink_v2/notes_3_public_128.png",
+      "sourcePixels": [
+        260,
+        244
+      ]
+    }
+  },
+  "legacyAliases": {
+    "book": "genealogy.1",
+    "newbook": "genealogy.2",
+    "ruler": "ruler.1",
+    "letter": "letter.1",
+    "plan": "plan.1",
+    "jade": "jade.1",
+    "notes": "notes.1"
+  },
+  "unknown": "nil; no silent fallback from unknown high tier to base art"
+}
