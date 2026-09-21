@@ -870,11 +870,18 @@ function State.UseVerificationStorage(suite)
 end
 
 local function UserDocumentsExportPath()
-    if not fileSystem or not fileSystem.GetUserDocumentsDir then return nil end
+    -- Web 预览没有宿主文档目录；先以持久文件系统能力判断，避免触发受限 API 的运行时错误。
+    if not fileSystem or not fileSystem.HasPersistentFS or fileSystem:HasPersistentFS() ~= true then return nil end
+    if not fileSystem.GetUserDocumentsDir then return nil end
     local documents = fileSystem:GetUserDocumentsDir()
     if type(documents) ~= "string" or documents == "" then return nil end
     local normalized = documents:gsub("[/\\]+$", "")
     return normalized .. "/Jiaye/" .. externalExportName
+end
+
+---@return boolean
+function State.SupportsExternalDocuments()
+    return UserDocumentsExportPath() ~= nil
 end
 
 ---@return string?

@@ -22,11 +22,15 @@ local function verify()
     assert(State.Save(profile, draft, run))
 
     local raw = assert(State.Export(profile, draft, run))
-    local externalPath = assert(State.ExternalExportPath())
-    assert(fileSystem:FileExists(externalPath), "用户文档备份不存在：" .. externalPath)
-    assert(read(externalPath) == raw, "用户文档备份回读内容与导出内容不一致。")
-
-    local candidate, message, status = State.ReadExternalExport()
+    local externalPath = State.ExternalExportPath()
+    local candidate, message, status = State.ReadExport()
+    local transport = "应用内备份内容"
+    if externalPath then
+        assert(fileSystem:FileExists(externalPath), "用户文档备份不存在：" .. externalPath)
+        assert(read(externalPath) == raw, "用户文档备份回读内容与导出内容不一致。")
+        candidate, message, status = State.ReadExternalExport()
+        transport = "用户文档"
+    end
     assert(candidate and status == "ready", message)
     assert(candidate.run.runId == run.runId and candidate.draft.family == draft.family)
 
@@ -37,7 +41,7 @@ local function verify()
 
     local app = App.New()
     app:Render()
-    return { path = externalPath, bytes = #raw, runId = run.runId, revision = before.saveRevision }
+    return { path = externalPath or "页面中的备份内容", transport = transport, bytes = #raw, runId = run.runId, revision = before.saveRevision }
 end
 
 function Start()
@@ -50,10 +54,13 @@ function Start()
         } })
         return
     end
-    print("T14_BACKUP_PASS 用户文档写入、外部文件回读、结构预演与坏输入隔离通过 " .. cjson.encode(result))
+    print("T14_BACKUP_PASS 备份导出回读、结构预演与坏输入隔离通过 " .. cjson.encode(result))
+    local transferLine = result.transport == "用户文档"
+        and "· 用户文档备份已逐字回读，可由文件应用传递"
+        or "· 浏览器环境已回读备份内容，可复制 JSON 交给另一台设备导入"
     UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", padding = 18, children = {
         UI.Label { text = "T14 真实引擎备份传递验收通过", fontSize = 24 },
-        UI.Label { text = "· 导出内容已写入用户文档并逐字回读\n· 从用户文档重新预演得到可导入家谱\n· 坏输入不会污染独立存档\n· 正式双槽位与旧格式校验路径保持不变", whiteSpace = "normal", lineHeight = 1.65 },
+        UI.Label { text = transferLine .. "\n· 从备份重新预演得到可导入家谱\n· 坏输入不会污染独立存档\n· 正式双槽位与旧格式校验路径保持不变", whiteSpace = "normal", lineHeight = 1.65 },
     } })
 end
 

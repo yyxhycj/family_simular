@@ -9,7 +9,7 @@ local Relics = require "Jiaye.RelicSystem"
 
 local T14 = {}
 local PREFIX = "[T14FullPaths]"
-local FILE_PATH = ".tmp/jiaye_t14_full_paths.export.json"
+local FILE_PATH = "jiaye_t14_full_paths_roundtrip.json"
 local defects = {}
 
 local function fail(caseId, path, condition, reproduce)
