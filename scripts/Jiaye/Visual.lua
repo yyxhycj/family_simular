@@ -60,6 +60,13 @@ function Visual.Theme()
                 normal = "Fonts/NotoSansSC-Regular.ttf",
                 bold = "Fonts/NotoSansSC-Bold.ttf",
             }},
+            { family = "serif", weights = {
+                normal = "Fonts/SourceHanSerifCN-Regular.otf",
+                bold = "Fonts/SourceHanSerifCN-SemiBold.otf",
+            }},
+        },
+        typography = {
+            fontFamily = "sans",
         },
         colors = {
             primary = c.primary, primaryHover = c.primary, primaryPressed = c.pressed,
@@ -99,6 +106,7 @@ function Visual.Theme()
             },
             Modal = {
                 titleFontSize = V7.Font(Tokens.panelTitle),
+                fontFamily = "serif",
                 backgroundColor = c.paperLight, borderColor = c.gold,
                 borderWidth = Tokens.border, borderRadius = Tokens.sheetTopRadius,
                 titleTextColor = c.ink, closeIconColor = c.ink,
@@ -137,6 +145,10 @@ end
 function Visual.Text(text, props)
     local result = copyProps(props)
     result.text = text or ""
+    if result.fontFamily == nil and (result.serif == true or (result.fontSize or Tokens.body) >= 18) then
+        result.fontFamily = "serif"
+    end
+    result.serif = nil
     result.fontSize = V7.Font(result.fontSize or Tokens.body)
     result.fontColor = result.fontColor or V7.Colors.ink
     return UI.Label(result)

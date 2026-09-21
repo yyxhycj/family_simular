@@ -186,19 +186,32 @@ end
 function App:Export()
     local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
     if not raw then self:Notify(message, "error"); return end
-    local modal = UI.Modal { title = "保存家谱备份", size = "sm", closeOnOverlay = true }
-    modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal" }))
-    modal:AddContent(Label("备份包含家谱、信物任务、人物经历与收藏，共 " .. tostring(#raw) .. " 字节，可通过“恢复本机备份”读取。复制内容可在“导入备份”中粘贴；跨应用保存前请核对实际粘贴结果。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    local externalPath = State.ExternalExportPath()
+    local backupField = UI.TextField {
+        value = raw, maxLength = math.max(#raw, 1), height = 180, fontSize = 12,
+        placeholder = "家谱备份 JSON",
+    }
+    local modal = UI.Modal { title = "保存家谱备份", size = "fullscreen", closeOnOverlay = true }
+    modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    modal:AddContent(Label("备份共 " .. tostring(#raw) .. " 字节。跨应用、跨设备传递以用户文档中的 JSON 文件为准：可打开文件后用系统文件应用复制、发送或保存。页面复制只作便捷尝试，游戏内回读不能证明外部应用已收到。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    modal:AddContent(externalPath and Label("文件位置：" .. externalPath, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }) or Label("当前环境没有用户文档目录，请使用下方可见备份内容完成传递。", { fontSize = 13, fontColor = C.warning, whiteSpace = "normal" }))
+    modal:AddContent(Label("备份内容（可长按或点入后全选）：", { fontSize = 14, fontWeight = "bold" }))
+    modal:AddContent(backupField)
     modal:SetFooter(UI.Panel { gap = 8, children = {
-        Button("复制备份内容", function()
+        Button("打开用户文档备份", function()
+            local opened, _, openMessage = State.OpenExternalExport()
+            self:Notify(openMessage, opened and "success" or "warning")
+        end, { flex = 1, width = nil }),
+        Button("尝试系统复制", function()
             ui:SetUseSystemClipboard(true)
             ui:SetClipboardText(raw)
-            if ui:GetClipboardText() ~= raw then self:Notify("剪贴板写入未确认，请保持当前页面。", "error"); return end
-            self:Notify("已写入游戏剪贴板，可在“导入备份”中粘贴核对。", "success")
-        end, { width = "100%" }),
-        Button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }),
+            if ui:GetClipboardText() ~= raw then self:Notify("系统复制未能在游戏内回读，请打开用户文档备份。", "warning"); return end
+            self:Notify("游戏内部已回读复制内容；外部读取请以用户文档文件为准。", "info")
+        end, { flex = 1, width = nil }),
+        Button("返回", function() modal:Close() end, { flex = 1, width = nil, role = "secondary" }),
     } })
     modal:Open()
+    backupField:SelectAll()
 end
 
 function App:OpenMenu()
@@ -211,6 +224,7 @@ function App:OpenMenu()
             if not candidate then self:Notify(message, "error"); return end
             modal:Close(); self:ConfirmImport(candidate, message, status)
         end, { width = "100%", role = "secondary" }),
+        Button("从用户文档导入", function() modal:Close(); self:ImportExternal() end, { width = "100%", role = "secondary" }),
         Button("导入备份", function() modal:Close(); self:OpenImport() end, { width = "100%", role = "secondary" }),
         Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
     } })
@@ -218,18 +232,24 @@ function App:OpenMenu()
     modal:Open()
 end
 
+function App:ImportExternal()
+    if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
+    local candidate, message, status = State.ReadExternalExport()
+    if not candidate then self:Notify(message, "error"); return end
+    self:ConfirmImport(candidate, message, status)
+end
+
 function App:OpenImport()
     if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
     self.importRaw = ""
     local modal = UI.Modal { title = "导入家业备份", size = "fullscreen", closeOnOverlay = true }
-    modal:AddContent(Label("粘贴完整 JSON 备份，接收后显示文件长度。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
+    modal:AddContent(Label("粘贴完整 JSON 备份，接收后保留在页面中并显示文件长度。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。也可返回家谱事务，从用户文档备份直接读取。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
     local receipt = Label("尚未接收备份", { fontSize = 14, fontColor = C.muted })
     modal:AddContent(UI.TextField {
-        value = "", placeholder = "在此粘贴完整备份", maxLength = 15000000,
-        onChange = function(field, value)
+        value = "", placeholder = "在此粘贴完整备份", maxLength = 15000000, height = 180, fontSize = 12,
+        onChange = function(_, value)
             if value == "" then return end
             self.importRaw = value
-            field:SetValue("")
             receipt:SetText("已接收 " .. tostring(#value) .. " 字节，等待校验")
         end,
     })
@@ -425,7 +445,7 @@ function App:BuildHeader(title, subtitle)
         children = {
             UI.Row { gap = 9, flex = 1, alignItems = "center", children = {
                 Visual.Decor("seal_square", { width = 30, height = 30 }),
-                Label(title, { fontSize = 20 }),
+                Label(title, { fontSize = 20, fontFamily = "serif" }),
                 Label(subtitle, { fontSize = 12, fontColor = C.muted }),
             } },
             Button(self.unsaved and "重试保存" or "···", function() if self.unsaved then self:Save() else self:OpenMenu() end end, { width = self.unsaved and 84 or 44, height = 44, fontSize = 20, role = "secondary", paddingHorizontal = 0 }),
@@ -462,11 +482,11 @@ function App:BuildCover()
         UI.Row { gap = 10, alignItems = "center", children = {
             Visual.Decor("seal_square", { width = 30, height = 30 }),
             UI.Panel { flex = 1, gap = 1, children = {
-                Label("家业", { fontSize = 29, fontWeight = "bold" }),
+                Label("家业", { fontSize = 29, fontWeight = "bold", fontFamily = "serif" }),
                 Label("凡世王朝 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.muted }),
             } },
         } },
-        Label("一部由选择写成的家谱", { fontSize = 18, fontColor = C.green, marginTop = 18 }),
+        Label("一部由选择写成的家谱", { fontSize = 18, fontColor = C.green, marginTop = 18, fontFamily = "serif" }),
         Label("生成一户人家，看看家人、家底和首年预计。点击想调整的对象，便能写下家谱的开篇。", { fontSize = 15, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.65 }),
         UI.Panel { gap = 7, padding = 12, backgroundColor = C.card, borderWidth = 1, borderColor = C.line, borderRadius = 10, children = {
             UI.Row { gap = 8, children = {
@@ -488,6 +508,7 @@ function App:BuildCover()
     end
     table.insert(actions, Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 10 }))
     table.insert(actions, Button(self.run and "继续家谱" or "读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+    table.insert(actions, Button("从用户文档导入", function() self:ImportExternal() end, { height = 44, backgroundColor = C.pale, textColor = C.green }))
     table.insert(actions, Button("导入备份", function() self:OpenImport() end, { height = 44, backgroundColor = C.pale, textColor = C.green }))
     return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, justifyContent = "center", padding = 22, children = {
         Visual.Decor("clouds", { position = "absolute", top = 12, right = 0, width = 190, height = 76, opacity = 0.2, pointerEvents = "none" }),

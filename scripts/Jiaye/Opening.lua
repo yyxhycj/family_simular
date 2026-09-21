@@ -282,7 +282,7 @@ function Opening.Generate(profile, seed, worldId)
         draft.rulesVersion = Data.RULES_VERSION
         draft.relicRulesVersion = RelicDefinitions.VERSION
         draft.originRulesVersion = OriginState.VERSION
-        draft.artVersion = "ink_v2_review"
+        draft.artVersion = "ink_v3_formal"
         draft.selectedRelicFormIds = {}
         draft.relicUsers = {}
         draft.selectedRelicIds = nil

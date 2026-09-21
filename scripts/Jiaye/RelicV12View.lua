@@ -563,7 +563,7 @@ local function detailContent(app, instance, tab, openTab)
             UI.Panel { flex = 1, minWidth = 0, gap = 4, children = {
                 text(instanceTitle(instance), { fontSize = 22, fontWeight = "bold" }),
                 text(family.name .. " · 第 " .. tostring(form and form.tier or instance.tier or 1) .. " 阶 · " .. displayValue(instance.status or "held", "status"), { fontSize = 13, fontColor = C.secondary }),
-                Visual.GetArtVersion() ~= "ink_v2_review" and form and form.tier and form.tier > 1 and text("美术 · 临时复用基础图", { fontSize = 12, fontColor = C.gold, whiteSpace = "normal" }) or UI.Panel { height = 0 },
+                Visual.GetArtVersion() == "1.0.0" and form and form.tier and form.tier > 1 and text("美术 · 临时复用基础图", { fontSize = 12, fontColor = C.gold, whiteSpace = "normal" }) or UI.Panel { height = 0 },
             } },
         } },
         UI.Row { gap = 5, children = {

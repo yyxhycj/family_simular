@@ -3,8 +3,10 @@ local Art = {}
 
 local LEGACY_VERSION = "1.0.0"
 local REVIEW_VERSION = "ink_v2_review"
+local FORMAL_VERSION = "ink_v3_formal"
 local LEGACY_ROOT = "Jiaye/V7/"
 local REVIEW_ROOT = "Jiaye/InkV2/"
+local FORMAL_ROOT = "image/"
 
 local pools = {
     ["男"] = { "portrait_m01", "portrait_m02" },
@@ -16,6 +18,38 @@ local knownPortraits = {
 local knownVersions = {
     [LEGACY_VERSION] = true,
     [REVIEW_VERSION] = true,
+    [FORMAL_VERSION] = true,
+}
+
+local formalPortraits = {
+    portrait_m01 = {
+        infant = "portrait_m01_infant_formal_20260921084907.png",
+        child = "portrait_m01_child_formal_20260921084907.png",
+        young = "portrait_m01_young_formal_20260921084907.png",
+        adult = "portrait_m01_formal_20260921084407.png",
+        elder = "portrait_m01_elder_formal_20260921084907.png",
+    },
+    portrait_m02 = {
+        infant = "portrait_m02_infant_formal_20260921084907.png",
+        child = "portrait_m02_child_formal_20260921084907.png",
+        young = "portrait_m02_young_formal_20260921084907.png",
+        adult = "portrait_m02_formal_20260921084407.png",
+        elder = "portrait_m02_elder_formal_20260921084907.png",
+    },
+    portrait_f01 = {
+        infant = "portrait_f01_infant_formal_20260921084907.png",
+        child = "portrait_f01_child_formal_20260921084907.png",
+        young = "portrait_f01_young_formal_202609210851.png",
+        adult = "portrait_f01_formal_20260921084407.png",
+        elder = "portrait_f01_elder_formal_202609210852.png",
+    },
+    portrait_f02 = {
+        infant = "portrait_f02_infant_formal_202609210854.png",
+        child = "portrait_f02_child_formal_202609210856.png",
+        young = "portrait_f02_young_formal_202609210858.png",
+        adult = "portrait_f02_formal_20260921084407.png",
+        elder = "portrait_f02_elder_formal_202609210859.png",
+    },
 }
 
 local function requireKnown(value, message)
@@ -82,7 +116,11 @@ function Art.Portrait(member, size, visualStatus)
     local version = normalizeVersion(member.artVersion)
     local stage = member.artStageAtDeath or Art.Stage(age)
     local state = member.alive == false and "deceased" or (visualStatus == "sick" and "sick" or "normal")
-    if version == REVIEW_VERSION then
+    if version == FORMAL_VERSION and state == "normal" then
+        local formalFile = formalPortraits[member.artId][stage]
+        if formalFile then return FORMAL_ROOT .. formalFile end
+    end
+    if version == REVIEW_VERSION or version == FORMAL_VERSION then
         local base = REVIEW_ROOT .. "characters/" .. member.artId .. "/" .. stage
         if size == "detail" and state == "normal" then return base .. "_detail_768.png" end
         return base .. "_" .. state .. "_256.png"
@@ -108,7 +146,7 @@ function Art.House(homeId, state, artVersion)
     local states = { normal = true, damaged = true, upgraded = true, relocated = true }
     requireKnown(states[state], "未知家宅状态：" .. tostring(state))
     requireKnown(homeId == "rented" or homeId == "simple" or homeId == "courtyard" or homeId == "estate", "未知家宅等级：" .. tostring(homeId))
-    if normalizeVersion(artVersion) == REVIEW_VERSION then
+    if normalizeVersion(artVersion) == REVIEW_VERSION or normalizeVersion(artVersion) == FORMAL_VERSION then
         return REVIEW_ROOT .. "houses/" .. homeId .. "_" .. state .. "_1200x560.png"
     end
     return LEGACY_ROOT .. "houses/" .. homeId .. "_" .. state .. ".png"
@@ -132,7 +170,7 @@ function Art.Event(event, relicId, artVersion)
     local version = normalizeVersion(artVersion)
     local artId = eventArtId(event, relicId)
     requireKnown(artId, "未知事件类型或信物事件映射：" .. tostring(event.type))
-    if version == REVIEW_VERSION then
+    if version == REVIEW_VERSION or version == FORMAL_VERSION then
         return REVIEW_ROOT .. "events/" .. artId .. "_1200x560.png"
     end
     return LEGACY_ROOT .. "events/" .. artId .. ".png"
@@ -162,7 +200,7 @@ local reviewRelicAliases = {
 function Art.Relic(relicId, artVersion)
     requireKnown(relicId, "缺少信物 id")
     local version = normalizeVersion(artVersion)
-    if version == REVIEW_VERSION then
+    if version == REVIEW_VERSION or version == FORMAL_VERSION then
         local formId = reviewRelicAliases[relicId] or relicId
         local file = reviewRelicMap[formId]
         requireKnown(file, "未知信物形态：" .. tostring(relicId))

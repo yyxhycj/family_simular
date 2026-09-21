@@ -225,7 +225,7 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
     local issues, ids = {}, {}
     if draft.relicRulesVersion ~= nil and draft.relicRulesVersion ~= RelicDefinitions.VERSION then table.insert(issues, "信物规则版本未知。") end
     if draft.originRulesVersion ~= nil and (draft.originRulesVersion ~= OriginState.VERSION or draft.relicRulesVersion ~= RelicDefinitions.VERSION) then table.insert(issues, "背景机会规则版本无效。") end
-    if draft.artVersion ~= nil and draft.artVersion ~= "1.0.0" and draft.artVersion ~= "ink_v2_review" then table.insert(issues, "美术版本未知。") end
+    if draft.artVersion ~= nil and draft.artVersion ~= "1.0.0" and draft.artVersion ~= "ink_v2_review" and draft.artVersion ~= "ink_v3_formal" then table.insert(issues, "美术版本未知。") end
     if draft.rulesVersion ~= nil and (not IsInteger(draft.rulesVersion) or not KNOWN_RULES_VERSIONS[draft.rulesVersion]) then table.insert(issues, "开局规则版本未知。") end
     if draft.worldId ~= "mortal" then table.insert(issues, "当前仅支持凡世开局。") end
     local period = Data.Period(draft.periodId)
@@ -743,7 +743,7 @@ local function ValidateRun(run)
     if not relicOk then return false, relicMessage end
     local originOk, originMessage = OriginState.Validate(run, memberIds)
     if not originOk then return false, originMessage end
-    if run.artVersion ~= nil and run.artVersion ~= "1.0.0" and run.artVersion ~= "ink_v2_review" then return false, "运行家谱美术版本未知。" end
+    if run.artVersion ~= nil and run.artVersion ~= "1.0.0" and run.artVersion ~= "ink_v2_review" and run.artVersion ~= "ink_v3_formal" then return false, "运行家谱美术版本未知。" end
     if run.ending and (type(run.ending) ~= "table" or not Data.Ending(run.ending.id)) then return false, "终章引用无效。" end
     return true
 end
@@ -856,15 +856,30 @@ end
 ---@type string[]
 local SAVE_PATHS = { "jiaye_save.json", "jiaye_save.backup.json" }
 local exportPath = "jiaye_export.json"
+local externalExportName = "jiaye-backup.json"
 ---@type string?
 local failedSavePath = nil
 
 function State.UseVerificationStorage(suite)
-    assert(suite == nil or suite == "origin", "未知验收存档范围。")
-    local prefix = suite == "origin" and "jiaye_origin_verification" or "jiaye_v12_verification"
+    assert(suite == nil or suite == "origin" or suite == "t14", "未知验收存档范围。")
+    local prefix = suite == "origin" and "jiaye_origin_verification" or (suite == "t14" and "jiaye_t14_verification" or "jiaye_v12_verification")
     SAVE_PATHS = { prefix .. ".json", prefix .. ".backup.json" }
     exportPath = prefix .. ".export.json"
+    externalExportName = prefix .. ".json"
     failedSavePath = nil
+end
+
+local function UserDocumentsExportPath()
+    if not fileSystem or not fileSystem.GetUserDocumentsDir then return nil end
+    local documents = fileSystem:GetUserDocumentsDir()
+    if type(documents) ~= "string" or documents == "" then return nil end
+    local normalized = documents:gsub("[/\\]+$", "")
+    return normalized .. "/Jiaye/" .. externalExportName
+end
+
+---@return string?
+function State.ExternalExportPath()
+    return UserDocumentsExportPath()
 end
 
 ---@return string?
@@ -1031,6 +1046,27 @@ function State.ReadExport()
     return State.PreflightImport(raw)
 end
 
+---@return JiayeSavePayload?, string, string
+function State.ReadExternalExport()
+    local path = UserDocumentsExportPath()
+    if not path then return nil, "当前运行环境没有提供用户文档目录，无法读取外部备份。", "unavailable" end
+    local raw = ReadFile(path)
+    if not raw then return nil, "用户文档中尚无家业备份：" .. path, "missing" end
+    local candidate, message, status = State.PreflightImport(raw)
+    if not candidate then return nil, message .. "\n文件：" .. path, status end
+    return candidate, message .. "\n文件：" .. path, status
+end
+
+---@return boolean, string?, string
+function State.OpenExternalExport()
+    local path = UserDocumentsExportPath()
+    if not path then return false, nil, "当前运行环境没有提供用户文档目录。" end
+    if not fileSystem:FileExists(path) then return false, path, "用户文档备份尚未生成，请先导出。" end
+    local opened = fileSystem:SystemOpen(path, "edit")
+    if opened ~= true then return false, path, "系统未能打开用户文档备份，请在文件应用中打开：" .. path end
+    return true, path, "已打开用户文档备份；请在外部文件或文本应用中复制、发送或保存该文件。"
+end
+
 ---@param candidate JiayeSavePayload
 function State.CommitImport(candidate)
     if type(candidate) ~= "table" then return false, "没有可确认的导入内容。", "invalid" end
@@ -1059,7 +1095,16 @@ function State.Export(profile, draft, run)
     local encoded, raw = pcall(cjson.encode, payload)
     if not encoded or type(raw) ~= "string" then return nil, "备份编码失败，未导出。" end
     if not WriteVerified(exportPath, raw) then return nil, "备份写入或回读失败，未确认导出成功。" end
-    return raw, "备份已写入 " .. exportPath .. " 并回读核对。"
+    local externalPath = UserDocumentsExportPath()
+    if not externalPath then
+        return raw, "备份已写入 " .. exportPath .. " 并回读核对。当前运行环境没有用户文档目录；跨应用传递请使用页面中的备份内容。"
+    end
+    local parent = GetParentPath(externalPath)
+    local directoryReady = parent ~= "" and (fileSystem:CreateDir(parent) or fileSystem:DirExists(parent))
+    if not directoryReady or not WriteVerified(externalPath, raw) then
+        return raw, "备份已写入 " .. exportPath .. " 并回读核对。用户文档备份写入失败；请使用页面中的备份内容。"
+    end
+    return raw, "备份已写入用户文档：" .. externalPath .. "；应用内副本 " .. exportPath .. " 也已回读核对。"
 end
 
 return State
