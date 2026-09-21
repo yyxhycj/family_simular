@@ -871,6 +871,7 @@ end
 
 local function UserDocumentsExportPath()
     -- Web 预览没有宿主文档目录；先以持久文件系统能力判断，避免触发受限 API 的运行时错误。
+    if GetPlatform() == "Web" then return nil end
     if not fileSystem or not fileSystem.HasPersistentFS or fileSystem:HasPersistentFS() ~= true then return nil end
     if not fileSystem.GetUserDocumentsDir then return nil end
     local documents = fileSystem:GetUserDocumentsDir()
