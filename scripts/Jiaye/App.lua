@@ -15,6 +15,7 @@ local EventView = require "Jiaye.EventView"
 local RelicsView = require "Jiaye.RelicsView"
 local RelicV12View = require "Jiaye.RelicV12View"
 local RelicState = require "Jiaye.RelicState"
+local OriginView = require "Jiaye.OriginView"
 
 local App = {}
 App.__index = App
@@ -404,6 +405,11 @@ function App:ConfirmEnding(endingId)
     if not ending or ending.automatic then self:Notify("这条终章不能由家主确认。", "warning"); return end
     if not Simulation.IsEndingReady(self.run, endingId) then self:Notify("条件尚未满足。", "warning"); return end
     local conditionLines = { ending.desc, "以下经历会写入本局终章。确认后，人物、家业、事件和信物将进入只读状态。" }
+    ---@type table?
+    local opportunity = self.run.originOpportunity
+    if opportunity and opportunity.status == "active" and (opportunity.deposit or 0) > 0 then
+        table.insert(conditionLines, "旧卷尚有" .. tostring(opportunity.deposit) .. "两押金未归还；现在落笔会将合同封存，押金不会自动兑现。")
+    end
     for _, item in ipairs(Simulation.EndingProgress(self.run, endingId)) do
         table.insert(conditionLines, ProgressText(item))
     end
@@ -555,7 +561,7 @@ function App:BuildFamilyTab()
             local relic = newRelics and RelicState.Form(instance) or Data.Relic(instance.definitionId)
             if instance.status == "held" and (newRelics or relic.basic and instance.stage ~= "completed" and instance.rewardState ~= "granted") then
                 table.insert(children, Card({ UI.Row { gap = 10, alignItems = "center", children = {
-                    Visual.Relic(instance.definitionId, 42),
+                    Visual.Relic(newRelics and relic.id or instance.definitionId, 42),
                     UI.Panel { flex = 1, gap = 4, children = {
                         Label(relic.name, { fontSize = 18 }),
                         Label("家传旧物 · " .. (newRelics and relic.description or relic.desc), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
@@ -577,6 +583,8 @@ function App:BuildFamilyTab()
             }))
         end
     end
+    local originCard = OriginView.Card(self)
+    if originCard then table.insert(children, originCard) end
     table.insert(children, self:BuildFamilyMap())
     for _, habit in pairs(self.run.habitFormations or {}) do
         local status = ({ active = "已形成", paused = "暂歇", inactive = "失效" })[habit.status] or habit.status
@@ -683,7 +691,6 @@ function App:BuildEstateTab()
             }))
         end
     end
-    local prices = Data.RuntimeAssetCosts
     local assetActions = {}
     local assets = {
         { id = "land", label = "购田", outcome = "田地 +1 亩；年度结算多收 4 石粮。" },
@@ -692,8 +699,11 @@ function App:BuildEstateTab()
     }
     for _, asset in ipairs(assets) do
         local item = asset
-        table.insert(assetActions, Button(item.label .. " · " .. tostring(prices[item.id]) .. " 两", function()
-            self:ConfirmRunAction("确认" .. item.label, "成本：" .. tostring(prices[item.id]) .. " 两。\n结果：" .. item.outcome, function() return Simulation.BuyAsset(self.run, item.id) end, "确认置办")
+        local quote = assert(Simulation.AssetQuote(self.run, item.id))
+        table.insert(assetActions, Button(item.label .. " · " .. tostring(quote.price) .. " 两", function()
+            local current = assert(Simulation.AssetQuote(self.run, item.id))
+            local discount = current.discount > 0 and "（已减免" .. tostring(current.discount) .. "两）" or ""
+            self:ConfirmRunAction("确认" .. item.label, "成本：" .. tostring(current.price) .. " 两" .. discount .. "。\n结果：" .. item.outcome, function(run) return Simulation.BuyAsset(run, item.id) end, "确认置办")
         end, { height = 46, fontSize = 13 }))
     end
     ---@type string[]
@@ -786,6 +796,8 @@ function App:BuildGame()
 end
 
 function App:Render()
+    local source = self.screen == "opening" and (self.openingEditDraft or self.draft) or self.run or self.draft
+    Visual.SetArtVersion(source and source.artVersion)
     local page = self.screen == "cover" and self:BuildCover() or (self.screen == "opening" and self:BuildOpening() or self:BuildGame())
     local children = {}
     if self.saveMessage ~= "" then

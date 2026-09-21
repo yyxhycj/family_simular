@@ -346,7 +346,7 @@ function OpeningEditor.AddMember(self)
         id = id, name = draft.family .. "新", givenName = "新", nameSource = "family", sex = "女",
         age = 18, parents = {}, talent = 2, focus = "general", experienceId = "none", trait = "沉静", jobId = "farm",
     }
-    V7.Art.Assign(self.memberEditing, draft.rngSeed or "draft")
+    V7.Art.Assign(self.memberEditing, draft.rngSeed or "draft", draft.artVersion)
     self.memberLeader = draft.leaderId
     self.memberReturn = self.openingView
     self.memberSection = "base"

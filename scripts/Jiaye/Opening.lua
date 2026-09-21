@@ -4,6 +4,7 @@ local State = require "Jiaye.State"
 local Art = require "Jiaye.Art"
 local RelicDefinitions = require "Jiaye.RelicDefinitions"
 local RelicState = require "Jiaye.RelicState"
+local OriginState = require "Jiaye.OriginState"
 local Opening = {}
 Opening.Fields = {
     world = { "worldId", "periodId", "calendar", "originId", "backgroundId", "placeId" },
@@ -232,7 +233,7 @@ local function randomPage(candidate, page, profile, roll, pick)
         candidate.backgroundId = background and background.id or nil
     elseif page == "people" then
         buildMembers(candidate, candidate.family, roll, pick)
-        for _, member in ipairs(candidate.members) do Art.Assign(member, candidate.rngSeed) end
+        for _, member in ipairs(candidate.members) do Art.Assign(member, candidate.rngSeed, candidate.artVersion) end
     elseif page == "estate" then
         candidate.money = roll(0, 12) * Data.OpeningCosts.moneyUnit
         candidate.grain = roll(0, 10) * Data.OpeningCosts.grainUnit; candidate.land = roll(0, 3)
@@ -280,6 +281,8 @@ function Opening.Generate(profile, seed, worldId)
         draft.generatorVersion = 2
         draft.rulesVersion = Data.RULES_VERSION
         draft.relicRulesVersion = RelicDefinitions.VERSION
+        draft.originRulesVersion = OriginState.VERSION
+        draft.artVersion = "ink_v2_review"
         draft.selectedRelicFormIds = {}
         draft.relicUsers = {}
         draft.selectedRelicIds = nil
@@ -291,7 +294,7 @@ function Opening.Generate(profile, seed, worldId)
         local background = backgroundForOrigin(draft.originId)
         draft.backgroundId = background and background.id or nil
         draft.rngSeed = source.rngState
-        for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed) end
+        for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed, draft.artVersion) end
         Opening.AssignRelicUserDefaults(draft)
         if #State.ValidateDraft(draft, profile, false) == 0 then
             draft.rngSeed = source.rngState

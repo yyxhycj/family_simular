@@ -199,9 +199,7 @@ local function relicSummary(app)
 end
 
 local function relicArtId(form)
-    if form.legacyId then return form.legacyId end
-    local family = RelicDefinitions.Family(form.familyId)
-    return family and family.legacyId or form.familyId
+    return form.id
 end
 
 function View.Summary(app)
@@ -248,6 +246,11 @@ function View.Summary(app)
         text("›", 22, C.muted),
     } })
     table.insert(children, row({ text("首年预计 · 不含突发", 14, C.muted), button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { flex = 1, height = 44, fontSize = 14 }) }))
+    table.insert(children, choose({ { value = "ink_v2_review", label = "水墨画面 · v2" }, { value = "1.0.0", label = "原有画面 · v1" } }, draft.artVersion or "1.0.0", function(version)
+        draft.artVersion = version
+        for _, member in ipairs(draft.members) do member.artVersion = version end
+        app:Render()
+    end))
     return UI.Panel { gap = 3, padding = 0, children = children }
 end
 
@@ -420,7 +423,7 @@ local function memberView(app)
         member[key] = value
         if key == "sex" then
             member.artId = nil
-            V7.Art.Assign(member, draft.rngSeed)
+            V7.Art.Assign(member, draft.rngSeed, draft.artVersion)
         end
         app.memberIssue = ""; app:Render()
     end

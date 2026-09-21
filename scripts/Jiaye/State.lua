@@ -3,6 +3,7 @@ local Art = require "Jiaye.Art"
 local RelicDefinitions = require "Jiaye.RelicDefinitions"
 local RelicState = require "Jiaye.RelicState"
 local RelicValidation = require "Jiaye.RelicValidation"
+local OriginState = require "Jiaye.OriginState"
 ---@diagnostic disable: undefined-global -- UrhoX runtime injects File/fileSystem/cjson.
 
 local State = {}
@@ -223,6 +224,8 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
     local unlockedRelicIds = type(profile.unlockedRelicIds) == "table" and profile.unlockedRelicIds or {}
     local issues, ids = {}, {}
     if draft.relicRulesVersion ~= nil and draft.relicRulesVersion ~= RelicDefinitions.VERSION then table.insert(issues, "信物规则版本未知。") end
+    if draft.originRulesVersion ~= nil and (draft.originRulesVersion ~= OriginState.VERSION or draft.relicRulesVersion ~= RelicDefinitions.VERSION) then table.insert(issues, "背景机会规则版本无效。") end
+    if draft.artVersion ~= nil and draft.artVersion ~= "1.0.0" and draft.artVersion ~= "ink_v2_review" then table.insert(issues, "美术版本未知。") end
     if draft.rulesVersion ~= nil and (not IsInteger(draft.rulesVersion) or not KNOWN_RULES_VERSIONS[draft.rulesVersion]) then table.insert(issues, "开局规则版本未知。") end
     if draft.worldId ~= "mortal" then table.insert(issues, "当前仅支持凡世开局。") end
     local period = Data.Period(draft.periodId)
@@ -364,7 +367,7 @@ local function CreateRun(draft, profile, allowOverBudget)
     local reputation = (origin.id == "gentry" and 25 or 0) + (draft.tieId == "neighbor" and 12 or 0)
     if draft.homeId == "estate" then reputation = reputation + 8 end
     local run = {
-        runId = runId, schemaVersion = 1, rulesVersion = rulesVersion,
+        runId = runId, schemaVersion = 1, rulesVersion = rulesVersion, artVersion = draft.artVersion,
         openingSnapshot = openingSnapshot, backgroundId = background and background.id or nil, backgroundDefinition = background and State.Copy(background) or nil,
         worldId = draft.worldId, yearIndex = 0, calendar = draft.calendar, eraId = period.era, eraSinceYear = 0,
         placeId = draft.placeId, originId = draft.originId, habitId = draft.habitId, tieId = draft.tieId,
@@ -374,6 +377,7 @@ local function CreateRun(draft, profile, allowOverBudget)
         rngState = draft.rngSeed, processedCommands = {}, flags = {}, metrics = { stable = 0, foodYears = 0, aid = 0, migrations = 0, lastMove = 0 },
     }
     if draft.relicRulesVersion == RelicDefinitions.VERSION then RelicState.InitNewRun(run, draft, profile) end
+    OriginState.Init(run, draft)
     for _, member in ipairs(run.members) do
         State.AddFact(run, "opening", member.name .. "以“" .. Data.Jobs[member.jobId].name .. "”开始这一段人生。", { member.id }, { recordLog = false })
     end
@@ -737,6 +741,9 @@ local function ValidateRun(run)
     end
     local relicOk, relicMessage = RelicValidation.Run(run, memberIds, relicIds)
     if not relicOk then return false, relicMessage end
+    local originOk, originMessage = OriginState.Validate(run, memberIds)
+    if not originOk then return false, originMessage end
+    if run.artVersion ~= nil and run.artVersion ~= "1.0.0" and run.artVersion ~= "ink_v2_review" then return false, "运行家谱美术版本未知。" end
     if run.ending and (type(run.ending) ~= "table" or not Data.Ending(run.ending.id)) then return false, "终章引用无效。" end
     return true
 end
@@ -852,9 +859,11 @@ local exportPath = "jiaye_export.json"
 ---@type string?
 local failedSavePath = nil
 
-function State.UseVerificationStorage()
-    SAVE_PATHS = { "jiaye_v12_verification.json", "jiaye_v12_verification.backup.json" }
-    exportPath = "jiaye_v12_verification.export.json"
+function State.UseVerificationStorage(suite)
+    assert(suite == nil or suite == "origin", "未知验收存档范围。")
+    local prefix = suite == "origin" and "jiaye_origin_verification" or "jiaye_v12_verification"
+    SAVE_PATHS = { prefix .. ".json", prefix .. ".backup.json" }
+    exportPath = prefix .. ".export.json"
     failedSavePath = nil
 end
 

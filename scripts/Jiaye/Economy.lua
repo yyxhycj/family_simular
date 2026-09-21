@@ -2,6 +2,7 @@ local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Habits = require "Jiaye.Habits"
 local RelicState = require "Jiaye.RelicState"
+local OriginEffects = require "Jiaye.OriginEffects"
 
 local Economy = {}
 
@@ -58,6 +59,14 @@ local function GrowthText(growth)
     return "无属性成长"
 end
 
+local function CurrentYearOriginTransactions(run, year)
+    local rows = {}
+    for _, entry in ipairs(List(run.originTransactions)) do
+        if entry.yearIndex == year then table.insert(rows, State.Copy(entry)) end
+    end
+    return rows
+end
+
 local function BaseGrowth(run, member, job, place)
     if not job.stat then return nil, 0 end
     local talent = Data.Talent(math.tointeger(member.talent) or 1)
@@ -71,8 +80,9 @@ local function BaseGrowth(run, member, job, place)
     return job.stat, gain
 end
 
-local function ApplyGrowth(run, member, job, place, effects)
-    local growth = { stat = job.stat, amount = 0, health = 0, gain = 0, baseGrowth = 0, relicGrowth = 0, habitGrowth = 0 }
+local function ApplyGrowth(run, member, job, place, effects, origin)
+    origin = origin or { learn = 0 }
+    local growth = { stat = job.stat, amount = 0, health = 0, gain = 0, baseGrowth = 0, relicGrowth = 0, habitGrowth = 0, originGrowth = 0 }
     local initialHealth = member.health
     if job.stat == "health" then
         local before = member.health
@@ -84,7 +94,8 @@ local function ApplyGrowth(run, member, job, place, effects)
         local baseGain = gain
         local relicGain = (stat == "skill" and effects.skill or 0) + (stat == "medicine" and effects.medicine or 0)
         local habitGain = member.jobId == "study" and Habits.Growth(run, member) or 0
-        gain = gain + relicGain + habitGain
+        local originGain = stat == "learn" and (origin.learn or 0) or 0
+        gain = gain + relicGain + habitGain + originGain
         local before = member.stats[stat] or 0
         member.stats[stat] = math.min(100, before + math.max(0, gain))
         growth.amount = member.stats[stat] - before
@@ -92,6 +103,7 @@ local function ApplyGrowth(run, member, job, place, effects)
         growth.baseGrowth = baseGain
         growth.relicGrowth = relicGain
         growth.habitGrowth = habitGain
+        growth.originGrowth = originGain
     end
     if member.jobId == "home" then
         local before = member.health
@@ -130,6 +142,7 @@ local function NewMemberRow(run, snapshot, period, place)
         job = job and job.name or tostring(snapshot.jobId), money = 0, grain = 0,
         executed = false, paid = 0, growth = { stat = job and job.stat, amount = 0, health = 0, gain = 0 },
         baseGrowth = 0, relicGrowth = 0, habitGrowth = 0, relicIncome = 0, relicSources = {}, reason = nil,
+        originGrowth = 0, originIncome = 0, originSources = {},
     }
     if not job then row.reason = "岗位定义不存在，年度安排未执行。"; return row end
     local eligible, eligibilityReason = State.CanUseJob(snapshot, snapshot.jobId)
@@ -148,15 +161,20 @@ local function NewMemberRow(run, snapshot, period, place)
     if effectiveMoney > 0 then run.money = run.money + effectiveMoney end
     local grain = JobGrain(run, snapshot, place)
     run.grain = run.grain + grain
-    row.money = effectiveMoney + effects.money
+    local origin = OriginEffects.ForMember(run, snapshot, (run.yearIndex or 0) + 1)
+    if origin.money ~= 0 then run.money = run.money + origin.money end
+    row.money = effectiveMoney + effects.money + origin.money
     row.relicIncome = effects.money
+    row.originIncome = origin.money
+    row.originSources = origin.sources
     if effects.money > 0 then run.money = run.money + effects.money end
     row.grain = grain
     row.executed = true
-    row.growth = ApplyGrowth(run, member, job, place, effects)
+    row.growth = ApplyGrowth(run, member, job, place, effects, origin)
     row.baseGrowth = row.growth.baseGrowth or 0
     row.relicGrowth = row.growth.relicGrowth or 0
     row.habitGrowth = row.growth.habitGrowth or 0
+    row.originGrowth = row.growth.originGrowth or 0
     member.jobYears = member.jobYears or {}
     member.jobYears[snapshot.jobId] = (member.jobYears[snapshot.jobId] or 0) + 1
     return row
@@ -328,7 +346,7 @@ local function SettleV12(run)
     local living = Living(run)
     local period, place = Data.Period(run.eraId) or Data.Period("peace"), Data.Place(run.placeId)
     local beforeMoney, beforeGrain, rows = run.money, run.grain, {}
-    local income, training, relicPassiveIncome = 0, 0, 0
+    local income, training, relicPassiveIncome, originIncome, originGrowth = 0, 0, 0, 0, 0
     local snapshots = {}
     for _, member in ipairs(living) do table.insert(snapshots, State.Copy(member)) end
     for _, snapshot in ipairs(snapshots) do
@@ -336,9 +354,11 @@ local function SettleV12(run)
         local row = NewMemberRow(run, snapshot, period, place)
         table.insert(rows, row)
         if row.executed then
-            local baseDelta = run.money - before - (row.relicIncome or 0)
+            local baseDelta = run.money - before - (row.relicIncome or 0) - (row.originIncome or 0)
             if baseDelta > 0 then income = income + baseDelta end
             training = training + row.paid
+            originIncome = originIncome + (row.originIncome or 0)
+            originGrowth = originGrowth + (row.originGrowth or 0)
             for _, source in ipairs(row.relicSources) do
                 if source.category == "relic_passive_income" then relicPassiveIncome = relicPassiveIncome + source.money end
             end
@@ -349,6 +369,8 @@ local function SettleV12(run)
     if run.originId == "gentry" then run.reputation = run.reputation + 1 end
     local industryStart = run.money
     run.grain = run.grain + run.land * 4
+    local originGrain = OriginEffects.HouseholdGrain(run, rows, (run.yearIndex or 0) + 1)
+    run.grain = run.grain + originGrain.grain
     if run.workshop then
         local hasCraft = false; for _, row in ipairs(rows) do if row.executed and row.jobId == "craft" then hasCraft = true end end
         if hasCraft then run.money = run.money + 8 else State.AddLog(run, "作坊无人经营，今年没有额外收益。") end
@@ -366,10 +388,17 @@ local function SettleV12(run)
     ledger.landGrain = run.land * 4
     ledger.relicIncome = relicPassiveIncome
     ledger.relicPassiveIncome = relicPassiveIncome
+    ledger.originIncome = originIncome
+    ledger.originGrowth = originGrowth
+    ledger.originGrain = originGrain.grain
+    ledger.originGrainSources = originGrain.sources
+    ledger.originSources = {}
     ledger.relicSources = {}
     for _, row in ipairs(rows) do
         for _, source in ipairs(row.relicSources) do table.insert(ledger.relicSources, State.Copy(source)) end
+        for _, source in ipairs(row.originSources) do table.insert(ledger.originSources, State.Copy(source)) end
     end
+    ledger.originTransactions = CurrentYearOriginTransactions(run, (run.yearIndex or 0) + 1)
     ledger.beforeMoney = beforeMoney
     ledger.beforeGrain = beforeGrain
     ledger.money = run.money
@@ -403,7 +432,7 @@ function Economy.JobQuote(run, memberId, jobId)
         if candidate.memberId == memberId then row = candidate; break end
     end
     if not row then return nil, "年度报价未生成对应成员记录。" end
-    return { baseMoney = job.money or 0, money = row.money, grain = row.grain, growth = row.growth, growthStat = row.growth.stat, growthText = row.executed and GrowthText(row.growth) or (row.reason or "本年度未执行"), executed = row.executed, paid = row.paid, reason = row.reason, relicSources = row.relicSources, baseGrowth = row.baseGrowth, relicGrowth = row.relicGrowth, habitGrowth = row.habitGrowth }
+    return { baseMoney = job.money or 0, money = row.money, grain = row.grain, originGrain = ledger.originGrain or 0, growth = row.growth, growthStat = row.growth.stat, growthText = row.executed and GrowthText(row.growth) or (row.reason or "本年度未执行"), executed = row.executed, paid = row.paid, reason = row.reason, relicSources = row.relicSources, originSources = row.originSources, originIncome = row.originIncome, originGrowth = row.originGrowth, baseGrowth = row.baseGrowth, relicGrowth = row.relicGrowth, habitGrowth = row.habitGrowth }
 end
 
 function Economy.Settle(run)
@@ -418,5 +447,6 @@ function Economy.Preview(run)
 end
 
 Economy.RelicState = RelicState
+Economy.OriginEffects = OriginEffects
 
 return Economy

@@ -1,6 +1,7 @@
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
 local Economy = require "Jiaye.Economy"
+local OriginSystem = require "Jiaye.OriginSystem"
 local Art = require "Jiaye.Art"
 local RelicState = require "Jiaye.RelicState"
 local RelicSystem = require "Jiaye.RelicSystem"
@@ -311,7 +312,7 @@ function Simulation.Marry(run, memberId)
     ---@type string[]
     local names = spouseSex == "男" and Data.GivenNames.male or Data.GivenNames.female
     local spouse = { id = spouseId, name = (spouseSex == "男" and "沈" or "顾") .. names[State.Random(run, 1, #names)], sex = spouseSex, age = math.max(Data.AgeRules.adult, member.age - State.Random(run, 0, 5)), parents = {}, spouseId = member.id, talent = 2, focus = "general", experienceId = "basic", trait = "安稳", jobId = "home", alive = true, health = 72, stats = State.Copy(Data.Experience("basic").values), jobYears = {}, biography = { "因婚配加入“" .. run.openingSnapshot.family .. "”家。" }, fertility = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false, generation = State.Generation(run.members, member.id) }
-    Art.Assign(spouse, run.runId)
+    Art.Assign(spouse, run.runId, run.artVersion)
     member.spouseId = spouseId; member.fertility = true; member.birthPlan = true; run.money = run.money - 12
     table.insert(run.members, spouse)
     State.AddFact(run, "marriage", member.name .. "与" .. spouse.name .. "成婚，新成员入谱。", { member.id, spouse.id })
@@ -326,7 +327,7 @@ function Simulation.Adopt(run, guardianId)
     if run.money < 8 then return false, "收养安置需要 8 两。" end
     local childId = NextMemberId(run)
     local child = { id = childId, name = run.openingSnapshot.family .. "小满", sex = State.Random(run, 0, 1) == 0 and "女" or "男", age = 6, parents = { guardian.id }, spouseId = nil, talent = 2, focus = "general", experienceId = "none", trait = "敏锐", jobId = "study", alive = true, health = 70, stats = State.Copy(Data.Experience("none").values), jobYears = {}, biography = { "大晟历 " .. tostring(run.calendar) .. " 年被收养，监护人为" .. guardian.name .. "。" }, adopted = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false, generation = State.Generation(run.members, guardian.id) + 1 }
-    Art.Assign(child, run.runId)
+    Art.Assign(child, run.runId, run.artVersion)
     run.money = run.money - 8; table.insert(run.members, child)
     State.AddFact(run, "adoption", guardian.name .. "收养了" .. child.name .. "，孩子获得与其他族人同等的成长和继任资格。", { guardian.id, child.id })
     return true, "收养已完成。"
@@ -356,16 +357,24 @@ function Simulation.MoveFamily(run, placeId)
     return true, "迁居已记入家史。"
 end
 
+function Simulation.AssetQuote(run, assetId)
+    local price = Data.RuntimeAssetCosts[assetId]
+    if not price then return nil, "未知置办项目。" end
+    return OriginSystem.AssetQuote(run, assetId, price)
+end
+
 function Simulation.BuyAsset(run, assetId)
     local closed, message = IsClosed(run)
     if closed then return false, message end
-    local price = Data.RuntimeAssetCosts[assetId]
-    if not price then return false, "未知置办项目。" end
+    local quote, quoteMessage = Simulation.AssetQuote(run, assetId)
+    if not quote then return false, quoteMessage end
+    local price = quote.price
     if run.money < price then return false, "公库不足，需要 " .. tostring(price) .. " 两。" end
     if assetId == "workshop" and run.workshop then return false, "家中已有作坊。" end
     if assetId == "shop" and run.shop then return false, "家中已有商铺。" end
     run.money = run.money - price
     if assetId == "land" then run.land = run.land + 1 elseif assetId == "workshop" then run.workshop = true else run.shop = true end
+    OriginSystem.RecordAssetPurchase(run, quote)
     local assetName = ({ land = "田地", workshop = "木工作坊", shop = "小商铺" })[assetId]
     State.AddFact(run, "asset_purchase", "置办“" .. assetName .. "”，花费 " .. tostring(price) .. " 两。", {}, { assetId = assetId, price = price })
     return true, "置办完成。"
@@ -449,7 +458,7 @@ function Simulation.InviteBranch(run, instanceId)
         hadHomeAfterGuard = false, generation = leader and leader.generation or 1,
         biography = { "因补完的族谱寻回旁支，于大晟历 " .. tostring(run.calendar) .. " 年归家。" }, branch = true,
     }
-    Art.Assign(member, run.runId)
+    Art.Assign(member, run.runId, run.artVersion)
     run.money = run.money - 12; run.flags.branchInvited = true; table.insert(run.members, member)
     State.AddFact(run, "relic", executor.name .. "依照补完的族谱寻回" .. member.name .. "，旁支正式归家。", { executor.id, member.id }, { action = "invite_branch", relicInstanceId = relic.instanceId })
     State.AddLog(run, member.name .. "作为成年旁支归家，名字被正式写回族谱。")
@@ -796,7 +805,7 @@ local function TryBirths(run)
                     generation = math.max(parent.generation or 1, spouse.generation or 1) + 1,
                     biography = { "大晟历 " .. tostring(run.calendar) .. " 年出生，亲长是" .. parent.name .. "与" .. spouse.name .. "。" },
                 }
-                Art.Assign(child, run.runId)
+                Art.Assign(child, run.runId, run.artVersion)
                 parent.lastBirthYear = run.yearIndex; spouse.lastBirthYear = run.yearIndex
                 table.insert(run.members, child)
                 State.AddFact(run, "birth", child.name .. "出生，家谱添了一页新名字。", { parent.id, spouse.id, child.id })
@@ -873,6 +882,7 @@ local function AgeAndLife(run, living)
         if member.health < 20 then danger = danger + 0.05 end
         if State.Random(run) < danger then
             member.alive = false
+            member.ageAtDeath = member.age
             for _, relic in ipairs(run.relicInstances) do if relic.custodianId == member.id and relic.status ~= "sold" then relic.custodianId = nil end end
             State.AddFact(run, "death", member.name .. "于大晟历 " .. tostring(run.calendar) .. " 年离世，生平被保留在家谱中；其保管物已回收入家中。", { member.id })
         end
@@ -899,7 +909,7 @@ function Simulation.AdvanceYear(run, profile)
     local newRelics = RelicState.IsNew(run)
     if newRelics then
         yearStart = {}
-        for _, key in ipairs({ "money", "grain", "land", "yearIndex", "calendar", "relicRulesVersion", "members", "leaderId", "relicInstances", "primaryRelics", "relicTasks", "habitFormations", "habitId" }) do
+        for _, key in ipairs({ "money", "grain", "land", "yearIndex", "calendar", "eraId", "relicRulesVersion", "members", "leaderId", "relicInstances", "primaryRelics", "relicTasks", "habitFormations", "habitId", "originRulesVersion", "originOpportunity" }) do
             yearStart[key] = State.Copy(run[key])
         end
     end
@@ -911,11 +921,13 @@ function Simulation.AdvanceYear(run, profile)
     if newRelics then
         local settled, settleMessage = RelicSystem.Tick(run, profile, yearStart, run.lastLedger)
         if not settled then error(settleMessage) end
+        OriginSystem.Tick(run, yearStart, run.lastLedger)
         State.RecordAnnualLedger(run, run.lastLedger, yearStart)
     end
     UpdateHabitFormation(run, run.lastLedger)
     TryBirths(run); AgeAndLife(run, living); QueueGrowthEvents(run)
     if newRelics then RelicSystem.AfterDeaths(run) else QueueDueRelicEvents(run) end
+    OriginSystem.AfterDeaths(run)
     HandleLeadership(run); MaybeShiftEra(run)
     if not newRelics and not HasRelic(run, "notes") and not run.flags.notesOffered then
         for _, member in ipairs(run.members) do
@@ -1072,6 +1084,7 @@ function Simulation.FinalizeEnding(run, ending, profile)
     if not ending then return false, "终章不存在。" end
     profile.endingRecords = profile.endingRecords or {}
     if RelicState.IsNew(run) then RelicSystem.Archive(run) end
+    OriginSystem.Archive(run)
     local closingEventIds = ClosePendingEvents(run, ending.id)
     local memberIds = {}
     for _, member in ipairs(run.members) do table.insert(memberIds, member.id) end
@@ -1080,7 +1093,7 @@ function Simulation.FinalizeEnding(run, ending, profile)
         automaticTrigger = ending.automaticTrigger,
         year = run.calendar, summary = ending.desc, yearIndex = run.yearIndex, leaderId = run.leaderId,
         evidence = Simulation.EndingEvidence(run, ending.id), qualifiedEndingIds = QualifiedEndingIds(run),
-        closingEventIds = closingEventIds,
+        closingEventIds = closingEventIds, originOpportunity = State.Copy(run.originOpportunity),
     }
     local factText = record.automatic and (ending.automaticFact or "自然终局已写入家史。") or "选择“" .. ending.title .. "”作为这一局的主终章。"
     local fact = State.AddFact(run, "ending", factText, memberIds, {

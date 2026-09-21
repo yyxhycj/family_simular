@@ -43,49 +43,49 @@ Data.Places = {
 }
 
 -- 新开局使用背景定义承接来历、地区历史和旧识叙事。
--- opportunity 的价格和结果仍待确认，原型阶段不向经济结算注入新奖励。
+-- opportunity 的静态价格和结果与 OriginSystem 合同一致，旧 alias 保留用于存档兼容。
 Data.Backgrounds = {
     {
         id = "plain_village", name = "河畔农家", originId = "plain", cost = 0,
         history = "家中熟悉水土与农时，在河畔乡里守着一块薄田。",
         contacts = { { id = "zhou_boqu", name = "周伯渠", relation = "河埠老农", history = "每逢汛期替乡里传递农时消息。" } },
         effect = { description = "务农族人每年额外收粮 1 石。", condition = "在世族人当前安排为耕作。", source = "Data.Origins.plain" },
-        opportunity = { id = "plain_harvest", name = "河埠换种", status = "prototype", condition = "需要在世耕作者并完成一段真实农事经历。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+        opportunity = { id = "origin.seed_exchange", alias = "plain_harvest", name = "河埠换种", status = "available", condition = "办理人须在世、成年、当前主业为耕作；家族田地至少1亩；公库至少4石粮；额外事务名额空闲。", cost = "确认试种立即支付4石粮；完成1个有效耕作年后不再收费。完成后选择留下种或分给邻人另付2石粮，留作家用不再付费。", result = "试种完成自动到账8石粮一次。留下种：接下来3个有效耕作年，每年全家额外收粮2石，整条路线净变化+8石；分给邻人：声望+4，整条路线净变化+2石；留作家用：整条路线净变化+4石。" },
     },
     {
         id = "artisan_workshop", name = "手艺人家", originId = "artisan", cost = 8,
         history = "家中有人靠手艺度日，旧工具和师承仍留在手边。",
         contacts = { { id = "shen_musheng", name = "沈木生", relation = "旧匠坊师兄", history = "曾与家中手艺人同在一间匠坊学艺。" } },
         effect = { description = "学手艺、手艺谋生每年额外手艺 +1。", condition = "族人当前安排为学手艺或手艺谋生。", source = "Data.Origins.artisan" },
-        opportunity = { id = "artisan_repair", name = "旧坊修缮", status = "prototype", condition = "需要在世手艺人当前安排为手艺谋生，并有可追溯的作坊经历。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+        opportunity = { id = "origin.workshop_repair", alias = "artisan_repair", name = "旧坊修缮", status = "available", condition = "办理人须在世、成年、手艺至少35；公库至少8两；额外事务名额空闲；不要求自有作坊，主业无需固定为手艺谋生。", cost = "确认修缮立即支付8两工料费；完成1个有效工作年后不再收费。可选挂载当前未出售的老木尺或营造图，挂载不另收费，资格由报价校验。", result = "完成后最后实际办理人手艺+3，工程事实写入家史，再二选一：领足工钱，到账22两（工料报销8两+净劳动报酬14两），全流程净变化+14两；留下置办便利，到账14两（工料报销8两+现金报酬6两），获得一次本局购买作坊最多减免16两，当下净变化+6两。" },
     },
     {
         id = "merchant_route", name = "行商后裔", originId = "merchant", cost = 12,
         history = "家中记得几条旧商路，往来见闻比田地更熟。",
         contacts = { { id = "gu_jiuru", name = "顾九如", relation = "南来商行掌柜", history = "家中长辈曾在南来商行留下账册。" } },
         effect = { description = "经商收入 +10%。", condition = "族人当前安排为外出经商。", source = "Data.Origins.merchant" },
-        opportunity = { id = "merchant_credit", name = "旧账重开", status = "prototype", condition = "需要在世经商者、实际商路经历和有效账本记录。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+        opportunity = { id = "origin.old_accounts", alias = "merchant_credit", name = "旧账重开", status = "available", condition = "对账：任一在世成年人；公库至少2两。续做一单：对账完成后指定在世成年人，经营至少25，额外事务名额空闲，公库另有12两交易投入。", cost = "对账确认立即支付2两文书/核账成本；对账不占多年事务名额。选择续做一单时再支付12两商货投入；选择折价结清不再收费。", result = "对账固定核实旧欠12两但不立即入库。折价结清即时到账12两，自对账起净变化+10两；续做一单完成1个有效工作年后到账30两（本金返还12两+旧账回收12两+新单利润6两），办理人经营+3，自对账起净变化+16两。两条路径互斥，无额外随机失败。" },
     },
     {
         id = "scholar_lineage", name = "书香旧族", originId = "scholar", cost = 16,
         history = "旧书和家训尚在，家中仍有人愿意从灯下读起。",
         contacts = { { id = "lu_yanshan", name = "陆砚山", relation = "塾中旧友", history = "曾与家中读书人共同抄录旧籍。" } },
         effect = { description = "读书每年额外学识 +2。", condition = "族人当前安排为读书求学。", source = "Data.Origins.scholar" },
-        opportunity = { id = "scholar_archive", name = "旧卷借阅", status = "prototype", condition = "需要在世读书者和连续读书的真实家史记录。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+        opportunity = { id = "origin.scroll_loan", alias = "scholar_archive", name = "旧卷借阅", status = "available", condition = "读者须在世、年满5岁、当前可实际读书并有合法读书安排；公库至少8两。", cost = "确认借入立即支付8两，其中整理服务费2两为真实支出，押金6两转为家族押金资产；借期为借入后的3个自然年度。", result = "借期内最多2个有效读书年，每年额外学识+3，最多+6；可免费换另一位合格读者，不重置次数或归还日。按时归还退押金6两；每完整逾期年度从押金扣2两，最多扣6两；第3个完整逾期年度末自动收回书卷，押金退回0两。整理费不退，整条正常归还路线净支出2两。" },
     },
     {
         id = "military_post", name = "军户后人", originId = "military", cost = 10,
         history = "家中熟悉守备与操练，仍记得旧营地的规矩。",
         contacts = { { id = "cheng_shouyi", name = "程守义", relation = "驿站故人", history = "家中长辈曾替驿站守过一段路。" } },
         effect = { description = "习武每年额外武艺 +2；护卫收入 +10%。", condition = "族人当前安排为习武或担任护卫。", source = "Data.Origins.military" },
-        opportunity = { id = "military_escort", name = "旧营护送", status = "prototype", condition = "需要在世护卫者和已发生的护卫经历。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+        opportunity = { id = "origin.escort", alias = "military_escort", name = "旧营护送", status = "available", condition = "办理人须在世、成年、武艺至少35、年初体魄至少50；额外事务名额空闲。", cost = "稳路确认立即支付6两，完成1个有效工作年；急件确认立即支付8两，完成同一个有效工作年。路线确认后不可改路，暂停不增加路费。", result = "稳路完成到账18两（盘缠报销6两+报酬12两），武艺+2，净变化+12两。急件成功到账32两（盘缠报销8两+报酬24两），武艺+3，净变化+24两；急件失败退回未用盘缠6两，体魄-8、武艺+1，原支付8两的净变化为-2两。急件成功率按年初武艺与动荡时世计算并只抽签1次：clamp(70%+floor((武艺-35)/5)*2%-动荡时世10%, 50%, 90%)。" },
     },
     {
         id = "gentry_old_house", name = "旧日名门", originId = "gentry", cost = 26,
         history = "旧宅与名望都已褪色，留下的是需要重新经营的家史。",
         contacts = { { id = "wen_jingxiu", name = "闻敬修", relation = "旧门房", history = "仍替家中保管一册未完的旧客名录。" } },
         effect = { description = "初始声望 +25；每年声望 +1。", condition = "开局写入初始声望，年度结算保留既有声望增长。", source = "Data.Origins.gentry" },
-        opportunity = { id = "gentry_reputation", name = "旧客重访", status = "prototype", condition = "需要真实接待或互助事实，具体事件条件待确认。", cost = nil, result = nil, pending = "费用与结果待确认；原型阶段不扣款、不改变年度结算。" },
+        opportunity = { id = "origin.old_guest", alias = "gentry_reputation", name = "旧客重访", status = "available", condition = "主持人须在世、成年；公库至少8两；额外事务名额空闲。主持人无需族长身份、豪宅或声望门槛。", cost = "确认接待立即支付8两；完成1个有效工作年后不再收费。接待完成后求学引荐或谋生引荐均不再收接待费。", result = "接待完成声望+8并生成一份引荐资格。求学引荐：指定在世、年满5岁的成员，指定后6个自然年度内最多3个有效读书年，每次额外学识+2，最多+6；谋生引荐：指定在世成年成员，指定后4个自然年度内最多2个合格工作年，每次额外到账6两，最多到账12两，扣接待费后全路径净变化+4两。指定后不可换人，目标离世后剩余次数失效。" },
     },
 }
 
