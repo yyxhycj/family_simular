@@ -7,10 +7,9 @@ local Audit = {}
 local checked = {}
 local missing = {}
 
-local function Check(path, source)
+local function Check(path, source, resourceType)
     assert(type(path) == "string" and path ~= "", source .. " 返回空资源路径。")
-    table.insert(checked, { path = path, source = source })
-    if not fileSystem:FileExists(path) then table.insert(missing, { path = path, source = source }) end
+    table.insert(checked, { path = path, source = source, resourceType = resourceType or "Texture2D" })
 end
 
 local function Member(artId, age, version)
@@ -86,10 +85,16 @@ local function AuditLegacyUiPaths()
     end
 end
 
-function Audit.Start()
-    UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
-    AuditArtPaths()
-    AuditLegacyUiPaths()
+local function AuditFonts()
+    for _, path in ipairs({
+        "Fonts/NotoSansSC-Regular.ttf", "Fonts/NotoSansSC-Bold.ttf",
+        "Fonts/SourceHanSerifCN-Regular.otf", "Fonts/SourceHanSerifCN-SemiBold.otf",
+    }) do
+        Check(path, "字体/" .. path, "Font")
+    end
+end
+
+local function Finish()
     assert(#missing == 0, "T14 发现资源路径缺失：" .. cjson.encode(missing))
     UI.SetRoot(UI.Panel {
         width = "100%", height = "100%", justifyContent = "center", alignItems = "center",
@@ -97,6 +102,25 @@ function Audit.Start()
     })
     print("T14_RESOURCE_AUDIT_PASS checked=" .. tostring(#checked) .. " missing=0")
     print("T14_RESOURCE_AUDIT_PLATFORM_WARNINGS uuid://-73mcwx1QB6NyLrwJxv8Kg uuid://u05oYbz5RtecsyHB9-bmKQ source=Maker固定预加载；工程源码与.meta无对应引用。")
+end
+
+local function ResolveResources()
+    local remaining = #checked
+    for _, item in ipairs(checked) do
+        cache:GetResourceAsync(item.resourceType, item.path, function(resource)
+            if not resource then table.insert(missing, { path = item.path, source = item.source }) end
+            remaining = remaining - 1
+            if remaining == 0 then Finish() end
+        end)
+    end
+end
+
+function Audit.Start()
+    UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
+    AuditArtPaths()
+    AuditLegacyUiPaths()
+    AuditFonts()
+    ResolveResources()
 end
 
 function Audit.Stop()
