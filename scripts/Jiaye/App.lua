@@ -860,7 +860,7 @@ function App:Render()
     self.root = UI.SafeAreaView {
         width = "100%",
         height = "100%",
-        edges = "all",
+        edges = "vertical",
         nativeMenuInset = true,
         backgroundColor = C.dark,
         alignItems = "center",
