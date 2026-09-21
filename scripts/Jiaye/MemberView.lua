@@ -5,6 +5,7 @@ local Simulation = require "Jiaye.Simulation"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
 local RelicState = require "Jiaye.RelicState"
+local ModalLayout = require "Jiaye.ModalLayout"
 
 local MemberView = {}
 
@@ -329,15 +330,14 @@ function MemberView.Open(app, memberId)
     local lifePage = app.memberLifePages[memberId] or 1
     local section = "overview"
     local body = UI.Panel { gap = 11, children = {} }
-    local viewHeight = math.max(100, UI.GetHeight() * 0.9 - 144)
-    local scroll = UI.ScrollView { height = viewHeight, padding = 14, children = { body } }
-    local modal = UI.Modal {
-        title = "一个人的一生", size = "fullscreen", backgroundColor = C.paper,
+    local scroll = ModalLayout.Scroll(body, { padding = 14 })
+    local modal = ModalLayout.New("一个人的一生", {
+        backgroundColor = C.paper,
         contentBgColor = C.paper, borderColor = C.rule, titleTextColor = C.ink,
         contentPadding = 0,
         closeIconColor = C.secondary, closeOnOverlay = true,
         onClose = function(selfModal) selfModal:Destroy() end,
-    }
+    })
 
     local render
     local function setSection(nextSection)

@@ -16,6 +16,7 @@ local RelicsView = require "Jiaye.RelicsView"
 local RelicV12View = require "Jiaye.RelicV12View"
 local RelicState = require "Jiaye.RelicState"
 local OriginView = require "Jiaye.OriginView"
+local ModalLayout = require "Jiaye.ModalLayout"
 
 local App = {}
 App.__index = App
@@ -191,32 +192,31 @@ function App:Export()
         value = raw, maxLength = math.max(#raw, 1), height = 180, fontSize = 12,
         placeholder = "家谱备份 JSON",
     }
-    local modal = UI.Modal { title = "保存家谱备份", size = "fullscreen", closeOnOverlay = true }
-    modal:AddContent(Label(message, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
-    modal:AddContent(Label("备份共 " .. tostring(#raw) .. " 字节。跨应用、跨设备传递以用户文档中的 JSON 文件为准：可打开文件后用系统文件应用复制、发送或保存。页面复制只作便捷尝试，游戏内回读不能证明外部应用已收到。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
-    modal:AddContent(externalPath and Label("文件位置：" .. externalPath, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }) or Label("当前环境没有用户文档目录，请使用下方可见备份内容完成传递。", { fontSize = 13, fontColor = C.warning, whiteSpace = "normal" }))
-    modal:AddContent(Label("备份内容（可长按或点入后全选）：", { fontSize = 14, fontWeight = "bold" }))
-    modal:AddContent(backupField)
-    modal:SetFooter(UI.Panel { gap = 8, children = {
-        Button("打开用户文档备份", function()
+    local modal = ModalLayout.New("保存家谱备份", { closeOnOverlay = true })
+    local body = UI.Panel { gap = 10 }
+    body:AddChild(Label(message, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    body:AddChild(Label("备份共 " .. tostring(#raw) .. " 字节。跨应用、跨设备传递以用户文档中的 JSON 文件为准：可打开文件后用系统文件应用复制、发送或保存。页面复制只作便捷尝试，游戏内回读不能证明外部应用已收到。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
+    body:AddChild(externalPath and Label("文件位置：" .. externalPath, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }) or Label("当前环境没有用户文档目录，请使用下方可见备份内容完成传递。", { fontSize = 13, fontColor = C.warning, whiteSpace = "normal" }))
+    body:AddChild(Label("备份内容（可长按或点入后全选）：", { fontSize = 14, fontWeight = "bold" }))
+    body:AddChild(backupField)
+    body:AddChild(Button("打开用户文档备份", function()
             local opened, _, openMessage = State.OpenExternalExport()
             self:Notify(openMessage, opened and "success" or "warning")
-        end, { flex = 1, width = nil }),
-        Button("尝试系统复制", function()
+        end, { width = "100%", role = "secondary" }))
+    body:AddChild(Button("尝试系统复制", function()
             ui:SetUseSystemClipboard(true)
             ui:SetClipboardText(raw)
             if ui:GetClipboardText() ~= raw then self:Notify("系统复制未能在游戏内回读，请打开用户文档备份。", "warning"); return end
             self:Notify("游戏内部已回读复制内容；外部读取请以用户文档文件为准。", "info")
-        end, { flex = 1, width = nil }),
-        Button("返回", function() modal:Close() end, { flex = 1, width = nil, role = "secondary" }),
-    } })
+        end, { width = "100%", role = "secondary" }))
+    modal:AddContent(ModalLayout.Scroll(body))
     modal:Open()
     backupField:SelectAll()
 end
 
 function App:OpenMenu()
-    local modal = UI.Modal { title = "家谱事务", size = "fullscreen", closeOnOverlay = true }
-    modal:AddContent(UI.Panel { gap = 10, children = {
+    local modal = ModalLayout.New("家谱事务", { closeOnOverlay = true })
+    modal:AddContent(ModalLayout.Scroll(UI.Panel { gap = 8, children = {
         Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
         Button("导出备份", function() modal:Close(); self:Export() end, { width = "100%", role = "secondary" }),
         Button("恢复本机备份", function()
@@ -227,8 +227,7 @@ function App:OpenMenu()
         Button("从用户文档导入", function() modal:Close(); self:ImportExternal() end, { width = "100%", role = "secondary" }),
         Button("导入备份", function() modal:Close(); self:OpenImport() end, { width = "100%", role = "secondary" }),
         Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
-    } })
-    modal:SetFooter(Button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }))
+    } }))
     modal:Open()
 end
 
@@ -242,10 +241,11 @@ end
 function App:OpenImport()
     if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
     self.importRaw = ""
-    local modal = UI.Modal { title = "导入家业备份", size = "fullscreen", closeOnOverlay = true }
-    modal:AddContent(Label("粘贴完整 JSON 备份，接收后保留在页面中并显示文件长度。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。也可返回家谱事务，从用户文档备份直接读取。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
+    local modal = ModalLayout.New("导入家业备份", { closeOnOverlay = true })
+    local body = UI.Panel { gap = 10 }
+    body:AddChild(Label("粘贴完整 JSON 备份，接收后保留在页面中并显示文件长度。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。也可返回家谱事务，从用户文档备份直接读取。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
     local receipt = Label("尚未接收备份", { fontSize = 14, fontColor = C.muted })
-    modal:AddContent(UI.TextField {
+    body:AddChild(UI.TextField {
         value = "", placeholder = "在此粘贴完整备份", maxLength = 15000000, height = 180, fontSize = 12,
         onChange = function(_, value)
             if value == "" then return end
@@ -253,23 +253,27 @@ function App:OpenImport()
             receipt:SetText("已接收 " .. tostring(#value) .. " 字节，等待校验")
         end,
     })
-    modal:AddContent(receipt)
-    modal:SetFooter(UI.Panel { flexDirection = "column", gap = 8, children = {
+    body:AddChild(receipt)
+    modal:AddContent(ModalLayout.Scroll(body))
+    modal:SetFooter(UI.Row { gap = 8, children = {
         Button("校验并预演", function()
             local candidate, message, status = State.PreflightImport(self.importRaw)
             if not candidate then self:Notify(message, "error"); return end
             modal:Close(); self:ConfirmImport(candidate, message, status)
-        end, { height = 48 }),
-        Button("取消", function() modal:Close() end, { height = 44, backgroundColor = C.pale, textColor = C.green }),
+        end, { flex = 1, height = 46 }),
+        Button("取消", function() modal:Close() end, { flex = 1, height = 46, backgroundColor = C.pale, textColor = C.green }),
     } })
     modal:Open()
 end
 
 function App:ConfirmImport(candidate, previewMessage, status)
-    local modal = UI.Modal { title = "确认替换当前进度", size = "fullscreen", closeOnOverlay = false }
-    modal:AddContent(Label(previewMessage, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
-    modal:AddContent(Label("确认后写入新的可回读存档；当前进度在写入失败时保持原样。重复确认同一份备份只保留一份结果。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.5, fontColor = C.muted }))
-    modal:SetFooter(UI.Panel { flexDirection = "column", gap = 8, children = {
+    local modal = ModalLayout.New("确认替换当前进度", { closeOnOverlay = false })
+    local body = UI.Panel { gap = 10, children = {
+        Label(previewMessage, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }),
+        Label("确认后写入新的可回读存档；当前进度在写入失败时保持原样。重复确认同一份备份只保留一份结果。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.5, fontColor = C.muted }),
+    } }
+    modal:AddContent(ModalLayout.Scroll(body))
+    modal:SetFooter(UI.Row { gap = 8, children = {
         Button("确认导入", function()
             local ok, message, result = State.CommitImport(candidate)
             if not ok then self:Notify(message, "error"); return end
@@ -283,8 +287,8 @@ function App:ConfirmImport(candidate, previewMessage, status)
             self.unsaved = false; self.saveMessage = ""; self.openingGenerationFailed = false
             self.screen = self.run and "game" or "opening"
             modal:Close(); self:Render(); self:Notify(result == "duplicate" and message or (message .. " " .. loadMessage), "success")
-        end, { height = 48 }),
-        Button("保留当前进度", function() modal:Close() end, { height = 44, backgroundColor = C.pale, textColor = C.green }),
+        end, { flex = 1, height = 46 }),
+        Button("保留当前进度", function() modal:Close() end, { flex = 1, height = 46, backgroundColor = C.pale, textColor = C.green }),
     } })
     modal:Open()
 end
@@ -351,11 +355,12 @@ function App:StartRun()
     end
     if not self.run then commit(); return end
     self.startConfirmationOpen = true
-    local modal = UI.Modal { title = "开始新家谱？", size = "sm",
+    local modal = ModalLayout.New("开始新家谱？", {
         backgroundColor = C.card, borderColor = C.line, titleTextColor = C.ink, closeIconColor = C.muted,
         onClose = function(selfModal)
-        self.startConfirmationOpen = false; selfModal:Destroy()
-    end }
+            self.startConfirmationOpen = false; selfModal:Destroy()
+        end,
+    })
     modal:AddContent(Label("当前家谱将由眼前这份新草案替换。已解锁收藏与终章档案保留；如需长期留存旧局，请先导出。", { whiteSpace = "normal", fontSize = 16 }))
     modal:SetFooter(UI.Row { gap = 8, children = {
         Button("取消", function() modal:Close() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
@@ -396,15 +401,19 @@ end
 
 function App:ConfirmRunAction(title, detail, action, confirmText, parentModal, artEvent)
     if self.run and self.run.ending then self:Notify("本局已落笔，只能回顾家史。", "warning"); return end
-    local modal = UI.Modal { title = title, size = "fullscreen", backgroundColor = C.card, borderColor = C.line,
+    local modal = ModalLayout.New(title, { backgroundColor = C.card, borderColor = C.line,
         titleTextColor = C.ink, closeIconColor = C.muted, closeOnOverlay = true,
-        onClose = function(selfModal) selfModal:Destroy() end }
+        onClose = function(selfModal) selfModal:Destroy() end })
     local content = UI.Panel { padding = 12, gap = 12, children = {
         Label(detail, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }),
         Label("确认后会立刻写入本局家谱、账本与年鉴。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
     } }
     if artEvent then content:AddChild(Visual.EventImage(artEvent)) end
-    modal:AddContent(UI.ScrollView { height = math.max(100, UI.GetHeight() * 0.9 - 168), children = { content } })
+    if ModalLayout.NeedsScroll(detail, artEvent) then
+        modal:AddContent(ModalLayout.Scroll(content))
+    else
+        modal:AddContent(content)
+    end
     local submitted = false
     modal:SetFooter(UI.Row { gap = 8, children = {
         Button("返回", function() modal:Close() end, { flex = 1, height = 46, backgroundColor = C.pale, textColor = C.green }),

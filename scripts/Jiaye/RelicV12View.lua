@@ -7,12 +7,13 @@ local Defs = require "Jiaye.RelicDefinitions"
 local RelicState = require "Jiaye.RelicState"
 local RelicSystem = require "Jiaye.RelicSystem"
 local Opening = require "Jiaye.Opening"
+local ModalLayout = require "Jiaye.ModalLayout"
 
 local View = {}
 local C = V7.Colors
 
 local function scrollHeight()
-    return math.max(100, UI.GetHeight() * 0.9 - 168)
+    return 270
 end
 
 local function closeDetail(app)
@@ -229,14 +230,19 @@ local function instanceTitle(instance)
 end
 
 local function lifecycleModal(app, title, detail, action, confirmText, extra)
-    local modal = UI.Modal {
-        title = title, size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New(title, {
+        backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
-    }
+    })
     local paperChildren = { text(detail, { fontSize = 16, whiteSpace = "normal", lineHeight = 1.55 }) }
     if extra then table.insert(paperChildren, extra) end
-    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { Visual.Paper(paperChildren, { padding = 14, gap = 10 }) } })
+    local body = Visual.Paper(paperChildren, { padding = 14, gap = 10 })
+    if ModalLayout.NeedsScroll(detail) then
+        modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
+    else
+        modal:AddContent(body)
+    end
     local submitted = false
     modal:SetFooter(UI.Row { gap = 8, children = {
         button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
@@ -420,11 +426,11 @@ end
 function View.OpenAction(app, actionId, sourceInput)
     local action = actionFor(actionId)
     if not action then
-        local picker = UI.Modal {
-            title = "选择行动", size = "fullscreen", backgroundColor = C.paperLight,
+        local picker = ModalLayout.New("选择行动", {
+            backgroundColor = C.paperLight,
             borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
             closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
-        }
+        })
         local pickerBody = UI.Panel { gap = 8 }
         local familyId = sourceInput and sourceInput.familyId
         for _, item in ipairs(actionList()) do
@@ -438,18 +444,18 @@ function View.OpenAction(app, actionId, sourceInput)
                 View.OpenAction(app, item.id, nextInput)
             end, { width = "100%", role = "secondary", textAlign = "left" })) end
         end
-        picker:AddContent(UI.ScrollView { height = scrollHeight(), children = { pickerBody } })
+        picker:AddContent(ModalLayout.Scroll(pickerBody, { height = scrollHeight() }))
         picker:SetFooter(button("返回", function() picker:Close() end, { width = "100%", role = "secondary" }))
         picker:Open()
         return
     end
     local input = {}
     for key, value in pairs(sourceInput or {}) do input[key] = value end
-    local modal = UI.Modal {
-        title = "行动 · " .. tostring(action.name or actionId), size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New("行动 · " .. tostring(action.name or actionId), {
+        backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
-    }
+    })
     local body = UI.Panel { gap = 10 }
     local quoteLabel = text("正在核对门槛…", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 })
     local reasonLabel = text("", { fontSize = 14, fontColor = C.danger, whiteSpace = "normal", lineHeight = 1.5 })
@@ -468,7 +474,7 @@ function View.OpenAction(app, actionId, sourceInput)
         for _, child in ipairs(children) do optionPanel:AddChild(child) end
         refresh()
     end
-    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { body } })
+    modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
     local event, eventRelicId = actionEvent(action, input)
     local actionChildren = {
         text(action.name or actionId, { fontSize = 22, fontWeight = "bold" }),
@@ -620,14 +626,14 @@ function View.Open(app, instanceId)
     local instance = findInstance(app.run, instanceId)
     if not instance then app:Notify("这件信物已不在当前家谱中。", "warning"); return end
     closeDetail(app)
-    local modal = UI.Modal {
-        title = "藏阁 · " .. instanceTitle(instance), size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New("藏阁 · " .. instanceTitle(instance), {
+        backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal)
             if app.relicDetailModal == selfModal then app.relicDetailModal = nil end
             selfModal:Destroy()
         end,
-    }
+    })
     app.relicDetailModal = modal
     local activeTab = "effect"
     local body = UI.Panel { gap = 10 }
@@ -645,7 +651,7 @@ function View.Open(app, instanceId)
         end
         body:AddChild(button("选择本家行动", function() View.OpenAction(app, nil, { instanceId = currentInstance.instanceId, familyId = formOf(currentInstance).familyId }) end, { height = 46 }))
     end
-    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { body } })
+    modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
     modal:SetFooter(UI.Row { gap = 8, children = {
         button("关闭", function() modal:Close() end, { flex = 1, role = "secondary" }),
         button("返回藏阁", function() modal:Close() end, { flex = 1 }),
@@ -775,11 +781,11 @@ end
 
 local function openFormCatalog(app)
     local unlockedForms = Opening.UnlockedRelicForms(app.profile)
-    local modal = UI.Modal {
-        title = "信物图鉴 · 已解锁形态", size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New("信物图鉴 · 已解锁形态", {
+        backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
-    }
+    })
     local content = UI.Panel { gap = 8 }
     if #unlockedForms == 0 then
         content:AddChild(card({
@@ -808,7 +814,7 @@ local function openFormCatalog(app)
             end
         end
     end
-    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { content } })
+    modal:AddContent(ModalLayout.Scroll(content, { height = scrollHeight() }))
     modal:SetFooter(button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }))
     modal:Open()
 end

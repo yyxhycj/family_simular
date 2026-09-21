@@ -6,6 +6,7 @@ local Visual = require "Jiaye.Visual"
 local RelicState = require "Jiaye.RelicState"
 local RelicDefinitions = require "Jiaye.RelicDefinitions"
 local OriginSystem = require "Jiaye.OriginSystem"
+local ModalLayout = require "Jiaye.ModalLayout"
 
 local View = {}
 local C = V7.Colors
@@ -26,7 +27,7 @@ local function card(children, props)
 end
 
 local function scrollHeight()
-    return math.max(100, UI.GetHeight() * 0.9 - 168)
+    return 270
 end
 
 local function livingMembers(run)
@@ -173,14 +174,14 @@ function View.OpenAction(app, actionId, parentModal)
     local reasonLabel = text("", { fontSize = 14, fontColor = C.danger, whiteSpace = "normal", lineHeight = 1.45 })
     ---@type Button?
     local confirmButton = nil
-    local modal = UI.Modal {
-        title = "背景行动 · " .. tostring(action.label or action.id), size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New("背景行动 · " .. tostring(action.label or action.id), {
+        backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary, closeOnOverlay = true,
         onClose = function(selfModal)
             if app.originActionModal == selfModal then app.originActionModal = nil end
             selfModal:Destroy()
         end,
-    }
+    })
     app.originActionModal = modal
 
     local function currentInput()
@@ -301,7 +302,7 @@ function View.OpenAction(app, actionId, parentModal)
         quoteLabel,
         reasonLabel,
     }, { padding = 14, gap = 9 }))
-    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { body } })
+    modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
     modal:SetFooter(UI.Row { gap = 8, children = {
         button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
         confirmButton,
@@ -317,14 +318,14 @@ function View.Open(app)
     if app.originActionModal then app.originActionModal:Close() end
     if app.originDetailModal then app.originDetailModal:Close() end
     local summary = OriginSystem.Summary(app.run)
-    local modal = UI.Modal {
-        title = summary.title, size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New(summary.title, {
+        backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary, closeOnOverlay = true,
         onClose = function(selfModal)
             if app.originDetailModal == selfModal then app.originDetailModal = nil end
             selfModal:Destroy()
         end,
-    }
+    })
     app.originDetailModal = modal
     local body = UI.Panel { gap = 10 }
     body:AddChild(Visual.Paper({
@@ -341,7 +342,7 @@ function View.Open(app)
     else
         for _, action in ipairs(actions) do body:AddChild(actionCard(app, modal, action)) end
     end
-    modal:AddContent(UI.ScrollView { height = scrollHeight(), children = { body } })
+    modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
     modal:SetFooter(button("关闭", function() modal:Close() end, { width = "100%", role = "secondary" }))
     modal:Open()
     return modal

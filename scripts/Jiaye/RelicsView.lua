@@ -7,6 +7,7 @@ local V7 = require "Jiaye.V7"
 local EventView = require "Jiaye.EventView"
 local RelicState = require "Jiaye.RelicState"
 local RelicV12View = require "Jiaye.RelicV12View"
+local ModalLayout = require "Jiaye.ModalLayout"
 
 local RelicsView = {}
 local C = V7.Colors
@@ -75,14 +76,19 @@ local function pendingEvent(run, instance)
 end
 
 local function actionModal(app, title, detail, action, confirmText, extra)
-    local modal = UI.Modal {
-        title = title, size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New(title, {
+        backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
-    }
+    })
     local bodyChildren = { Visual.Text(detail, { fontSize = 16, whiteSpace = "normal", lineHeight = 1.6 }) }
     if extra then table.insert(bodyChildren, extra) end
-    modal:AddContent(Visual.Paper(bodyChildren, { gap = 12, padding = 14 }))
+    local body = Visual.Paper(bodyChildren, { gap = 12, padding = 14 })
+    if ModalLayout.NeedsScroll(detail) then
+        modal:AddContent(ModalLayout.Scroll(body))
+    else
+        modal:AddContent(body)
+    end
     local submitted = false
     modal:SetFooter(UI.Row { gap = 8, children = {
         Visual.Button("返回", function() modal:Close() end, { role = "secondary", flex = 1, height = 48 }),

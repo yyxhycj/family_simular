@@ -4,6 +4,7 @@ local State = require "Jiaye.State"
 local Simulation = require "Jiaye.Simulation"
 local Visual = require "Jiaye.Visual"
 local V7 = require "Jiaye.V7"
+local ModalLayout = require "Jiaye.ModalLayout"
 
 local EventView = {}
 local C = V7.Colors
@@ -255,22 +256,14 @@ local function choiceRow(choice, selected, disabled, onClick)
 end
 
 local function openModal(app, title, content, footer)
-    local modal = UI.Modal {
-        title = title, size = "fullscreen", backgroundColor = C.paperLight,
+    local modal = ModalLayout.New(title, {
+        backgroundColor = C.paperLight,
         borderColor = C.gold, titleTextColor = C.gold, closeIconColor = C.secondary,
         headerHeight = 44, titleFontSize = V7.Font(13), contentPadding = 0, borderRadius = 2,
         closeOnOverlay = true,
         onClose = function(selfModal) selfModal:Destroy() end,
-    }
-    local contentHeight = math.max(200, (UI.GetHeight() or 600) * 0.9 - 120)
-    modal:AddContent(UI.Panel {
-        height = contentHeight, minHeight = contentHeight, maxHeight = contentHeight,
-        flexGrow = 0, flexShrink = 0, flexDirection = "column", padding = 0,
-        children = { UI.ScrollView {
-            height = contentHeight, minHeight = contentHeight, maxHeight = contentHeight,
-            flexGrow = 0, flexShrink = 0, padding = 0, children = { content },
-        } },
     })
+    modal:AddContent(ModalLayout.Scroll(content, { padding = 0 }))
     modal:SetFooter(footer)
     modal:Open()
     return modal
