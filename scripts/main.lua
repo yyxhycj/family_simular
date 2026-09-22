@@ -12,7 +12,7 @@ local app_ = nil
 local function JiayeUIScale()
     local dpr = graphics:GetDPR()
     if graphics.height > graphics.width then
-        return dpr * 4 / 3
+        return dpr * 3 / 2
     end
     return dpr
 end
