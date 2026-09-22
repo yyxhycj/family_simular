@@ -418,6 +418,7 @@ function MemberView.Open(app, memberId)
             for _, route in ipairs(LIFE_ROUTES) do
                 table.insert(routeCards, RouteCard(route, route.id == selectedRoute, function()
                     selectedRoute = route.id
+                    page = "actions"
                     render()
                 end))
             end
@@ -437,7 +438,6 @@ function MemberView.Open(app, memberId)
                                 Button("概况", function() setPage("overview") end, { flex = 1, height = 38, fontSize = 13, role = "secondary" }),
                                 Button("经历", function() setPage("life") end, { flex = 1, height = 38, fontSize = 13, role = "secondary" }),
                             } },
-                            Button("进入具体安排", function() setPage("actions") end, { width = "100%", height = 46, role = "primary" }),
                         },
                     },
                 },
