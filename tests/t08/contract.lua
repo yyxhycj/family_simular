@@ -106,6 +106,34 @@ local function checkResourceBoundary()
         "钱粮仍有一项时错误写入家道终局。")
 end
 
+local function checkBatchJobArrangement()
+    local run = fresh()
+    local adults, child = {}, nil
+    for _, member in ipairs(run.members) do
+        if State.IsAdult(member) and #adults < 2 then
+            member.jobId = "play"
+            table.insert(adults, member)
+        elseif not State.IsAdult(member) and not child then
+            child = member
+            child.jobId = "play"
+        end
+    end
+    assert(#adults == 2 and child, "批量安排验收缺少两位成年人和一位未成年人。")
+    local ids = { adults[1].id, adults[2].id, child.id }
+    local plan, forecast = Simulation.PreviewBatchJob(run, ids, "farm")
+    assert(plan and #plan.targets == 2 and #plan.blocked == 1 and forecast and type(forecast.netMoney) == "number",
+        "批量安排预览没有区分可安排人与条件保留人。")
+    local facts = #run.facts
+    local ok, message = Simulation.SetJobs(run, ids, "farm")
+    assert(ok, message)
+    assert(adults[1].jobId == "farm" and adults[2].jobId == "farm" and child.jobId == "play" and #run.facts == facts + 2,
+        "批量安排没有分别写入成年人，或改写了条件不符的族人。")
+    local repeatPlan = assert(Simulation.PreviewBatchJob(run, ids, "farm"))
+    assert(#repeatPlan.targets == 0 and #repeatPlan.unchanged == 2 and #repeatPlan.blocked == 1,
+        "已有安排与条件保留状态没有被正确识别。")
+    return { arranged = #plan.targets, blocked = #plan.blocked, unchanged = #repeatPlan.unchanged }
+end
+
 local function createNaturalEnding()
     local run, profile, draft = fresh()
     for _, member in ipairs(run.members) do
@@ -249,9 +277,10 @@ local function run()
     local development = checkDevelopmentEnding()
     local developmentProgress = checkAllDevelopmentProgress()
     checkResourceBoundary()
+    local batchArrangement = checkBatchJobArrangement()
     local natural = checkNaturalEnding()
     local collapse = checkCollapseAndReadOnly()
-    return { development = development, developmentProgress = developmentProgress, natural = natural, collapse = collapse, moneyOrGrainRemains = true, uiHistory = true }
+    return { development = development, developmentProgress = developmentProgress, batchArrangement = batchArrangement, natural = natural, collapse = collapse, moneyOrGrainRemains = true, uiHistory = true }
 end
 
 local function restart()
@@ -277,4 +306,4 @@ local function naturalRestart()
     return { ending = record.id, trigger = record.automaticTrigger, closedEvents = #record.closingEventIds }
 end
 
-return { run = run, restart = restart, saveNatural = saveNatural, naturalRestart = naturalRestart }
+return { run = run, restart = restart, batch = checkBatchJobArrangement, saveNatural = saveNatural, naturalRestart = naturalRestart }

@@ -19,6 +19,14 @@ def main():
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     try:
+        batch_storage = args.out / "batch-storage"
+        batch_storage.mkdir()
+        lua, _ = runtime(batch_storage)
+        case = lua.execute((ROOT / "tests/t08/contract.lua").read_text())
+        batch = {"id": "t08_batch_arrangement", "status": "PASS", "evidence": plain(case["batch"]())}
+    except Exception as error:
+        batch = {"id": "t08_batch_arrangement", "status": "FAIL", "error": repr(error)}
+    try:
         natural_storage = args.out / "natural-storage"
         natural_storage.mkdir()
         lua, _ = runtime(natural_storage)
@@ -39,6 +47,7 @@ def main():
     except Exception as error:
         natural = {"id": "t08_natural_restart", "status": "FAIL", "error": repr(error)}
         result = {"id": "t08_contract", "status": "FAIL", "error": repr(error)}
+    print(batch["id"], batch["status"])
     print(natural["id"], natural["status"])
     print(result["id"], result["status"])
     paths = [
@@ -53,10 +62,10 @@ def main():
         "layer": "production Lua modules; declaration-only UI, disk File adapter; separate Lua VM restart",
         "engine": False, "real_device": False,
         "sources": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths},
-        "passed": int(natural["status"] == "PASS") + int(result["status"] == "PASS"),
-        "failed": int(natural["status"] != "PASS") + int(result["status"] != "PASS"),
+        "passed": int(batch["status"] == "PASS") + int(natural["status"] == "PASS") + int(result["status"] == "PASS"),
+        "failed": int(batch["status"] != "PASS") + int(natural["status"] != "PASS") + int(result["status"] != "PASS"),
     }
-    for name, value in (("results.json", [natural, result]), ("manifest.json", manifest)):
+    for name, value in (("results.json", [batch, natural, result]), ("manifest.json", manifest)):
         (args.out / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
     raise SystemExit(manifest["failed"])
 

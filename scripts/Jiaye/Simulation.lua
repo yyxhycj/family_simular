@@ -211,6 +211,54 @@ function Simulation.GetJobReason(member, jobId)
     return State.CanUseJob(member, jobId)
 end
 
+local function BuildBatchJobPlan(run, memberIds, jobId)
+    local closed, message = IsClosed(run)
+    if closed then return nil, message end
+    if not Data.Jobs[jobId] then return nil, "岗位不存在。" end
+    if type(memberIds) ~= "table" or #memberIds == 0 then return nil, "请先选择要安排的族人。" end
+    local plan = { targets = {}, unchanged = {}, blocked = {} }
+    local seen = {}
+    for _, memberId in ipairs(memberIds) do
+        if seen[memberId] then return nil, "同一位族人不能重复安排。" end
+        seen[memberId] = true
+        local member = State.FindMember(run.members, memberId)
+        if not member or not member.alive then
+            table.insert(plan.blocked, { memberId = memberId, name = member and member.name or "未知族人", reason = "仅在世族人可安排本年去向。" })
+        elseif member.jobId == jobId then
+            table.insert(plan.unchanged, member)
+        else
+            local ok, reason = State.CanUseJob(member, jobId)
+            if ok then table.insert(plan.targets, member)
+            else table.insert(plan.blocked, { memberId = member.id, name = member.name, reason = reason }) end
+        end
+    end
+    return plan
+end
+
+function Simulation.PreviewBatchJob(run, memberIds, jobId)
+    local plan, message = BuildBatchJobPlan(run, memberIds, jobId)
+    if not plan then return nil, message end
+    local copy = State.Copy(run)
+    for _, member in ipairs(plan.targets) do
+        local target = State.FindMember(copy.members, member.id)
+        target.jobId = jobId
+    end
+    return plan, Economy.Preview(copy)
+end
+
+function Simulation.SetJobs(run, memberIds, jobId)
+    local plan, message = BuildBatchJobPlan(run, memberIds, jobId)
+    if not plan then return false, message end
+    if #plan.targets == 0 then return false, "所选族人当前没有可写入的新安排。" end
+    for _, member in ipairs(plan.targets) do
+        if (member.jobYears.guard or 0) >= 3 and (jobId == "home" or jobId == "farm" or jobId == "rest") then member.hadHomeAfterGuard = true end
+        local before = member.jobId
+        member.jobId = jobId
+        State.AddFact(run, "job", member.name .. "由“" .. Data.Jobs[before].name .. "”改为“" .. Data.Jobs[jobId].name .. "”。", { member.id }, { fromJobId = before, toJobId = jobId, batch = true })
+    end
+    return true, "已将 " .. tostring(#plan.targets) .. " 位族人安排为“" .. Data.Jobs[jobId].name .. "”。"
+end
+
 function Simulation.SetJob(run, memberId, jobId)
     local closed, message = IsClosed(run)
     if closed then return false, message end

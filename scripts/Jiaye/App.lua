@@ -69,6 +69,22 @@ local function HasId(values, id)
     return false
 end
 
+local BATCH_ROUTES = {
+    { id = "study", title = "修身研习", icon = "info", detail = "读书、学艺、学医与习武，为日后开路。", jobIds = { "study", "apprentice", "medical", "train" } },
+    { id = "livelihood", title = "经营生计", icon = "estate", detail = "以劳作、本领与商路支撑全家。", jobIds = { "farm", "craft", "trade", "teach", "doctor", "guard" } },
+    { id = "family", title = "照料家室", icon = "relationship", detail = "料理家事、休养，或让孩子随家人生活。", jobIds = { "home", "rest", "play" } },
+    { id = "leadership", title = "承担族务", icon = "leader", detail = "通过应试后，可承担地方职务。", jobIds = { "official" } },
+}
+
+local function BatchRouteById(routeId)
+    for _, route in ipairs(BATCH_ROUTES) do if route.id == routeId then return route end end
+    return nil
+end
+
+local function Signed(value)
+    return ((value or 0) >= 0 and "+" or "") .. tostring(value or 0)
+end
+
 local function MemberRelationText(run, member)
     local relations = {}
     if member.id == run.leaderId then table.insert(relations, "现任族长") end
@@ -129,9 +145,7 @@ function App:Init()
     self.undo = {}
     self.root = nil
     self.previewLabel = nil
-    self.peopleFilter = "all"
-    self.peopleQuery = ""
-    self.peopleQueryDraft = ""
+    self.peopleSelected = {}
     self.familyGeneration = 0
     self.historySection = "annals"
     self.openingFeedback = ""
@@ -176,9 +190,9 @@ function App:Load()
     local value, message, status = State.Load()
     if not value then self:Notify(message, "warning"); return end
     self.profile, self.draft, self.run = value.profile, value.draft, value.run
-    self.familyGeneration = 0; self.peopleFilter = "all"
+    self.familyGeneration = 0; self.peopleSelected = {}
     self.openingEditDraft = nil; self.memberEditing = nil; self.memberLifePages = {}; self.historyPages = {}
-    self.previousDraft = nil; self.editBackup = nil; self.houseUndo = nil; self.openingView = "summary"; self.undo = {}; self.historyPage = 1; self.peopleQuery = ""; self.peopleQueryDraft = ""; self.historySection = "annals"; self.storageBlocked = false; self.openingGenerationFailed = false
+    self.previousDraft = nil; self.editBackup = nil; self.houseUndo = nil; self.openingView = "summary"; self.undo = {}; self.historyPage = 1; self.historySection = "annals"; self.storageBlocked = false; self.openingGenerationFailed = false
     self.saveMessage = status == "recovered" and message or ""
     self.screen = self.run and "game" or "opening"
     self:Render(); self:Notify(message, status == "recovered" and "warning" or "success")
@@ -279,7 +293,7 @@ function App:StartRun()
             self:Render(); self:Notify(self.saveMessage, "error"); return
         end
         self.run = candidate; self.draft = submittedDraft; self.previousDraft = nil; self.saveMessage = ""
-        self.familyGeneration = 0; self.peopleFilter = "all"
+        self.familyGeneration = 0; self.peopleSelected = {}
         self.openingEditDraft = nil; self.memberEditing = nil; self.memberLifePages = {}; self.historyPages = {}
         self.screen = "game"; self.gameTab = "family"; self.historyPage = 1; self.undo = {}
         self:Render(); self:Notify("家谱开篇。已保留收藏，并保存当前家谱。", "success")
@@ -617,6 +631,141 @@ function App:ConfirmRunJob(memberId, jobId, parentModal)
     end, "确认安排", parentModal)
 end
 
+function App:SelectedLivingMembers()
+    local members = {}
+    for _, member in ipairs(self.run.members) do
+        if member.alive and self.peopleSelected[member.id] then table.insert(members, member) end
+    end
+    return members
+end
+
+function App:TogglePeopleSelection(memberId)
+    self.peopleSelected[memberId] = not self.peopleSelected[memberId]
+    self:Render()
+end
+
+function App:SelectAllLivingPeople()
+    self.peopleSelected = {}
+    for _, member in ipairs(self.run.members) do if member.alive then self.peopleSelected[member.id] = true end end
+    self:Render()
+end
+
+function App:ClearPeopleSelection()
+    self.peopleSelected = {}
+    self:Render()
+end
+
+function App:ConfirmBatchJob(memberIds, jobId, parentModal)
+    local plan, forecast = Simulation.PreviewBatchJob(self.run, memberIds, jobId)
+    if not plan then self:Notify(forecast, "warning"); return end
+    if #plan.targets == 0 then self:Notify("所选族人当前没有可写入的新安排。", "warning"); return end
+    local job = Data.Jobs[jobId]
+    local targetNames, unchangedNames, blockedNames = {}, {}, {}
+    for _, member in ipairs(plan.targets) do table.insert(targetNames, member.name) end
+    for _, member in ipairs(plan.unchanged) do table.insert(unchangedNames, member.name) end
+    for _, item in ipairs(plan.blocked) do table.insert(blockedNames, item.name .. "（" .. item.reason .. "）") end
+    local lines = {
+        "将安排 " .. table.concat(targetNames, "、") .. " 从事“" .. job.name .. "”。",
+        "本年全家预计：银 " .. Signed(forecast.netMoney) .. " 两 · 粮 " .. Signed(forecast.netGrain) .. " 石。",
+    }
+    if #unchangedNames > 0 then table.insert(lines, "已在此安排：" .. table.concat(unchangedNames, "、") .. "。") end
+    if #blockedNames > 0 then table.insert(lines, "保留当前安排：" .. table.concat(blockedNames, "、") .. "。") end
+    self:ConfirmRunAction("批量安排 · " .. job.name, table.concat(lines, "\n\n"), function()
+        local ok, message = Simulation.SetJobs(self.run, memberIds, jobId)
+        if ok then self.peopleSelected = {} end
+        return ok, message
+    end, "确认安排 " .. tostring(#plan.targets) .. " 人", parentModal)
+end
+
+function App:OpenBatchJobPlanner(routeId)
+    local members = self:SelectedLivingMembers()
+    if #members == 0 then self:Notify("先勾选要安排的在世族人。", "warning"); return end
+    local memberIds, memberNames = {}, {}
+    for _, member in ipairs(members) do
+        table.insert(memberIds, member.id)
+        table.insert(memberNames, member.name)
+    end
+    local route = routeId and BatchRouteById(routeId) or nil
+    if routeId and not route then self:Notify("安排类别不存在。", "warning"); return end
+    local modal = nil
+    local body = UI.Panel { gap = 10 }
+    body:AddChild(Card({
+        Label("已选 " .. tostring(#members) .. " 人", { fontSize = 18, fontWeight = "bold" }),
+        Label(table.concat(memberNames, "、"), { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+        Label("选择同一项去向后，页面会提前说明可写入人数与保留原安排的人数。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+    }, { backgroundColor = C.pale, borderColor = C.green }))
+    if not route then
+        body:AddChild(SectionTitle("选择安排类别", "4 类"))
+        for _, option in ipairs(BATCH_ROUTES) do
+            local optionId = option.id
+            local availableJobs = 0
+            for _, jobId in ipairs(option.jobIds) do
+                local plan = Simulation.PreviewBatchJob(self.run, memberIds, jobId)
+                if plan and #plan.targets > 0 then availableJobs = availableJobs + 1 end
+            end
+            body:AddChild(Card({ UI.Row { gap = 10, alignItems = "center", children = {
+                Visual.Icon(option.icon, 24, "muted"),
+                UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
+                    Label(option.title, { fontSize = 18, fontWeight = "bold" }),
+                    Label(option.detail, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+                    Label(availableJobs > 0 and ("可选 " .. tostring(availableJobs) .. " 项去向") or "当前没有符合条件的去向", { fontSize = 13, fontColor = availableJobs > 0 and C.green or C.warning }),
+                } },
+                Visual.Icon("forward", 18, "muted"),
+            } } }, {
+                borderColor = availableJobs > 0 and C.gold or C.line,
+                pointerEvents = "box-only",
+                onClick = function()
+                    modal:Close()
+                    self:OpenBatchJobPlanner(optionId)
+                end,
+            }))
+        end
+    else
+        body:AddChild(Button("换一类安排", function()
+            modal:Close()
+            self:OpenBatchJobPlanner()
+        end, { width = "100%", role = "secondary" }))
+        body:AddChild(SectionTitle(route.title, "选择具体去向"))
+        for _, jobId in ipairs(route.jobIds) do
+            local selectedJobId = jobId
+            local job = Data.Jobs[jobId]
+            local plan, forecast = Simulation.PreviewBatchJob(self.run, memberIds, jobId)
+            local targets = plan and #plan.targets or 0
+            local unchanged = plan and #plan.unchanged or 0
+            local blocked = plan and #plan.blocked or 0
+            local status = targets > 0 and ("可安排 " .. tostring(targets) .. " 人") or "当前无人符合条件"
+            local note = targets > 0 and ("安排后本年全家预计：银 " .. Signed(forecast.netMoney) .. " 两 · 粮 " .. Signed(forecast.netGrain) .. " 石") or "保留当前安排，详情可在个人安排中查看。"
+            local counts = {}
+            if unchanged > 0 then table.insert(counts, "已有 " .. tostring(unchanged) .. " 人") end
+            if blocked > 0 then table.insert(counts, "保留 " .. tostring(blocked) .. " 人") end
+            body:AddChild(Card({ UI.Row { gap = 10, alignItems = "flex-start", children = {
+                UI.Panel { flex = 1, minWidth = 0, gap = 4, children = {
+                    Label(job.name, { fontSize = 18, fontWeight = "bold" }),
+                    Label(job.desc, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+                    Label(note, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+                    #counts > 0 and Label(table.concat(counts, " · "), { fontSize = 13, fontColor = C.warning, whiteSpace = "normal" }) or UI.Panel { height = 0 },
+                } },
+                UI.Panel { gap = 4, alignItems = "flex-end", children = {
+                    Label(status, { fontSize = 14, fontColor = targets > 0 and C.green or C.warning }),
+                    targets > 0 and Visual.Icon("forward", 18, "muted") or UI.Panel { width = 18, height = 18 },
+                } },
+            } } }, {
+                borderColor = targets > 0 and C.gold or C.line,
+                pointerEvents = targets > 0 and "box-only" or "auto",
+                onClick = targets > 0 and function() self:ConfirmBatchJob(memberIds, selectedJobId, modal) end or nil,
+            }))
+        end
+    end
+    modal = ModalLayout.New("批量安排 · " .. tostring(#members) .. " 人", {
+        sheet = route and "full" or "detail", backgroundColor = C.card, borderColor = C.line,
+        closeOnOverlay = true,
+        onClose = function(selfModal) selfModal:Destroy() end,
+    })
+    modal:AddContent(ModalLayout.Scroll(body))
+    modal:SetFooter(Button("返回族人", function() modal:Close() end, { width = "100%", role = "secondary", height = 46 }))
+    modal:Open()
+end
+
 function App:BuildPeopleTab()
     local pendingByMember = {}
     for _, event in ipairs(Simulation.PendingEvents(self.run)) do
@@ -624,43 +773,51 @@ function App:BuildPeopleTab()
             if memberId then pendingByMember[memberId] = (pendingByMember[memberId] or 0) + 1 end
         end
     end
-    local cards = { Card({ Label("全体族人", { fontSize = 21, fontWeight = "bold" }), Label("所有成员都可独立安排；死亡不会从家谱中删除。筛选只改变当前列表显示。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }),
-        UI.Row { gap = 5, children = {
-            Button("全部", function() self.peopleFilter = "all"; self:Render() end, { flex = 1, height = 44, fontSize = 13, backgroundColor = self.peopleFilter == "all" and C.green or C.pale, textColor = self.peopleFilter == "all" and { 255, 255, 255, 255 } or C.green }),
-            Button("在世", function() self.peopleFilter = "alive"; self:Render() end, { flex = 1, height = 44, fontSize = 13, backgroundColor = self.peopleFilter == "alive" and C.green or C.pale, textColor = self.peopleFilter == "alive" and { 255, 255, 255, 255 } or C.green }),
-            Button("已故", function() self.peopleFilter = "dead"; self:Render() end, { flex = 1, height = 44, fontSize = 13, backgroundColor = self.peopleFilter == "dead" and C.green or C.pale, textColor = self.peopleFilter == "dead" and { 255, 255, 255, 255 } or C.green }),
-        } },
-        UI.Row { gap = 7, children = {
-            UI.TextField { flex = 1, value = self.peopleQueryDraft, placeholder = "按姓名筛选，完成输入后点筛选", onChange = function(_, value) self.peopleQueryDraft = value end, onSubmit = function() self.peopleQuery = self.peopleQueryDraft; self:Render() end },
-            Button("筛选", function() self.peopleQuery = self.peopleQueryDraft; self:Render() end, { width = 68, height = 44, fontSize = 13 }),
-        } },
-    }) }
-    local matched = 0
+    local living, deceased = {}, 0
     for _, member in ipairs(self.run.members) do
-        local visible = self.peopleFilter == "all" or (self.peopleFilter == "alive" and member.alive) or (self.peopleFilter == "dead" and not member.alive)
-        visible = visible and (self.peopleQuery == "" or string.find(member.name, self.peopleQuery, 1, true) ~= nil)
-        if visible then
-            matched = matched + 1
-            local state = member.id == self.run.leaderId and "族长" or (member.alive and "在世" or "已故")
-            local pendingText = pendingByMember[member.id] and (" · 待办 " .. tostring(pendingByMember[member.id])) or ""
-            table.insert(cards, Card({
-                UI.Row { gap = 12, alignItems = "center", children = {
-                    Visual.Portrait(member, { size = 60, leader = member.id == self.run.leaderId }),
-                    UI.Panel { flex = 1, gap = 4, children = {
-                        Label(member.name, { fontSize = 21, fontWeight = "bold", fontColor = member.alive and C.ink or C.muted, whiteSpace = "normal" }),
-                        Label(tostring(member.age) .. " 岁 · " .. state .. " · 第 " .. tostring(State.Generation(self.run.members, member.id)) .. " 代", { fontSize = 13, fontColor = C.muted }),
-                        Label((member.alive and Data.Jobs[member.jobId].name or "生平已封存") .. pendingText, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }),
-                    } },
-                } },
-                Label(MemberRelationText(self.run, member), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
-                Button(self.run.ending and "查看生平" or (member.alive and "查看与安排" or "阅读生平"), function() self:OpenRunMember(member.id) end, { height = 44, fontSize = 15, role = "secondary", pointerEvents = "none" }),
-            }, {
-                pointerEvents = "box-only",
-                onClick = function() self:OpenRunMember(member.id) end,
-            }))
-        end
+        if member.alive then table.insert(living, member) else deceased = deceased + 1 end
     end
-    if matched == 0 then table.insert(cards, Card({ Label("没有符合条件的族人", { fontSize = 17, fontWeight = "bold" }), Label("当前筛选未匹配姓名或生存状态。清除筛选后可回到完整家谱。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }), Button("清除筛选", function() self.peopleFilter = "all"; self.peopleQuery = ""; self.peopleQueryDraft = ""; self:Render() end, { height = 44, backgroundColor = C.pale, textColor = C.green }) })) end
+    local selected = self:SelectedLivingMembers()
+    local cards = { Card({
+        Label("本年安排", { fontSize = 21, fontWeight = "bold" }),
+        Label("勾选在世族人后，可一次安排同一种去向；每个人的经历、亲缘与资格仍会分别保留。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
+        Label("在世 " .. tostring(#living) .. " 人 · 已选 " .. tostring(#selected) .. " 人", { fontSize = 15, fontColor = C.green, fontWeight = "bold" }),
+        UI.Row { gap = 8, children = {
+            Button("全选在世", function() self:SelectAllLivingPeople() end, { flex = 1, role = "secondary" }),
+            Button("清空选择", function() self:ClearPeopleSelection() end, { flex = 1, role = "secondary" }),
+        } },
+        #selected > 0 and Button("为 " .. tostring(#selected) .. " 人安排本年去向", function() self:OpenBatchJobPlanner() end, { width = "100%" }) or Label("勾选后可直接进入批量安排。", { fontSize = 13, fontColor = C.muted }),
+    }, { borderColor = C.gold }) }
+    table.insert(cards, SectionTitle("在世族人", tostring(#living) .. " 人"))
+    for _, member in ipairs(living) do
+        local isSelected = self.peopleSelected[member.id] == true
+        local state = member.id == self.run.leaderId and "族长" or "在世"
+        local pendingText = pendingByMember[member.id] and (" · 待办 " .. tostring(pendingByMember[member.id])) or ""
+        table.insert(cards, Card({
+            UI.Row { gap = 12, alignItems = "center", children = {
+                Visual.Portrait(member, { size = 60, leader = member.id == self.run.leaderId, selected = isSelected }),
+                UI.Panel { flex = 1, minWidth = 0, gap = 4, children = {
+                    Label(member.name, { fontSize = 21, fontWeight = "bold", whiteSpace = "normal" }),
+                    Label(tostring(member.age) .. " 岁 · " .. state .. " · 第 " .. tostring(State.Generation(self.run.members, member.id)) .. " 代", { fontSize = 13, fontColor = C.muted }),
+                    Label(Data.Jobs[member.jobId].name .. pendingText, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }),
+                } },
+            } },
+            Label(MemberRelationText(self.run, member), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+            UI.Row { gap = 8, children = {
+                Button("个人安排", function() self:OpenRunMember(member.id) end, { flex = 1, height = 44, role = "secondary" }),
+                Button(isSelected and "已选" or "勾选", function() self:TogglePeopleSelection(member.id) end, { width = 76, height = 44, role = isSelected and "primary" or "secondary" }),
+            } },
+        }, {
+            backgroundColor = isSelected and C.pale or C.card,
+            borderColor = isSelected and C.green or C.line,
+        }))
+    end
+    if #living == 0 then table.insert(cards, Card({ Label("当前没有在世族人", { fontSize = 17, fontWeight = "bold" }), Label("此局人物生平已完整留入家史。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }) })) end
+    if deceased > 0 then table.insert(cards, Card({
+        Label("已故族人 · " .. tostring(deceased) .. " 人", { fontSize = 17, fontWeight = "bold" }),
+        Label("生平、亲缘与往年安排已收入家史。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }),
+        Button("查看家史", function() self.gameTab = "history"; self.historySection = "annals"; self.historyPage = 1; self:Render() end, { width = "100%", role = "secondary" }),
+    })) end
     return UI.Panel { gap = 10, children = cards }
 end
 
