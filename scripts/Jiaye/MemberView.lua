@@ -5,7 +5,6 @@ local Simulation = require "Jiaye.Simulation"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
 local RelicState = require "Jiaye.RelicState"
-local ModalLayout = require "Jiaye.ModalLayout"
 
 local MemberView = {}
 
@@ -56,26 +55,6 @@ local function FactMap(run)
     return result
 end
 
-local function BuildTabs(section, setSection)
-    local items = {
-        { id = "overview", text = "概况" },
-        { id = "arrangement", text = "安排" },
-        { id = "life", text = "经历" },
-    }
-    local buttons = {}
-    for _, item in ipairs(items) do
-        local selected = section == item.id
-        table.insert(buttons, UI.Panel {
-            flex = 1, height = 44, alignItems = "center", justifyContent = "center", borderRadius = 0,
-            borderBottomWidth = selected and 2 or 1, borderBottomColor = selected and C.primary or C.rule,
-            backgroundColor = selected and C.selected or C.paperLight, pointerEvents = "box-only",
-            onClick = function() setSection(item.id) end,
-            children = { Text(item.text, { fontSize = 15, fontColor = selected and C.ink or C.secondary }) },
-        })
-    end
-    return UI.Row { gap = 0, children = buttons }
-end
-
 local function BuildStats(member)
     local stats = TableValue(member.stats)
     local values = {
@@ -101,36 +80,6 @@ local function BuildStats(member)
     return UI.Panel {
         borderWidth = 1, borderColor = C.rule, overflow = "hidden",
         children = { UI.SimpleGrid { columns = 2, gap = 0, children = cards } },
-    }
-end
-
-local function BuildIdentity(app, member)
-    local run = app.run
-    local talent = Data.Talent(math.tointeger(member.talent) or 1)
-    local generation = State.Generation(run.members, member.id)
-    local status = member.alive and (member.id == run.leaderId and "现任族长" or "在世") or "已故"
-    return UI.Panel {
-        gap = 10,
-        children = {
-            UI.Row {
-                gap = 14, alignItems = "center",
-                children = {
-                    Visual.Portrait(member, {
-                        size = 82, detail = true, deceased = not member.alive,
-                        sick = member.alive and (member.health or 0) < 35,
-                        leader = member.id == run.leaderId,
-                    }),
-                    UI.Panel {
-                        flex = 1, minWidth = 0, gap = 4,
-                        children = {
-                            Text(member.name, { fontSize = 25, fontWeight = "bold" }),
-                            Text(member.sex .. " · " .. tostring(member.age) .. " 岁 · 第 " .. tostring(generation) .. " 代", { fontSize = 13, fontColor = C.secondary }),
-                            Text(talent.name .. " " .. tostring(member.talent or 1) .. "/5 · " .. status, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }),
-                        },
-                    },
-                },
-            },
-        },
     }
 end
 
@@ -160,128 +109,6 @@ local function BuildOverview(app, member, openArrangement)
             },
         },
     }
-end
-
-local function BuildArrangement(app, member, modal)
-    local run = app.run
-    local spouse = member.spouseId and State.FindMember(run.members, member.spouseId)
-    if not member.alive or run.ending then
-        return UI.Panel {
-            gap = 12,
-            children = {
-                Card({
-                    Text("当前无法调整安排", { fontSize = 20, fontWeight = "bold" }),
-                    Text(run.ending and "本局已落笔，人物经历与关系均可阅读。" or "这位族人的生平已经封存。", { fontSize = 15, fontColor = C.secondary, whiteSpace = "normal" }),
-                }),
-            },
-        }
-    end
-
-    local ageRules = Data.AgeRules
-    local stage, stageDetail
-    if member.age < ageRules.study then
-        stage, stageDetail = "幼年", "当前可安排随家人生活或休养；" .. tostring(ageRules.study) .. " 岁起可读书。"
-    elseif member.age < ageRules.training then
-        stage, stageDetail = "启蒙", "可读书求学；" .. tostring(ageRules.training) .. " 岁起可学艺、学医或习武。"
-    elseif not State.IsAdult(member) then
-        stage, stageDetail = "少年", "可读书、学艺、学医或习武；" .. tostring(ageRules.adult) .. " 岁起可承担家事与家业。"
-    else
-        stage, stageDetail = "成年", "可承担家业与家事；具体资格和费用会在确认前核对。"
-    end
-
-    local children = {
-        Text("目前的安排", { fontSize = 19, fontWeight = "bold" }),
-        Card({ Text(stage .. " · " .. tostring(member.age) .. " 岁", { fontSize = 18, fontWeight = "bold" }), Text(stageDetail, { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }) }, { backgroundColor = C.selected }),
-        Text("选择新的安排", { fontSize = 18, fontWeight = "bold" }),
-        Text("确认后写入家史；资格、收入或培养费用会在操作前显示。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }),
-    }
-
-    for _, jobId in ipairs(Data.JobOrder) do
-        local job = Data.Jobs[jobId]
-        if job and member.age >= job.min then
-            local ok, reason = Simulation.GetJobReason(member, jobId)
-            local selected = member.jobId == jobId
-            table.insert(children, Button(job.name .. (ok and "" or " · " .. reason), function()
-                if ok then app:ConfirmRunJob(member.id, jobId, modal) end
-            end, {
-                height = 46, disabled = not ok, textAlign = "left", paddingHorizontal = 12,
-                selected = selected, role = selected and "primary" or "secondary",
-            }))
-        end
-    end
-
-    if State.IsAdult(member) then
-        local canExam, examReason = Simulation.GetExamReason(run, member.id)
-        if canExam then
-        table.insert(children, Button("应试（10 两）", function()
-            app:ConfirmRunAction("确认应试 · " .. member.name, "成本：10 两盘缠。结果由本人的学识与本局随机结果共同决定，并完整写入人生经历。", function()
-                return Simulation.TakeExam(app.run, member.id)
-            end, "确认应试", modal)
-        end, { height = 46, role = "primary" }))
-        else
-            table.insert(children, ActionStatus("应试", examReason))
-        end
-
-        local canMarry, marriageReason = Simulation.GetMarriageReason(run, member.id)
-        if canMarry then
-            table.insert(children, Button("安排婚配（12 两）", function()
-            app:ConfirmRunAction("确认婚配 · " .. member.name, "成本：12 两安置费。结果：新配偶加入家谱，原有族人资料保持不变。", function()
-                return Simulation.Marry(app.run, member.id)
-            end, "确认婚配", modal)
-        end, { height = 46 }))
-        else
-            table.insert(children, ActionStatus("婚配", spouse and ("已与" .. spouse.name .. "结为配偶。") or marriageReason))
-        end
-
-        local canAdopt, adoptionReason = Simulation.GetAdoptionReason(run, member.id)
-        if canAdopt then
-            table.insert(children, Button("收养孩子（8 两）", function()
-            app:ConfirmRunAction("确认收养 · " .. member.name, "成本：8 两安置费。结果：孩子加入家谱，拥有与其他族人同等的成长与继任资格。", function()
-                return Simulation.Adopt(app.run, member.id)
-            end, "确认收养", modal)
-        end, { height = 46 }))
-        else
-            table.insert(children, ActionStatus("收养", adoptionReason))
-        end
-
-        local canPlanBirth, birthReason = State.CanPlanBirth(member, run.members)
-        if canPlanBirth then
-            table.insert(children, Button(member.birthPlan == false and "愿意迎接孩子" or "暂缓迎接孩子", function()
-                local nextPlan = member.birthPlan == false
-                app:ConfirmRunAction("确认添丁计划 · " .. member.name, nextPlan and "结果：记录为愿意迎接孩子；两位配偶都愿意后，才会进入后续年度结算。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function()
-                    return Simulation.SetBirthPlan(app.run, member.id, nextPlan)
-                end, "确认记录", modal)
-            end, { height = 46 }))
-        else
-            table.insert(children, ActionStatus("添丁计划", birthReason))
-        end
-
-        local canLead, leaderReason = Simulation.GetLeaderReason(run, member.id)
-        if canLead then
-            table.insert(children, Button("任命为族长", function()
-            app:ConfirmRunAction("确认交接 · " .. member.name, "结果：开始新的族长任期，现有安排与资产保持原样。", function()
-                return Simulation.AppointLeader(app.run, member.id, "主动交接")
-            end, "确认交接", modal)
-        end, { height = 46 }))
-        else
-            table.insert(children, ActionStatus("族长", leaderReason))
-        end
-
-        for _, relic in ipairs(app.run.relicInstances or {}) do
-            if relic.status == "held" and relic.custodianId ~= member.id then
-                local definition = RelicState.IsNew(app.run) and RelicState.Form(relic) or Data.Relic(relic.definitionId)
-                if definition then
-                    table.insert(children, Button("交由" .. member.name .. "保管 · " .. definition.name, function()
-                        app:ConfirmRunAction("确认更换保管人", "物件：" .. definition.name .. "\n结果：保管人改为" .. member.name .. "，当前调查进度保持不变。", function()
-                            return Simulation.TransferRelic(app.run, relic.instanceId, member.id)
-                        end, "确认托付", modal)
-                    end, { height = 44, fontSize = 13 }))
-                end
-            end
-        end
-    end
-
-    return UI.Panel { gap = 11, children = children }
 end
 
 local LIFE_ROUTES = {
