@@ -645,15 +645,28 @@ function App:BuildEstateTab()
             local current = self.run.placeId == placeId
             local quote = current and { cost = 0 } or assert(Simulation.MigrationQuote(self.run, placeId))
             local affordable = self.run.money >= quote.cost
-            local label = current and ("当前居所 · " .. place.short .. "\n" .. place.desc) or ("迁居 " .. place.short .. " · " .. tostring(quote.cost) .. " 两\n" .. place.desc .. " " .. place.burden)
-            table.insert(placeButtons, Button(label, function()
-                local currentQuote, reason = Simulation.MigrationQuote(self.run, placeId)
-                if not currentQuote then self:Notify(reason, "warning"); return end
-                local benefit = currentQuote.discount > 0 and ("\n通家玉佩抵扣 " .. tostring(currentQuote.discount) .. " 两，本次实迁后进入冷却。") or ""
-                self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(currentQuote.cost) .. " 两安置费。" .. benefit .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
-            end, {
-                height = 84, disabled = current or not affordable, role = "secondary", textAlign = "left",
-                paddingHorizontal = 14, fontSize = 14,
+            local title = current and ("当前居所 · " .. place.short) or ("迁居 " .. place.short .. " · " .. tostring(quote.cost) .. " 两")
+            local detail = current and place.desc or (place.desc .. " · " .. place.burden)
+            table.insert(placeButtons, Card({
+                UI.Row { gap = 10, alignItems = "center", children = {
+                    UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
+                        Label(title, { fontSize = 16, fontWeight = "bold", whiteSpace = "normal" }),
+                        Label(detail, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.35 }),
+                    } },
+                    current and Label("当前", { fontSize = 13, fontColor = C.primary })
+                        or (not affordable and Label("银两不足", { fontSize = 13, fontColor = C.disabledInk }) or Visual.Icon("forward", 18, "muted")),
+                } },
+            }, {
+                minHeight = 84, padding = 12, gap = 4,
+                backgroundColor = (current or not affordable) and C.disabledSurface or C.paperLight,
+                borderColor = current and C.gold or C.rule,
+                pointerEvents = (current or not affordable) and "auto" or "box-only",
+                onClick = function()
+                    local currentQuote, reason = Simulation.MigrationQuote(self.run, placeId)
+                    if not currentQuote then self:Notify(reason, "warning"); return end
+                    local benefit = currentQuote.discount > 0 and ("\n通家玉佩抵扣 " .. tostring(currentQuote.discount) .. " 两，本次实迁后进入冷却。") or ""
+                    self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(currentQuote.cost) .. " 两安置费。" .. benefit .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
+                end,
             }))
         end
     end
