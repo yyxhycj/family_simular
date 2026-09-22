@@ -9,11 +9,20 @@ local Visual = require "Jiaye.Visual"
 ---@type table?
 local app_ = nil
 
+local function JiayeUIScale()
+    local dpr = graphics:GetDPR()
+    local shortSide = math.min(graphics.width, graphics.height) / dpr
+    if shortSide <= 480 then
+        return dpr * 4 / 3
+    end
+    return dpr
+end
+
 function Start()
     graphics.windowTitle = "家业 · 凡世王朝"
     UI.Init({
         theme = Visual.Theme(),
-        scale = UI.Scale.DPR,
+        scale = JiayeUIScale,
     })
     app_ = App.New()
     app_:Render()
