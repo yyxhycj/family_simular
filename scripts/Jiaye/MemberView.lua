@@ -377,6 +377,8 @@ local function RouteCard(route, selected, onClick)
 end
 
 local function ActionCard(icon, title, detail, status, available, onClick, selected)
+    local indicator = available and Visual.Icon("forward", 17, "ink")
+        or (selected and Text("当前", { fontSize = 12, fontColor = C.primary }) or Visual.Icon("lock", 17, "muted"))
     return UI.Panel {
         minHeight = 70, padding = 10, gap = 10, flexDirection = "row", alignItems = "center",
         backgroundColor = selected and C.selected or C.paperLight,
@@ -392,7 +394,7 @@ local function ActionCard(icon, title, detail, status, available, onClick, selec
                     Text(status, { fontSize = 12, fontColor = available and C.primary or C.secondary, whiteSpace = "normal" }),
                 },
             },
-            Visual.Icon("forward", 17, available and "ink" or "muted"),
+            indicator,
         },
     }
 end
