@@ -446,6 +446,20 @@ function Economy.Preview(run)
     return SettleLegacy(copy)
 end
 
+function Economy.AnnualForecast(run)
+    if type(run) ~= "table" then return nil, "当前家谱数据无效。" end
+    local ledger = Economy.Preview(run)
+    return {
+        foodNeed = ledger.foodNeed or Economy.StandardAnnualFoodNeed(run),
+        foodShortfall = ledger.foodShortfall or 0,
+        foodSatisfied = ledger.foodSatisfied == true,
+        foodCost = ledger.foodCost or 0,
+        boughtGrain = ledger.boughtGrain or 0,
+        projectedGrain = ledger.grain or run.grain or 0,
+        netGrain = ledger.netGrain or 0,
+    }
+end
+
 Economy.RelicState = RelicState
 Economy.OriginEffects = OriginEffects
 

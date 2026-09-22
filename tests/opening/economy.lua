@@ -30,7 +30,17 @@ return function()
         assert(Same(preview, settled), "预估账本必须与同一状态的正式结算一致")
         assert(preview.income == 29 and preview.training == 16 and preview.livingExpense == 14)
         assert(preview.landGrain == 4 and preview.netMoney == -1 and preview.netGrain == 5)
-        table.insert(results, { id = "preview", income = preview.income, netMoney = preview.netMoney, netGrain = preview.netGrain })
+        local forecast = assert(Economy.AnnualForecast(run))
+        assert(forecast.foodNeed == preview.foodNeed and forecast.projectedGrain == preview.grain
+            and forecast.netGrain == preview.netGrain and forecast.foodShortfall == preview.foodShortfall,
+            "年度粮耗预估必须复用正式结算账本")
+        local originalNeed = forecast.foodNeed
+        run.members[1].alive = false
+        local changedForecast = assert(Economy.AnnualForecast(run))
+        assert(changedForecast.foodNeed == Economy.StandardAnnualFoodNeed(run) and changedForecast.foodNeed < originalNeed,
+            "成员状态变化后年度粮耗预估没有同步更新")
+        table.insert(results, { id = "preview", income = preview.income, netMoney = preview.netMoney, netGrain = preview.netGrain,
+            foodNeed = forecast.foodNeed, reducedFoodNeed = changedForecast.foodNeed })
     end
 
     do

@@ -396,25 +396,49 @@ function App:BuildHeader(title, subtitle)
 end
 
 function App:GetRunOverview()
-    local living, foodNeed = 0, 0
+    local living = 0
     for _, member in ipairs(self.run.members) do
-        if member.alive then
-            living = living + 1
-            foodNeed = foodNeed + (State.IsAdult(member) and 2 or 1)
-        end
+        if member.alive then living = living + 1 end
     end
-    return living, foodNeed
+    return living, Economy.StandardAnnualFoodNeed(self.run)
 end
 
 function App:BuildRunStatusBar()
-    return UI.Row {
-        height = 38, flexShrink = 0, paddingHorizontal = 14, gap = 6, alignItems = "center",
+    local forecast = assert(Economy.AnnualForecast(self.run))
+    local forecastText = "下年预计耗粮 −" .. tostring(forecast.foodNeed) .. " 石"
+    local forecastColor = C.green
+    if forecast.foodShortfall > 0 then
+        if forecast.foodSatisfied then
+            forecastText = forecastText .. " · 缺 " .. tostring(forecast.foodShortfall) .. " 石，将补购 " .. tostring(forecast.foodCost) .. " 两"
+            forecastColor = C.gold
+        else
+            forecastText = forecastText .. " · 缺 " .. tostring(forecast.foodShortfall) .. " 石，家人体魄将受损"
+            forecastColor = C.warning
+        end
+    else
+        forecastText = forecastText .. " · 预计余粮 " .. tostring(forecast.projectedGrain) .. " 石"
+    end
+    return UI.Panel {
+        height = 58, flexShrink = 0,
         borderBottomWidth = 1, borderBottomColor = C.line,
         children = {
-            Visual.Icon("money", 16), Label(tostring(self.run.money) .. " 两", { fontSize = 15 }),
-            Visual.Icon("grain", 16), Label(tostring(self.run.grain) .. " 石", { fontSize = 15 }),
-            UI.Panel { flex = 1 },
-            Label(Data.WORLD_NAME .. "历 " .. tostring(self.run.calendar) .. " 年", { fontSize = 12, fontColor = C.muted }),
+            UI.Row {
+                height = 32, paddingHorizontal = 14, gap = 6, alignItems = "center",
+                children = {
+                    Visual.Icon("money", 16), Label(tostring(self.run.money) .. " 两", { fontSize = 15 }),
+                    Visual.Icon("grain", 16), Label(tostring(self.run.grain) .. " 石", { fontSize = 15 }),
+                    UI.Panel { flex = 1 },
+                    Label(Data.WORLD_NAME .. "历 " .. tostring(self.run.calendar) .. " 年", { fontSize = 12, fontColor = C.muted }),
+                },
+            },
+            UI.Row {
+                height = 25, paddingHorizontal = 14, gap = 5, alignItems = "center", backgroundColor = C.card,
+                borderTopWidth = 1, borderTopColor = C.line,
+                children = {
+                    Visual.Icon("grain", 14, "muted"),
+                    Label(forecastText, { fontSize = 13, fontColor = forecastColor }),
+                },
+            },
         },
     }
 end
