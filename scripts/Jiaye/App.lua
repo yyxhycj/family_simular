@@ -693,7 +693,10 @@ function App:BuildPeopleTab()
                     } },
                 } },
                 Label(MemberRelationText(self.run, member), { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
-                Button(self.run.ending and "查看生平" or (member.alive and "查看与安排" or "阅读生平"), function() self:OpenRunMember(member.id) end, { height = 44, fontSize = 15, role = "secondary" }),
+                Button(self.run.ending and "查看生平" or (member.alive and "查看与安排" or "阅读生平"), function() self:OpenRunMember(member.id) end, { height = 44, fontSize = 15, role = "secondary", pointerEvents = "none" }),
+            }, {
+                pointerEvents = "box-only",
+                onClick = function() self:OpenRunMember(member.id) end,
             }))
         end
     end
