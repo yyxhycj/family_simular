@@ -19,10 +19,37 @@ local function widget(kind, props)
     props.Destroy = function(self) self.destroyed = true end
     return props
 end
-for _, kind in ipairs({ "Panel", "Row", "SimpleGrid", "Dropdown", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Box", "Modal" }) do
+local Panel = {}
+
+function Panel:Init(props)
+    local initialized = widget("Panel", props)
+    for key, value in pairs(initialized) do self[key] = value end
+    return self
+end
+
+function Panel:Extend(_)
+    local derived = {}
+    derived.__index = derived
+    setmetatable(derived, {
+        __index = Panel,
+        __call = function(_, props)
+            local instance = setmetatable({}, derived)
+            instance:Init(props)
+            return instance
+        end,
+    })
+    return derived
+end
+
+setmetatable(Panel, { __call = function(_, props) return widget("Panel", props) end })
+UI.Panel = Panel
+
+for _, kind in ipairs({ "Row", "SimpleGrid", "Dropdown", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Box", "Modal" }) do
     UI[kind] = function(props) return widget(kind, props) end
 end
 UI.Box = function(width, height) return widget("Box", { width = width, height = height }) end
+UI.GetWidth = function() return 390 end
+UI.GetHeight = function() return 867 end
 UI.SetRoot = function(root) UI.root = root end
 UI.Toast = {
     GetGlobal = function() return { DismissAll = function() end } end,
