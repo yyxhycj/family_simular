@@ -77,6 +77,7 @@ end
 
 local function actionModal(app, title, detail, action, confirmText, extra)
     local modal = ModalLayout.New(title, {
+        sheet = "form",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,

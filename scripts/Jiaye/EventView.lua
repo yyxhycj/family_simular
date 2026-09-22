@@ -257,6 +257,7 @@ end
 
 local function openModal(app, title, content, footer)
     local modal = ModalLayout.New(title, {
+        sheet = "detail",
         backgroundColor = C.paperLight,
         borderColor = C.gold, titleTextColor = C.gold, closeIconColor = C.secondary,
         headerHeight = 44, titleFontSize = V7.Font(13), contentPadding = 0, borderRadius = 2,

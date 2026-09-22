@@ -175,6 +175,7 @@ function View.OpenAction(app, actionId, parentModal)
     ---@type Button?
     local confirmButton = nil
     local modal = ModalLayout.New("背景行动 · " .. tostring(action.label or action.id), {
+        sheet = "form",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary, closeOnOverlay = true,
         onClose = function(selfModal)
@@ -319,6 +320,7 @@ function View.Open(app)
     if app.originDetailModal then app.originDetailModal:Close() end
     local summary = OriginSystem.Summary(app.run)
     local modal = ModalLayout.New(summary.title, {
+        sheet = "detail",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary, closeOnOverlay = true,
         onClose = function(selfModal)

@@ -192,7 +192,7 @@ function App:Export()
         value = raw, maxLength = math.max(#raw, 1), height = 180, fontSize = 12,
         placeholder = "家谱备份 JSON",
     }
-    local modal = ModalLayout.New("保存家谱备份", { closeOnOverlay = true })
+    local modal = ModalLayout.New("保存家谱备份", { sheet = "full", closeOnOverlay = true })
     local body = UI.Panel { gap = 10 }
     body:AddChild(Label(message, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
     body:AddChild(Label("备份共 " .. tostring(#raw) .. " 字节。跨应用、跨设备传递以用户文档中的 JSON 文件为准：可打开文件后用系统文件应用复制、发送或保存。页面复制只作便捷尝试，游戏内回读不能证明外部应用已收到。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
@@ -215,7 +215,7 @@ function App:Export()
 end
 
 function App:OpenMenu()
-    local modal = ModalLayout.New("家谱事务", { closeOnOverlay = true })
+    local modal = ModalLayout.New("家谱事务", { sheet = "menu", closeOnOverlay = true })
     modal:AddContent(ModalLayout.Scroll(UI.Panel { gap = 8, children = {
         Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
         Button("导出备份", function() modal:Close(); self:Export() end, { width = "100%", role = "secondary" }),
@@ -241,7 +241,7 @@ end
 function App:OpenImport()
     if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
     self.importRaw = ""
-    local modal = ModalLayout.New("导入家业备份", { closeOnOverlay = true })
+    local modal = ModalLayout.New("导入家业备份", { sheet = "full", closeOnOverlay = true })
     local body = UI.Panel { gap = 10 }
     body:AddChild(Label("粘贴完整 JSON 备份，接收后保留在页面中并显示文件长度。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。也可返回家谱事务，从用户文档备份直接读取。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
     local receipt = Label("尚未接收备份", { fontSize = 14, fontColor = C.muted })
@@ -267,7 +267,7 @@ function App:OpenImport()
 end
 
 function App:ConfirmImport(candidate, previewMessage, status)
-    local modal = ModalLayout.New("确认替换当前进度", { closeOnOverlay = false })
+    local modal = ModalLayout.New("确认替换当前进度", { sheet = "confirm", closeOnOverlay = false })
     local body = UI.Panel { gap = 10, children = {
         Label(previewMessage, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }),
         Label("确认后写入新的可回读存档；当前进度在写入失败时保持原样。重复确认同一份备份只保留一份结果。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.5, fontColor = C.muted }),
@@ -356,6 +356,7 @@ function App:StartRun()
     if not self.run then commit(); return end
     self.startConfirmationOpen = true
     local modal = ModalLayout.New("开始新家谱？", {
+        sheet = "confirm",
         backgroundColor = C.card, borderColor = C.line, titleTextColor = C.ink, closeIconColor = C.muted,
         onClose = function(selfModal)
             self.startConfirmationOpen = false; selfModal:Destroy()
@@ -402,6 +403,7 @@ end
 function App:ConfirmRunAction(title, detail, action, confirmText, parentModal, artEvent)
     if self.run and self.run.ending then self:Notify("本局已落笔，只能回顾家史。", "warning"); return end
     local modal = ModalLayout.New(title, { backgroundColor = C.card, borderColor = C.line,
+        sheet = "confirm",
         titleTextColor = C.ink, closeIconColor = C.muted, closeOnOverlay = true,
         onClose = function(selfModal) selfModal:Destroy() end })
     local content = UI.Panel { padding = 12, gap = 12, children = {

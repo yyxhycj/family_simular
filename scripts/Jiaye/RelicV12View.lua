@@ -231,6 +231,7 @@ end
 
 local function lifecycleModal(app, title, detail, action, confirmText, extra)
     local modal = ModalLayout.New(title, {
+        sheet = "form",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
@@ -427,6 +428,7 @@ function View.OpenAction(app, actionId, sourceInput)
     local action = actionFor(actionId)
     if not action then
         local picker = ModalLayout.New("选择行动", {
+            sheet = "detail",
             backgroundColor = C.paperLight,
             borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
             closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
@@ -452,6 +454,7 @@ function View.OpenAction(app, actionId, sourceInput)
     local input = {}
     for key, value in pairs(sourceInput or {}) do input[key] = value end
     local modal = ModalLayout.New("行动 · " .. tostring(action.name or actionId), {
+        sheet = "form",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
@@ -627,6 +630,7 @@ function View.Open(app, instanceId)
     if not instance then app:Notify("这件信物已不在当前家谱中。", "warning"); return end
     closeDetail(app)
     local modal = ModalLayout.New("藏阁 · " .. instanceTitle(instance), {
+        sheet = "detail",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal)
@@ -782,6 +786,7 @@ end
 local function openFormCatalog(app)
     local unlockedForms = Opening.UnlockedRelicForms(app.profile)
     local modal = ModalLayout.New("信物图鉴 · 已解锁形态", {
+        sheet = "full",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
         closeOnOverlay = true, onClose = function(selfModal) selfModal:Destroy() end,
