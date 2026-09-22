@@ -773,7 +773,7 @@ function App:BuildEstateTab()
         if grainQuote then
             table.insert(estateChildren, Label("本地价格：购入 " .. tostring(grainQuote.amount) .. " 石需 " .. tostring(grainQuote.price) .. " 两；年度缺粮补购使用同一价格。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
             table.insert(estateChildren, Button("购入 " .. tostring(grainQuote.amount) .. " 石粮（" .. tostring(grainQuote.price) .. " 两）", function()
-                self:ConfirmRunAction("确认购粮", "成本：" .. tostring(grainQuote.price) .. " 两。\n结果：存粮 +" .. tostring(grainQuote.amount) .. " 石，当前年度不会自动推进。", function() return Simulation.BuyGrain(self.run, grainQuote.amount) end, "确认购入")
+                self:RunAction(function() return Simulation.BuyGrain(self.run, grainQuote.amount) end)
             end, { height = 46, fontSize = 14, disabled = self.run.money < grainQuote.price, role = "secondary" }))
         end
         table.insert(estateChildren, Label("置办家业", { fontSize = 17, fontWeight = "bold", marginTop = 5 }))
