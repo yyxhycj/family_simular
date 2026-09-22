@@ -652,8 +652,8 @@ function App:BuildEstateTab()
                 local benefit = currentQuote.discount > 0 and ("\n通家玉佩抵扣 " .. tostring(currentQuote.discount) .. " 两，本次实迁后进入冷却。") or ""
                 self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(currentQuote.cost) .. " 两安置费。" .. benefit .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
             end, {
-                height = 76, disabled = current or not affordable, role = "secondary", textAlign = "left",
-                paddingHorizontal = 12, fontSize = 12,
+                height = 84, disabled = current or not affordable, role = "secondary", textAlign = "left",
+                paddingHorizontal = 14, fontSize = 14,
             }))
         end
     end
@@ -673,7 +673,7 @@ function App:BuildEstateTab()
             local current = assert(Simulation.AssetQuote(self.run, item.id))
             local discount = current.discount > 0 and "（已减免" .. tostring(current.discount) .. "两）" or ""
             self:ConfirmRunAction("确认" .. item.label, "成本：" .. tostring(current.price) .. " 两" .. discount .. "。\n结果：" .. item.outcome, function(run) return Simulation.BuyAsset(run, item.id) end, "确认置办")
-        end, { height = 46, fontSize = 13, disabled = owned or not affordable, role = "secondary" }))
+        end, { height = 48, fontSize = 14, disabled = owned or not affordable, role = "secondary" }))
     end
     ---@type string[]
     local craftNames = {}
@@ -708,7 +708,7 @@ function App:BuildEstateTab()
             end, { height = 46, fontSize = 14, disabled = self.run.money < grainQuote.price, role = "secondary" }))
         end
         table.insert(estateChildren, Label("置办家业", { fontSize = 17, fontWeight = "bold", marginTop = 5 }))
-        table.insert(estateChildren, UI.SimpleGrid { minColumnWidth = 155, gap = 7, children = assetActions })
+        table.insert(estateChildren, UI.Panel { gap = 7, children = assetActions })
         local aid = Data.EventChoice("community_request", "aid")
         local aidCost = aid and aid.cost or 15
         table.insert(estateChildren, Button("接济邻里（" .. tostring(aidCost) .. " 两）", function() self:ConfirmRunAction("确认接济邻里", "成本：" .. tostring(aidCost) .. " 两。\n结果：接济次数与声望写入家史。", function() return Simulation.AidCommunity(self.run) end, "确认接济") end, { height = 46, disabled = self.run.money < aidCost, role = "secondary" }))
@@ -717,7 +717,7 @@ function App:BuildEstateTab()
     local moveCard = Card({
         Label("迁居", { fontSize = 18, fontWeight = "bold" }),
         Label("迁居会写入真实年份和费用，不会把家人折叠成不可操作支系。", { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }),
-        self.run.ending and Label("迁居记录已封存，可在家史中回看。", { fontSize = 14, fontColor = C.muted }) or UI.SimpleGrid { minColumnWidth = 165, gap = 7, children = placeButtons },
+        self.run.ending and Label("迁居记录已封存，可在家史中回看。", { fontSize = 14, fontColor = C.muted }) or UI.Panel { gap = 7, children = placeButtons },
     })
     return UI.Panel { gap = 12, children = {
         estateCard,
