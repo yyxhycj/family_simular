@@ -35,7 +35,9 @@ def main():
         lua, _ = runtime(natural_storage)
         case = lua.execute((ROOT / "tests/t08/contract.lua").read_text())
         natural["restart"] = plain(case.naturalRestart())
-
+    except Exception as error:
+        natural = {"id": "t08_natural_restart", "status": "FAIL", "error": repr(error)}
+    try:
         storage = args.out / "collapse-storage"
         storage.mkdir()
         lua, _ = runtime(storage)
@@ -45,7 +47,6 @@ def main():
         case = lua.execute((ROOT / "tests/t08/contract.lua").read_text())
         result["restart"] = plain(case.restart())
     except Exception as error:
-        natural = {"id": "t08_natural_restart", "status": "FAIL", "error": repr(error)}
         result = {"id": "t08_contract", "status": "FAIL", "error": repr(error)}
     print(batch["id"], batch["status"])
     print(natural["id"], natural["status"])
