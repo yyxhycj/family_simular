@@ -677,6 +677,8 @@ function MemberView.Open(app, memberId)
         contentPadding = { 14, 14 },
         onClose = function(selfDrawer) selfDrawer:Destroy() end,
     }
+    local root = assert(UI.GetRoot(), "人生安排抽屉缺少游戏根节点。")
+    root:AddChild(drawer)
     render()
     drawer:Open()
 end
