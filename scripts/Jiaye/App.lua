@@ -665,6 +665,38 @@ function App:BuildPeopleTab()
 end
 
 function App:BuildEstateTab()
+    local function EstateActionCard(spec)
+        local statusColor = spec.statusColor or (spec.available and C.green or C.warning)
+        local children = {
+            UI.Row { gap = 10, alignItems = "flex-start", children = {
+                UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
+                    Label(spec.title, { fontSize = 17, fontWeight = "bold", whiteSpace = "normal" }),
+                    Label(spec.outcome, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+                } },
+                UI.Panel { minWidth = 76, gap = 2, alignItems = "flex-end", children = {
+                    Label(spec.costCaption or "花费", { fontSize = 11, fontColor = C.muted }),
+                    UI.Row { gap = 4, alignItems = "center", children = {
+                        Visual.Icon("money", 14, "muted"),
+                        Label(spec.costText, { fontSize = 16, fontWeight = "bold", fontColor = C.warning }),
+                    } },
+                } },
+            } },
+        }
+        if spec.detail then table.insert(children, Label(spec.detail, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 })) end
+        table.insert(children, UI.Row { gap = 8, alignItems = "center", children = {
+            Label(spec.timing, { flex = 1, fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
+            Label(spec.status, { fontSize = 13, fontColor = statusColor }),
+            spec.available and Visual.Icon("forward", 17, "muted") or UI.Panel { width = 17, height = 17 },
+        } })
+        return Card(children, {
+            minHeight = spec.minHeight or 96, padding = 11, gap = 6,
+            backgroundColor = spec.backgroundColor or C.card,
+            borderColor = spec.borderColor or (spec.available and C.gold or C.rule),
+            pointerEvents = spec.available and spec.onClick and "box-only" or "auto",
+            onClick = spec.available and spec.onClick or nil,
+        })
+    end
+
     local placeButtons = {}
     if not self.run.ending then
         for _, place in ipairs(Data.Places) do
@@ -672,30 +704,44 @@ function App:BuildEstateTab()
             local current = self.run.placeId == placeId
             local quote = current and { cost = 0 } or assert(Simulation.MigrationQuote(self.run, placeId))
             local affordable = self.run.money >= quote.cost
-            local title = current and ("当前居所 · " .. place.short) or ("迁居 " .. place.short .. " · " .. tostring(quote.cost) .. " 两")
-            local detail = current and place.desc or (place.desc .. " · " .. place.burden)
-            table.insert(placeButtons, Card({
-                UI.Row { gap = 10, alignItems = "center", children = {
-                    UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
-                        Label(title, { fontSize = 16, fontWeight = "bold", whiteSpace = "normal" }),
-                        Label(detail, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.35 }),
+            if current then
+                table.insert(placeButtons, Card({
+                    UI.Row { gap = 10, alignItems = "center", children = {
+                        UI.Panel { flex = 1, gap = 3, children = {
+                            Label("当前居所 · " .. place.short, { fontSize = 17, fontWeight = "bold" }),
+                            Label(place.desc .. "\n" .. place.burden, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
+                        } },
+                        Label("已落脚", { fontSize = 13, fontColor = C.green }),
                     } },
-                    current and Label("当前", { fontSize = 13, fontColor = C.primary })
-                        or (not affordable and Label("银两不足", { fontSize = 13, fontColor = C.disabledInk }) or Visual.Icon("forward", 18, "muted")),
-                } },
-            }, {
-                minHeight = 84, padding = 12, gap = 4,
-                backgroundColor = (current or not affordable) and C.disabledSurface or C.paperLight,
-                borderColor = current and C.gold or C.rule,
-                pointerEvents = (current or not affordable) and "auto" or "box-only",
-                onClick = function()
-                    local currentQuote, reason = Simulation.MigrationQuote(self.run, placeId)
-                    if not currentQuote then self:Notify(reason, "warning"); return end
-                    local benefit = currentQuote.discount > 0 and ("\n通家玉佩抵扣 " .. tostring(currentQuote.discount) .. " 两，本次实迁后进入冷却。") or ""
-                    self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(currentQuote.cost) .. " 两安置费。" .. benefit .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
-                end,
-            }))
+                    Label("无需安置费", { fontSize = 12, fontColor = C.muted }),
+                }, { minHeight = 84, padding = 11, gap = 6, backgroundColor = C.pale, borderColor = C.gold }))
+            else
+                table.insert(placeButtons, EstateActionCard({
+                    title = "迁居 " .. place.short,
+                    costCaption = "安置费",
+                    costText = tostring(quote.cost) .. " 两",
+                    outcome = place.desc,
+                    detail = place.burden,
+                    timing = "迁居后立即生效，并写入家史",
+                    available = affordable,
+                    status = affordable and "可迁居" or "尚差 " .. tostring(quote.cost - self.run.money) .. " 两",
+                    onClick = function()
+                        local currentQuote, reason = Simulation.MigrationQuote(self.run, placeId)
+                        if not currentQuote then self:Notify(reason, "warning"); return end
+                        local benefit = currentQuote.discount > 0 and ("\n通家玉佩抵扣 " .. tostring(currentQuote.discount) .. " 两，本次实迁后进入冷却。") or ""
+                        self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(currentQuote.cost) .. " 两安置费。" .. benefit .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
+                    end,
+                }))
+            end
         end
+    end
+    ---@type string[]
+    local craftNames = {}
+    ---@type string[]
+    local tradeNames = {}
+    for _, member in ipairs(self.run.members) do
+        if member.alive and member.jobId == "craft" then table.insert(craftNames, member.name) end
+        if member.alive and member.jobId == "trade" then table.insert(tradeNames, member.name) end
     end
     local assetActions = {}
     local assets = {
@@ -708,20 +754,26 @@ function App:BuildEstateTab()
         local quote = assert(Simulation.AssetQuote(self.run, item.id))
         local owned = (item.id == "workshop" and self.run.workshop) or (item.id == "shop" and self.run.shop)
         local affordable = self.run.money >= quote.price
-        local label = owned and (item.label .. " · 已置办") or (item.label .. " · " .. tostring(quote.price) .. " 两")
-        table.insert(assetActions, Button(label, function()
-            local current = assert(Simulation.AssetQuote(self.run, item.id))
-            local discount = current.discount > 0 and "（已减免" .. tostring(current.discount) .. "两）" or ""
-            self:ConfirmRunAction("确认" .. item.label, "成本：" .. tostring(current.price) .. " 两" .. discount .. "。\n结果：" .. item.outcome, function(run) return Simulation.BuyAsset(run, item.id) end, "确认置办")
-        end, { height = 48, fontSize = 14, disabled = owned or not affordable, role = "secondary" }))
-    end
-    ---@type string[]
-    local craftNames = {}
-    ---@type string[]
-    local tradeNames = {}
-    for _, member in ipairs(self.run.members) do
-        if member.alive and member.jobId == "craft" then table.insert(craftNames, member.name) end
-        if member.alive and member.jobId == "trade" then table.insert(tradeNames, member.name) end
+        if not owned then
+            local operator = item.id == "workshop" and (#craftNames > 0 and ("经营人：" .. table.concat(craftNames, "、")) or "需安排在世族人手艺谋生，才会结算收益。")
+                or item.id == "shop" and (#tradeNames > 0 and ("经营人：" .. table.concat(tradeNames, "、")) or "需安排在世族人外出经商，才会结算收益。")
+                or "本年置办，下年结算起多收粮食。"
+            local discount = quote.discount > 0 and ("原价 " .. tostring(quote.basePrice) .. " 两，已减免 " .. tostring(quote.discount) .. " 两。") or operator
+            table.insert(assetActions, EstateActionCard({
+                title = item.label,
+                costText = tostring(quote.price) .. " 两",
+                outcome = item.outcome,
+                detail = discount,
+                timing = "置办后立即生效",
+                available = affordable,
+                status = affordable and "可置办" or "尚差 " .. tostring(quote.price - self.run.money) .. " 两",
+                onClick = function()
+                    local current = assert(Simulation.AssetQuote(self.run, item.id))
+                    local currentDiscount = current.discount > 0 and "（已减免" .. tostring(current.discount) .. "两）" or ""
+                    self:ConfirmRunAction("确认" .. item.label, "成本：" .. tostring(current.price) .. " 两" .. currentDiscount .. "。\n结果：" .. item.outcome, function(run) return Simulation.BuyAsset(run, item.id) end, "确认置办")
+                end,
+            }))
+        end
     end
     local workshopExpected = self.run.workshop and (#craftNames > 0 and "预计 +8 两" or "当前无人经营，预计 +0 两") or "尚未置办"
     local shopExpected = self.run.shop and (#tradeNames > 0 and "预计 +10 两" or "当前无人经营，预计 +0 两") or "尚未置办"
@@ -742,16 +794,32 @@ function App:BuildEstateTab()
     else
         table.insert(estateChildren, Label("公市购粮", { fontSize = 17, fontWeight = "bold", marginTop = 5 }))
         if grainQuote then
-            table.insert(estateChildren, Label("本地价格：购入 " .. tostring(grainQuote.amount) .. " 石需 " .. tostring(grainQuote.price) .. " 两；年度缺粮补购使用同一价格。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
-            table.insert(estateChildren, Button("购入 " .. tostring(grainQuote.amount) .. " 石粮（" .. tostring(grainQuote.price) .. " 两）", function()
-                self:RunAction(function() return Simulation.BuyGrain(self.run, grainQuote.amount) end)
-            end, { height = 46, fontSize = 14, disabled = self.run.money < grainQuote.price, role = "secondary" }))
+            table.insert(estateChildren, EstateActionCard({
+                title = "购入 " .. tostring(grainQuote.amount) .. " 石粮",
+                costText = tostring(grainQuote.price) .. " 两",
+                outcome = "存粮 +" .. tostring(grainQuote.amount) .. " 石，立即入库。",
+                detail = "年度缺粮时的自动补购，也按当前落脚处的同一价格结算。",
+                timing = "购入后立即生效",
+                available = self.run.money >= grainQuote.price,
+                status = self.run.money >= grainQuote.price and "可购入" or "尚差 " .. tostring(grainQuote.price - self.run.money) .. " 两",
+                onClick = function() self:RunAction(function() return Simulation.BuyGrain(self.run, grainQuote.amount) end) end,
+            }))
         end
         table.insert(estateChildren, Label("置办家业", { fontSize = 17, fontWeight = "bold", marginTop = 5 }))
-        table.insert(estateChildren, UI.Panel { gap = 7, children = assetActions })
+        table.insert(estateChildren, #assetActions > 0 and UI.Panel { gap = 7, children = assetActions }
+            or Label("田地、作坊和商铺均已置办，可继续安排经营人。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
         local aid = Data.EventChoice("community_request", "aid")
         local aidCost = aid and aid.cost or 15
-        table.insert(estateChildren, Button("接济邻里（" .. tostring(aidCost) .. " 两）", function() self:ConfirmRunAction("确认接济邻里", "成本：" .. tostring(aidCost) .. " 两。\n结果：接济次数与声望写入家史。", function() return Simulation.AidCommunity(self.run) end, "确认接济") end, { height = 46, disabled = self.run.money < aidCost, role = "secondary" }))
+        table.insert(estateChildren, EstateActionCard({
+            title = "接济邻里",
+            costText = tostring(aidCost) .. " 两",
+            outcome = "接济次数与声望写入家史。",
+            detail = "用于回应乡里的求助，并保留为本局事实。",
+            timing = "确认后立即生效",
+            available = self.run.money >= aidCost,
+            status = self.run.money >= aidCost and "可接济" or "尚差 " .. tostring(aidCost - self.run.money) .. " 两",
+            onClick = function() self:ConfirmRunAction("确认接济邻里", "成本：" .. tostring(aidCost) .. " 两。\n结果：接济次数与声望写入家史。", function() return Simulation.AidCommunity(self.run) end, "确认接济") end,
+        }))
     end
     local estateCard = Card(estateChildren)
     local moveCard = Card({
