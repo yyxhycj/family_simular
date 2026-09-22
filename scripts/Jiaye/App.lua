@@ -219,77 +219,8 @@ function App:OpenMenu()
     modal:AddContent(ModalLayout.Scroll(UI.Panel { gap = 8, children = {
         Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
         Button("导出备份", function() modal:Close(); self:Export() end, { width = "100%", role = "secondary" }),
-        Button("恢复本机备份", function()
-            local candidate, message, status = State.ReadExport()
-            if not candidate then self:Notify(message, "error"); return end
-            modal:Close(); self:ConfirmImport(candidate, message, status)
-        end, { width = "100%", role = "secondary" }),
-        Button("从用户文档导入", function() modal:Close(); self:ImportExternal() end, { width = "100%", role = "secondary" }),
-        Button("导入备份", function() modal:Close(); self:OpenImport() end, { width = "100%", role = "secondary" }),
         Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
     } }))
-    modal:Open()
-end
-
-function App:ImportExternal()
-    if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
-    local candidate, message, status = State.ReadExternalExport()
-    if not candidate then self:Notify(message, "error"); return end
-    self:ConfirmImport(candidate, message, status)
-end
-
-function App:OpenImport()
-    if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免覆盖内存中的进度。", "warning"); return end
-    self.importRaw = ""
-    local modal = ModalLayout.New("导入家业备份", { sheet = "full", closeOnOverlay = true })
-    local body = UI.Panel { gap = 10 }
-    body:AddChild(Label("粘贴完整 JSON 备份，接收后保留在页面中并显示文件长度。系统会检查版本、结构和人物/物件引用；确认前不会改动当前进度。也可返回家谱事务，从用户文档备份直接读取。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }))
-    local receipt = Label("尚未接收备份", { fontSize = 14, fontColor = C.muted })
-    body:AddChild(UI.TextField {
-        value = "", placeholder = "在此粘贴完整备份", maxLength = 15000000, height = 180, fontSize = 12,
-        onChange = function(_, value)
-            if value == "" then return end
-            self.importRaw = value
-            receipt:SetText("已接收 " .. tostring(#value) .. " 字节，等待校验")
-        end,
-    })
-    body:AddChild(receipt)
-    modal:AddContent(ModalLayout.Scroll(body))
-    modal:SetFooter(UI.Row { gap = 8, children = {
-        Button("校验并预演", function()
-            local candidate, message, status = State.PreflightImport(self.importRaw)
-            if not candidate then self:Notify(message, "error"); return end
-            modal:Close(); self:ConfirmImport(candidate, message, status)
-        end, { flex = 1, height = 46 }),
-        Button("取消", function() modal:Close() end, { flex = 1, height = 46, backgroundColor = C.pale, textColor = C.green }),
-    } })
-    modal:Open()
-end
-
-function App:ConfirmImport(candidate, previewMessage, status)
-    local modal = ModalLayout.New("确认替换当前进度", { sheet = "confirm", closeOnOverlay = false })
-    local body = UI.Panel { gap = 10, children = {
-        Label(previewMessage, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.55 }),
-        Label("确认后写入新的可回读存档；当前进度在写入失败时保持原样。重复确认同一份备份只保留一份结果。", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.5, fontColor = C.muted }),
-    } }
-    modal:AddContent(ModalLayout.Scroll(body))
-    modal:SetFooter(UI.Row { gap = 8, children = {
-        Button("确认导入", function()
-            local ok, message, result = State.CommitImport(candidate)
-            if not ok then self:Notify(message, "error"); return end
-            local loaded, loadMessage = State.Load()
-            if not loaded then self:Notify("导入写入后无法读取，请保留备份并重试。", "error"); return end
-            self.profile, self.draft, self.run = loaded.profile, loaded.draft, loaded.run
-            self.openingEditDraft = nil; self.memberEditing = nil; self.memberLifePages = {}; self.historyPages = {}
-            self.familyGeneration = 0; self.peopleFilter = "all"
-            self.previousDraft = nil; self.editBackup = nil; self.houseUndo = nil; self.undo = {}; self.historyPage = 1
-            self.peopleQuery = ""; self.peopleQueryDraft = ""; self.historySection = "annals"; self.storageBlocked = false
-            self.unsaved = false; self.saveMessage = ""; self.openingGenerationFailed = false
-            self.screen = self.run and "game" or "opening"
-            modal:Close(); self:Render(); self:Notify(result == "duplicate" and message or (message .. " " .. loadMessage), "success")
-        end, { flex = 1, height = 46 }),
-        Button("保留当前进度", function() modal:Close() end, { flex = 1, height = 46, backgroundColor = C.pale, textColor = C.green }),
-    } })
     modal:Open()
 end
 
@@ -518,9 +449,9 @@ function App:BuildCover()
         table.insert(actions, Label(self.openingFeedback, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal", lineHeight = 1.5 }))
     end
     table.insert(actions, Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 10 }))
-    table.insert(actions, Button(self.run and "继续家谱" or "读取最近存档", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
-    table.insert(actions, Button("从用户文档导入", function() self:ImportExternal() end, { height = 44, backgroundColor = C.pale, textColor = C.green }))
-    table.insert(actions, Button("导入备份", function() self:OpenImport() end, { height = 44, backgroundColor = C.pale, textColor = C.green }))
+    if self.run then
+        table.insert(actions, Button("继续家谱", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+    end
     return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, justifyContent = "center", padding = 22, children = {
         Visual.Decor("clouds", { position = "absolute", top = 12, right = 0, width = 190, height = 76, opacity = 0.2, pointerEvents = "none" }),
         Visual.Decor("mountains", { position = "absolute", bottom = 0, left = 0, width = "100%", height = 220, opacity = 0.2, pointerEvents = "none" }),
@@ -541,7 +472,7 @@ function App:BuildGameNav()
             backgroundColor = { 0, 0, 0, 0 }, hoverBackgroundColor = C.pale, pressedBackgroundColor = C.pale,
             borderRadius = 0, borderWidth = 0, borderBottomWidth = active and 2 or 0, borderBottomColor = C.green,
             onClick = function() self.gameTab = tab.id; self:Render() end,
-            children = { Visual.Icon(tab.icon, 22, active and "ink" or "muted"), Label(tab.text, { fontSize = 12, fontColor = active and C.green or C.muted }) },
+            children = { Visual.Icon(tab.icon, 23, active and "ink" or "muted"), Label(tab.text, { fontSize = 13, fontColor = active and C.green or C.muted }) },
         })
     end
     return UI.Panel { flexShrink = 0, paddingHorizontal = 5, backgroundColor = C.card, borderTopWidth = 1, borderTopColor = C.line, children = { UI.Row { children = children } } }

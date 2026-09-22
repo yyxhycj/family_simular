@@ -346,7 +346,6 @@ function HistoryView.Build(app)
             Text("年鉴、任期、账本、事实和终章按类别保留，长记录可分页阅读。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }),
             UI.Row { gap = 6, children = {
                 Button("导出本局", function() app:Export() end, { flex = 1, role = "primary" }),
-                Button("导入备份", function() app:OpenImport() end, { flex = 1 }),
                 Button("新立家谱", function() app:PrepareNewRun() end, { flex = 1 }),
             } },
         }),
