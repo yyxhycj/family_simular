@@ -70,8 +70,21 @@ function ModalLayout.New(title, props)
         drawerProps.borderRadius = self.props.borderRadius or V7.Tokens.sheetTopRadius
         drawerProps.contentPadding = self.props.contentPadding or { 12, 14 }
         drawerProps.footerPadding = self.props.footerPadding or { 8, 14 }
-        drawerProps.content = self.content
-        drawerProps.footer = self.footer
+        local content = self.content
+        local footer = self.footer
+        drawerProps.content = content
+        if type(footer) == "string" or type(footer) == "function" then
+            drawerProps.footer = footer
+        elseif footer then
+            drawerProps.footer = function(nvg, x, y, width, height)
+                YGNodeCalculateLayout(footer.node, width, height, YGDirectionLTR)
+                footer.renderOffsetX_ = x
+                footer.renderOffsetY_ = y
+                footer.renderWidth_ = width
+                footer.renderHeight_ = height
+                UI.RenderWidgetSubtree(footer, nvg)
+            end
+        end
         drawerProps.onClose = function()
             if self.props.onClose then self.props.onClose(self) end
             if not self.destroyed then self:Destroy() end
@@ -79,6 +92,12 @@ function ModalLayout.New(title, props)
 
         local drawer = UI.Drawer(drawerProps)
         local closeOnOverlay = self.props.closeOnOverlay ~= false
+        function drawer:GetHitTestChildren()
+            local children = {}
+            if content and type(content) ~= "function" then table.insert(children, content) end
+            if footer and type(footer) ~= "function" and type(footer) ~= "string" then table.insert(children, footer) end
+            return children
+        end
         function drawer:OnClick(event)
             if not event then return end
             local px, py = event.x, event.y
