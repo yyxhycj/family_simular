@@ -450,6 +450,7 @@ function Economy.AnnualForecast(run)
     if type(run) ~= "table" then return nil, "当前家谱数据无效。" end
     local ledger = Economy.Preview(run)
     return {
+        livingExpense = ledger.livingExpense or 0,
         foodNeed = ledger.foodNeed or Economy.StandardAnnualFoodNeed(run),
         foodShortfall = ledger.foodShortfall or 0,
         foodSatisfied = ledger.foodSatisfied == true,

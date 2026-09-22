@@ -31,7 +31,7 @@ return function()
         assert(preview.income == 29 and preview.training == 16 and preview.livingExpense == 14)
         assert(preview.landGrain == 4 and preview.netMoney == -1 and preview.netGrain == 5)
         local forecast = assert(Economy.AnnualForecast(run))
-        assert(forecast.foodNeed == preview.foodNeed and forecast.projectedGrain == preview.grain
+        assert(forecast.livingExpense == preview.livingExpense and forecast.foodNeed == preview.foodNeed and forecast.projectedGrain == preview.grain
             and forecast.netGrain == preview.netGrain and forecast.foodShortfall == preview.foodShortfall,
             "年度粮耗预估必须复用正式结算账本")
         local originalNeed = forecast.foodNeed
