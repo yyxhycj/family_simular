@@ -11,8 +11,7 @@ local app_ = nil
 
 local function JiayeUIScale()
     local dpr = graphics:GetDPR()
-    local shortSide = math.min(graphics.width, graphics.height) / dpr
-    if shortSide <= 480 then
+    if graphics.height > graphics.width then
         return dpr * 4 / 3
     end
     return dpr
