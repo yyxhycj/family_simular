@@ -202,6 +202,7 @@ end
 function App:Export()
     local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
     if not raw then self:Notify(message, "error"); return end
+    self:Notify(message, "success")
     local externalPath = State.ExternalExportPath()
     local backupField = UI.TextField {
         value = raw, maxLength = math.max(#raw, 1), height = 180, fontSize = 12,
@@ -293,7 +294,8 @@ function App:StartRun()
             self.saveMessage = "新局未开始。" .. tostring(written and message or ok)
             self:Render(); self:Notify(self.saveMessage, "error"); return
         end
-        self.run = candidate; self.draft = submittedDraft; self.previousDraft = nil; self.saveMessage = ""
+        local saved = assert(State.Load(), "新局保存后无法回读。")
+        self.profile = saved.profile; self.draft = saved.draft; self.run = saved.run; self.previousDraft = nil; self.saveMessage = ""
         self.familyGeneration = 0; self.peopleSelected = {}
         self.openingEditDraft = nil; self.memberEditing = nil; self.memberLifePages = {}; self.historyPages = {}
         self.screen = "game"; self.gameTab = "family"; self.historyPage = 1; self.undo = {}

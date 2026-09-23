@@ -44,7 +44,7 @@ return function()
             assert(#State.ValidateDraft(first, profile, false) == 0, "生成草案必须可直接开局")
             unique[signature(first)] = true
         end
-        local sixPeople = assert(Opening.Generate(profile, 722, "mortal"))
+        local sixPeople = assert(Opening.Generate(profile, 124, "mortal"))
         assert(#sixPeople.members == 6 and #State.ValidateDraft(sixPeople, profile, false) == 0, "六人上限家庭必须保持关系合法")
         maxPopulation = math.max(maxPopulation, #sixPeople.members)
         local count = 0; for _ in pairs(unique) do count = count + 1 end

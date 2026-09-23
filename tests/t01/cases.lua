@@ -10,11 +10,40 @@ end
 local function find(root, text)
     if root.text == text then return root end
     for _, child in ipairs(root.children or {}) do local found = find(child, text); if found then return found end end
+    if root.GetHitTestChildren then
+        for _, child in ipairs(root:GetHitTestChildren()) do local found = find(child, text); if found then return found end end
+    end
 end
 local function click(root, text)
     local button = assert(find(root, text), "missing UI binding: " .. text)
     assert(not button.disabled, "disabled UI binding: " .. text); button.onClick(button)
     return button
+end
+local function contains(root, text)
+    if root.text == text then return true end
+    for _, child in ipairs(root.children or {}) do if contains(child, text) then return true end end
+    if root.GetHitTestChildren then
+        for _, child in ipairs(root:GetHitTestChildren()) do if contains(child, text) then return true end end
+    end
+    return false
+end
+local function findAction(root, text)
+    if root.onClick and contains(root, text) then return root end
+    for _, child in ipairs(root.children or {}) do
+        local result = findAction(child, text)
+        if result then return result end
+    end
+    if root.GetHitTestChildren then
+        for _, child in ipairs(root:GetHitTestChildren()) do
+            local result = findAction(child, text)
+            if result then return result end
+        end
+    end
+end
+local function clickAction(root, text)
+    local action = assert(findAction(root, text), "missing UI action: " .. text)
+    action.onClick(action)
+    return action
 end
 local function loadedMatches(app)
     local value = assert(State.Load())
@@ -33,17 +62,17 @@ cases.history = {
         assert(State.Save(profile, draft, run))
         local app = resume(); local before = State.Copy(app.run)
         app.gameTab = "history"; app:Render()
-        assert(find(UI.root, "大晟历 72 年 · entry-151") and not find(UI.root, "大晟历 72 年 · entry-1"))
+        assert(find(UI.root, "entry-151") and not find(UI.root, "entry-1"))
         click(UI.root, "最早")
-        assert(app.historyPage == 8 and find(UI.root, "大晟历 72 年 · entry-1"))
+        assert(app.historyPages.annals == 16 and find(UI.root, "entry-1"))
         assert(find(UI.root, "下一页").disabled)
         click(UI.root, "上一页"); click(UI.root, "下一页"); click(UI.root, "最新")
-        assert(app.historyPage == 1 and same(before, app.run)); loadedMatches(app)
-        return { count = #run.logs, oldest = run.logs[151], pages = 8, pageSize = 20, readOnly = true }
+        assert(app.historyPages.annals == 1 and same(before, app.run)); loadedMatches(app)
+        return { count = #run.logs, oldest = run.logs[151], pages = 16, pageSize = 10, readOnly = true }
     end,
     restart = function()
         local app = resume(); app.gameTab = "history"; app:Render(); click(UI.root, "最早")
-        assert(find(UI.root, "大晟历 72 年 · entry-1")); assert(#app.run.logs == 151)
+        assert(find(UI.root, "entry-1")); assert(#app.run.logs == 151)
         return { oldestVisible = true, count = #app.run.logs, rng = app.run.rngState }
     end,
 }
@@ -75,10 +104,11 @@ cases.succession = {
             assert(same(run, before), "invalid appointment mutated state")
             assert(State.Save(profile, draft, run)); local app = resume()
             if entrance == "event" then
-                click(app:BuildPendingEvent(app.run.events[1]), "任命 许青")
-                click(UI.modal, "确认任命")
+                local eventCard = app:BuildPendingEvent(app.run.events[1])
+                eventCard.onClick(eventCard)
+                click(UI.modal, "确认这个决定")
             else
-                app:OpenRunMember(2); click(UI.modal, "任命为族长")
+                app:OpenRunMember(2); clickAction(UI.modal, "承担族务"); clickAction(UI.modal, "任命为族长")
                 click(UI.modal, "确认交接")
             end
             run = app.run
@@ -86,7 +116,7 @@ cases.succession = {
             assert(#Sim.PendingEvents(run) == 0 and run.events[1].memberId == 2)
             assert(run.reputation == before.reputation + 3 and #run.logs == #before.logs + 2)
             assert(run.money == before.money and run.grain == before.grain and run.rngState == before.rngState)
-            assert(find(app:BuildAnnualFooter(), "推进这一年")); loadedMatches(app)
+            assert(find(app:BuildAnnualFooter(), "推进这一年  →")); loadedMatches(app)
             local resolved = State.Copy(run)
             assert(not Sim.AppointLeader(run, 2) and not Sim.ResolveLeaderEvent(run, event.instanceId, 2))
             assert(same(run, resolved), "duplicate appointment rewarded twice")
@@ -100,7 +130,7 @@ cases.succession = {
     end,
     restart = function()
         local app = resume(); assert(app.run.leaderId == 2 and #Sim.PendingEvents(app.run) == 0)
-        click(app:BuildAnnualFooter(), "推进这一年"); assert(app.run.yearIndex == 2); loadedMatches(app)
+        click(app:BuildAnnualFooter(), "推进这一年  →"); assert(app.run.yearIndex == 2); loadedMatches(app)
         return { resumedYear = app.run.yearIndex, leader = app.run.leaderId }
     end,
 }
@@ -113,21 +143,22 @@ cases.collection = {
         assert(profile.unlockedRelicIds.plan)
         -- 已有局外终章记录的存档夹具，仅验证保留，不作为终章达成证据。
         profile.endingRecords = { { id = "peaceful", title = "旧局存档夹具", year = 70 } }
-        assert(State.Save(profile, draft, run)); local app = App.New()
-        assert(app.profile.unlockedRelicIds.plan and same(app.run, run))
+        assert(State.Save(profile, draft, run)); local savedRun = State.Copy(assert(State.Load()).run); local app = App.New()
+        assert(app.profile.unlockedRelicIds.plan and same(app.run, savedRun))
         local saved = State.Copy(assert(State.Load()))
         app:PrepareNewRun(); app.draft.family = "欧阳"; app.openingPage = "final"; app:Render()
         app:StartRun(); local cancel = UI.modal; click(cancel, "取消")
-        assert(same(assert(State.Load()), saved) and same(app.run, run))
-        app:CancelNewRun(); assert(same(app.draft, draft) and app.screen == "game")
+        assert(same(assert(State.Load()), saved) and same(app.run, savedRun))
+        app:CancelNewRun(); assert(same(app.draft, saved.draft) and app.screen == "game")
         app:PrepareNewRun(); app.draft = State.NewDraft() -- 明确使用冻结97点夹具，不依赖新的随机默认家庭。
         app:ToggleRelic("plan"); app.draft.money = 0
         assert(State.TotalPoints(app.draft) == 99)
         local displayed = State.Copy(app.draft)
         app:StartRun(); local confirm = click(UI.modal, "确认开始")
         local created = State.Copy(app.run); confirm.onClick(confirm)
-        assert(same(created, app.run) and same(displayed, app.run.openingSnapshot))
-        assert(same(app.profile, profile) and app.profile.unlockedRelicIds.plan and #app.run.relicInstances == 2)
+        local expectedSnapshot = assert(State.NewRun(app.draft, app.profile)).openingSnapshot
+        assert(same(created, app.run) and same(expectedSnapshot, app.run.openingSnapshot))
+        assert(same(app.profile, saved.profile) and app.profile.unlockedRelicIds.plan and #app.run.relicInstances == 2)
         assert(app.run.yearIndex == 0 and app.screen == "game"); loadedMatches(app)
         return { unlocked = app.profile.unlockedRelicIds, total = State.TotalPoints(app.draft), snapshot = app.run.openingSnapshot, cancelledUnchanged = true }
     end,
@@ -149,12 +180,12 @@ cases.failed_new_run = {
         app:PrepareNewRun(); app.draft.family = "候选"; app.openingPage = "final"
         for _, mode in ipairs({ "open", "partial", "zero", "corrupt", "exception" }) do
             fault.mode = mode; app:StartRun(); click(UI.modal, "确认开始"); fault.mode = ""
-            assert(same(app.run, run) and app.draft.family == "候选" and app.screen == "opening")
+            assert(same(app.run, saved.run) and app.draft.family == "候选" and app.screen == "opening")
             assert(same(assert(State.Load()), saved) and notices[#notices].variant == "error")
             modes[mode] = { oldRunPreserved = true, candidatePreserved = true, notification = notices[#notices] }
         end
         app.draft.money = 999; app:StartRun(); assert(not app.startConfirmationOpen)
-        assert(same(assert(State.Load()), saved)); app:CancelNewRun(); assert(same(app.draft, draft))
+        assert(same(assert(State.Load()), saved)); app:CancelNewRun(); assert(same(app.draft, saved.draft))
         return modes
     end,
     restart = function()

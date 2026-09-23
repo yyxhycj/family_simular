@@ -3,6 +3,7 @@ UI, notices = {}, {}
 local function widget(kind, props)
     props = props or {}; props.kind = kind; props.children = props.children or {}
     props.SetText = function(self, text) self.text = text end
+    props.SelectAll = function(self) self.selectedAll = true end
     props.SetValue = function(self, value) self.value = value end
     props.GetValue = function(self) return self.value end
     props.SetDisabled = function(self, value) self.disabled = value end
@@ -44,13 +45,25 @@ end
 setmetatable(Panel, { __call = function(_, props) return widget("Panel", props) end })
 UI.Panel = Panel
 
-for _, kind in ipairs({ "Row", "SimpleGrid", "Dropdown", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Box", "Modal" }) do
+for _, kind in ipairs({ "Row", "SimpleGrid", "Dropdown", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Box", "Modal", "Drawer" }) do
     UI[kind] = function(props) return widget(kind, props) end
+end
+UI.Drawer = function(props)
+    local drawer = widget("Drawer", props)
+    if type(props.content) == "table" then drawer:AddChild(props.content) end
+    if type(props.footer) == "table" then drawer:AddChild(props.footer) end
+    drawer.SetContent = function(self, content)
+        self.content = content
+        self:ClearChildren()
+        if type(content) == "table" then self:AddChild(content) end
+    end
+    return drawer
 end
 UI.Box = function(width, height) return widget("Box", { width = width, height = height }) end
 UI.GetWidth = function() return 390 end
 UI.GetHeight = function() return 867 end
 UI.SetRoot = function(root) UI.root = root end
+UI.GetRoot = function() return UI.root end
 UI.Toast = {
     GetGlobal = function() return { DismissAll = function() end } end,
     Show = function(message, props) table.insert(notices, { message = message, variant = props.variant }) end,

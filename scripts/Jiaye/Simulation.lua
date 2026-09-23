@@ -1041,12 +1041,18 @@ function Simulation.AdvanceYear(run, profile)
             end
         end
     end
-    QueueRoutineEvents(run)
-    if #Living(run) == 0 then
+    if run.lastLedger.resourcesExhausted then
+        local ending = Data.Ending("collapse")
+        if not ending then return false, "家道终章定义缺失。" end
+        Simulation.FinalizeEnding(run, ending, profile)
+    else
+        QueueRoutineEvents(run)
+    end
+    if not run.ending and #Living(run) == 0 then
         local ending = Data.Ending("last")
         if not ending then return false, "自然终章定义缺失。" end
         Simulation.FinalizeEnding(run, ending, profile)
-    else
+    elseif not run.ending then
         State.AddLog(run, "大晟历 " .. tostring(run.calendar) .. " 年结算完成。")
     end
     run.revision = run.revision + 1

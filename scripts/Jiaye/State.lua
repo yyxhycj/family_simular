@@ -123,6 +123,11 @@ function State.PointLines(draft)
         add("people", name .. " · 人口", State.MemberBaseCost(member), "姓名、性别不计点")
         add("people", name .. " · " .. talent.name, talent.cost, "成长修正 " .. tostring(talent.gain))
         if experience then add("people", name .. " · " .. experience.name, experience.cost, "已有本领") end
+        local focusName = Data.FocusNames[member.focus]
+        if focusName then
+            local effect = member.focus == "general" and "任意技艺安排年度成长 +1" or "从事" .. focusName .. "相关安排时，年度成长 +1"
+            add("people", name .. " · 偏向：" .. focusName, 0, effect)
+        end
         local job = Data.Jobs[member.jobId]
         if job then add("people", name .. " · 初始安排：" .. job.name, 0, job.desc) end
     end
@@ -877,8 +882,7 @@ function State.UseVerificationStorage(suite)
 end
 
 local function UserDocumentsExportPath()
-    -- Web 预览没有宿主文档目录；先以持久文件系统能力判断，避免触发受限 API 的运行时错误。
-    if GetPlatform() == "Web" then return nil end
+    -- 先以持久文件系统能力判断，Web 预览及测试宿主都不会提供该能力。
     if not fileSystem or not fileSystem.HasPersistentFS or fileSystem:HasPersistentFS() ~= true then return nil end
     if not fileSystem.GetUserDocumentsDir then return nil end
     local documents = fileSystem:GetUserDocumentsDir()

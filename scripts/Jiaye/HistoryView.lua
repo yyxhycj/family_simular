@@ -203,7 +203,7 @@ local function BuildLedgers(app)
                     table.insert(lines, "职业 " .. tostring((row.money or 0) - (row.relicIncome or 0) - (row.originIncome or 0)) .. " 两 · 信物 " .. tostring(row.relicIncome or 0) .. " 两 · 背景 " .. tostring(row.originIncome or 0) .. " 两")
                     local growth = row.growth or {}
                     if growth.stat and growth.stat ~= "health" then
-                        table.insert(lines, (Data.FocusNames[growth.stat] or growth.stat) .. "实际 +" .. tostring(growth.amount or 0) .. "；来源：基础 " .. tostring(row.baseGrowth or 0) .. "、信物 " .. tostring(row.relicGrowth or 0) .. "、家风 " .. tostring(row.habitGrowth or 0) .. "、背景 " .. tostring(row.originGrowth or 0))
+                        table.insert(lines, (Data.FocusNames[growth.stat] or growth.stat) .. "实际 +" .. tostring(growth.amount or 0) .. "；来源：基础 " .. tostring(row.baseGrowth or 0) .. "、偏向 " .. tostring(row.focusGrowth or 0) .. "、信物 " .. tostring(row.relicGrowth or 0) .. "、家风 " .. tostring(row.habitGrowth or 0) .. "、背景 " .. tostring(row.originGrowth or 0))
                     elseif growth.health and growth.health ~= 0 then
                         table.insert(lines, "体魄 +" .. tostring(growth.health))
                     end
@@ -278,9 +278,7 @@ end
 
 local function BuildEndings(app)
     local endings = {}
-    for _, ending in ipairs(Data.Endings) do
-        if ending.id ~= "collapse" and ending.automaticTrigger ~= "resources_exhausted" then table.insert(endings, ending) end
-    end
+    for _, ending in ipairs(Data.Endings) do table.insert(endings, ending) end
     local currentEnding = app.run.ending
     local cards = {}
     for _, ending in ipairs(endings) do
@@ -317,7 +315,7 @@ local function BuildEndings(app)
             UI.Panel { gap = 5, children = evidence },
         }))
     end
-    return PagedCards(app, "endings", cards, 4, "终章", "发展终章仍在探索中。", function(card) return card end)
+    return PagedCards(app, "endings", cards, 4, "十四条终章", "终章仍在探索中。", function(card) return card end)
 end
 
 function HistoryView.Build(app)

@@ -80,9 +80,14 @@ local function BaseGrowth(run, member, job, place)
     return job.stat, gain
 end
 
+local function FocusGrowth(member, stat)
+    if stat == nil or stat == "health" then return 0 end
+    return (member.focus == "general" or member.focus == stat) and 1 or 0
+end
+
 local function ApplyGrowth(run, member, job, place, effects, origin)
     origin = origin or { learn = 0 }
-    local growth = { stat = job.stat, amount = 0, health = 0, gain = 0, baseGrowth = 0, relicGrowth = 0, habitGrowth = 0, originGrowth = 0 }
+    local growth = { stat = job.stat, amount = 0, health = 0, gain = 0, baseGrowth = 0, focusGrowth = 0, relicGrowth = 0, habitGrowth = 0, originGrowth = 0 }
     local initialHealth = member.health
     if job.stat == "health" then
         local before = member.health
@@ -92,15 +97,17 @@ local function ApplyGrowth(run, member, job, place, effects, origin)
     if job.stat and job.stat ~= "health" then
         local stat, gain = BaseGrowth(run, member, job, place)
         local baseGain = gain
+        local focusGain = FocusGrowth(member, stat)
         local relicGain = (stat == "skill" and effects.skill or 0) + (stat == "medicine" and effects.medicine or 0)
         local habitGain = member.jobId == "study" and Habits.Growth(run, member) or 0
         local originGain = stat == "learn" and (origin.learn or 0) or 0
-        gain = gain + relicGain + habitGain + originGain
+        gain = gain + focusGain + relicGain + habitGain + originGain
         local before = member.stats[stat] or 0
         member.stats[stat] = math.min(100, before + math.max(0, gain))
         growth.amount = member.stats[stat] - before
         growth.gain = gain
         growth.baseGrowth = baseGain
+        growth.focusGrowth = focusGain
         growth.relicGrowth = relicGain
         growth.habitGrowth = habitGain
         growth.originGrowth = originGain
@@ -140,8 +147,8 @@ local function NewMemberRow(run, snapshot, period, place)
     local row = {
         memberId = snapshot.id, name = snapshot.name, jobId = snapshot.jobId,
         job = job and job.name or tostring(snapshot.jobId), money = 0, grain = 0,
-        executed = false, paid = 0, growth = { stat = job and job.stat, amount = 0, health = 0, gain = 0 },
-        baseGrowth = 0, relicGrowth = 0, habitGrowth = 0, relicIncome = 0, relicSources = {}, reason = nil,
+        executed = false, paid = 0, growth = { stat = job and job.stat, amount = 0, health = 0, gain = 0, focusGrowth = 0 },
+        baseGrowth = 0, focusGrowth = 0, relicGrowth = 0, habitGrowth = 0, relicIncome = 0, relicSources = {}, reason = nil,
         originGrowth = 0, originIncome = 0, originSources = {},
     }
     if not job then row.reason = "岗位定义不存在，年度安排未执行。"; return row end
@@ -172,6 +179,7 @@ local function NewMemberRow(run, snapshot, period, place)
     row.executed = true
     row.growth = ApplyGrowth(run, member, job, place, effects, origin)
     row.baseGrowth = row.growth.baseGrowth or 0
+    row.focusGrowth = row.growth.focusGrowth or 0
     row.relicGrowth = row.growth.relicGrowth or 0
     row.habitGrowth = row.growth.habitGrowth or 0
     row.originGrowth = row.growth.originGrowth or 0
@@ -183,7 +191,7 @@ end
 local function ApplyLegacyIncome(run, member, job, period, place)
     local baseMoney, money, grain = job.money or 0, job.money or 0, job.grain or 0
     local initialHealth = member.health
-    local growth = { stat = job.stat, amount = 0, health = 0 }
+    local growth = { stat = job.stat, amount = 0, health = 0, focusGrowth = 0 }
     money = math.floor(money * period.wage)
     if member.jobId ~= "farm" then money = math.floor(money * (place.incomeMultiplier or 1)) end
     if member.jobId == "craft" and place.id == "mountain" then money = math.floor(money * 1.1) end
@@ -205,6 +213,7 @@ local function ApplyLegacyIncome(run, member, job, period, place)
     elseif job.stat then
         local talent = Data.Talent(math.tointeger(member.talent) or 1)
         local gain = (job.gain or 0) + talent.gain
+        local focusGain = FocusGrowth(member, job.stat)
         if run.habitId == "education" and member.jobId == "study" then gain = gain + 1 end
         if place.id == "county" and member.jobId == "study" then gain = gain + 1 end
         if run.tieId == "teacher" and member.jobId == "study" then gain = gain + 1 end
@@ -213,6 +222,8 @@ local function ApplyLegacyIncome(run, member, job, period, place)
         if run.originId == "artisan" and (member.jobId == "apprentice" or member.jobId == "craft") then gain = gain + 1 end
         if run.originId == "scholar" and member.jobId == "study" then gain = gain + 2 end
         if run.originId == "military" and member.jobId == "train" then gain = gain + 2 end
+        gain = gain + focusGain
+        growth.focusGrowth = focusGain
         local beforeStat = member.stats[job.stat] or 0
         member.stats[job.stat] = math.min(100, beforeStat + math.max(0, gain))
         growth.amount = member.stats[job.stat] - beforeStat

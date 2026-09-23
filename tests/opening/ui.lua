@@ -11,6 +11,12 @@ local function findKind(root, kind)
         local found = findKind(child, kind)
         if found then return found end
     end
+    if root.GetHitTestChildren then
+        for _, child in ipairs(root:GetHitTestChildren()) do
+            local found = findKind(child, kind)
+            if found then return found end
+        end
+    end
 end
 
 local function findText(root, value)
@@ -18,6 +24,12 @@ local function findText(root, value)
     for _, child in ipairs(root.children or {}) do
         local found = findText(child, value)
         if found then return found end
+    end
+    if root.GetHitTestChildren then
+        for _, child in ipairs(root:GetHitTestChildren()) do
+            local found = findText(child, value)
+            if found then return found end
+        end
     end
 end
 
@@ -31,7 +43,7 @@ local function run()
     local failed = App.New()
     assert(failed.screen == "cover" and failed.openingGenerationFailed and failed.openingFeedback == "注入生成失败")
     failed:Render()
-    assert(findText(UI.root, "立一部家谱") and findText(UI.root, "读取最近存档"), "失败封面按钮不可达")
+    assert(findText(UI.root, "家业") and findText(UI.root, "世界一览"), "失败封面缺少当前正式入口")
     failed:PrepareNewRun()
     assert(attempts == 2 and failed.screen == "cover" and failed.openingGenerationFailed and State.Load() == nil,
         "首次生成失败不应暴露固定草案或写入存档")
@@ -43,10 +55,10 @@ local function run()
     app.screen = "opening"
     app.openingView = "summary"
     app.screen = "cover"; app.openingGenerationFailed = false; app:Render()
-    assert(findText(UI.root, "立一部家谱") and findText(UI.root, "读取最近存档"), "正常封面按钮不可达")
+    assert(findText(UI.root, "家业") and findText(UI.root, "世界一览"), "正常封面缺少当前正式入口")
     app.screen = "opening"; app:Render()
-    assert(findText(UI.root, "一家人的故事，从这里开始") and findText(UI.root, "首年预计净变化")
-        and findText(UI.root, "只改我在意的选项") and findKind(UI.root, "SimpleGrid"),
+    assert(findText(UI.root, "开局卷 · 点击改写世界与出身") and findText(UI.root, "首年预计 · 不含突发")
+        and findText(UI.root, "改写姓氏") and findKind(UI.root, "SimpleGrid"),
         "随机开局没有渲染设计稿要求的摘要层级与成员入口")
 
     -- 新成员必须先留在临时编辑对象；取消不可占用编号或污染草案。
@@ -68,6 +80,7 @@ local function run()
 
     -- 从关系页真实选择新成员配偶：保存后必须双向连接，并清理对方旧配偶。
     app.draft = State.NewDraft()
+    app.draft.money = 0
     app:BeginOpeningEdit("people")
     app:AddMember()
     app.memberSection = "relations"; app:Render()
@@ -75,10 +88,10 @@ local function run()
     local spouseSelect = assert(findKind(UI.root, "Dropdown"), "missing new-member spouse selector")
     spouseSelect.onChange(spouseSelect, 2)
     app:SaveDraftMember()
+    assert(app:FinishOpeningEdit(true))
     local newMember = State.FindMember(app.draft.members, app.draft.nextId - 1)
     assert(newMember.spouseId == 2 and State.FindMember(app.draft.members, 2).spouseId == newMember.id
         and State.FindMember(app.draft.members, 1).spouseId == nil, "新增成员婚配没有双向保存或清理旧配偶")
-    app:FinishOpeningEdit(true)
 
     -- 保存先结束编辑；之后取消另一轮未保存改动，不得倒写或覆盖已保存草案。
     app:BeginOpeningEdit("estate")
