@@ -245,6 +245,9 @@ function View.Summary(app)
     for _, member in ipairs(draft.members) do if State.IsAdult(member) then adults = adults + 1 end end
     local children = {
         summaryHero(app, draft, period, origin, place, background),
+        UI.Panel { paddingHorizontal = 10, paddingVertical = 7, backgroundColor = C.selected, borderLeftWidth = 2, borderLeftColor = C.gold, children = {
+            text("首任族长 · " .. tostring(State.FindMember(draft.members, draft.leaderId).name) .. " · " .. tostring(Data.Jobs[State.FindMember(draft.members, draft.leaderId).jobId].name), 14, C.green),
+        } },
         row({
             button("改写姓氏", function() app:BeginOpeningEdit("name") end, true, { flex = 2, height = 44 }),
             button("掷名", function() app:RandomFamilyName() end, true, { flex = 1, height = 44 }),
@@ -272,12 +275,12 @@ function View.Summary(app)
     if #draft.members > #tiles then table.insert(children, button("查看全部 " .. #draft.members .. " 人  ›", function() app:OpenOpeningDetail("people") end, true)) end
     local firstRelic = draft.selectedRelicIds and draft.selectedRelicIds[1]
     local firstForm = draft.selectedRelicFormIds and RelicDefinitions.Form(draft.selectedRelicFormIds[1])
-    table.insert(children, UI.Panel { onClick = function() app:BeginOpeningEdit("relics") end, height = 60, padding = 5, gap = 8, flexDirection = "row", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line, children = {
+    table.insert(children, UI.Panel { id = "opening-relic-detail", onClick = function() app:OpenOpeningDetail("relics") end, height = 60, padding = 5, gap = 8, flexDirection = "row", alignItems = "center", backgroundColor = C.card, borderWidth = 1, borderColor = C.line, children = {
         firstForm and Visual.Relic(relicArtId(firstForm), 46) or (firstRelic and Visual.Relic(firstRelic, 46) or text("物", 25, C.gold)),
         UI.Panel { flex = 1, minWidth = 0, children = { text(firstForm and firstForm.name or (firstRelic and Data.Relic(firstRelic).name or "本局未带入旧物"), 15), text(relicSummary(app), 12, C.muted, { maxLines = 1 }) } },
         text("›", 22, C.muted),
     } })
-    table.insert(children, row({ text("首年预计 · 不含突发", 14, C.muted), button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { flex = 1, height = 44, fontSize = 14 }) }))
+    table.insert(children, row({ text("首年预计 · 不含突发", 14, C.muted), button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { id = "opening-ledger-detail", flex = 1, height = 44, fontSize = 14 }) }))
     table.insert(children, choose({ { value = "ink_v3_formal", label = "正式水墨 · v3" }, { value = "ink_v2_review", label = "水墨画面 · v2" }, { value = "1.0.0", label = "原有画面 · v1" } }, draft.artVersion or "1.0.0", function(version)
         draft.artVersion = version
         for _, member in ipairs(draft.members) do member.artVersion = version end
@@ -504,6 +507,7 @@ function View.Build(app)
         local issues = State.ValidateDraft(app.draft, app.profile, false)
         footer = {
             UI.Panel {
+                id = "opening-points-detail",
                 height = 44, minHeight = 44, onClick = function() app:OpenOpeningDetail("points") end,
                 backgroundColor = false, pointerEvents = "box-only", flexDirection = "row",
                 justifyContent = "space-between", alignItems = "center", children = {
@@ -512,13 +516,13 @@ function View.Build(app)
                 },
             },
             row({
-                button("换一家", function() app:ChangeHouse() end, true, { flex = 1, height = 48 }),
-                button("就从这家开始  →", function() app:StartRun() end, false, { flex = 2, height = 48, disabled = #issues > 0 }),
+                button("换一家", function() app:ChangeHouse() end, true, { id = "opening-change-house", flex = 1, height = 48 }),
+                button("就从这家开始  →", function() app:StartRun() end, false, { id = "opening-start", flex = 2, height = 48, disabled = #issues > 0 }),
             }),
         }
         if #issues > 0 then table.insert(footer, 2, text(table.concat(issues, "\n"), 13, C.warning)) end
         local links = {}
-        if app.houseUndo then table.insert(links, button("撤销换家", function() app:UndoHouse() end, true, { flex = 1, height = 44, fontSize = 12 })) end
+        if app.houseUndo then table.insert(links, button("撤销换家", function() app:UndoHouse() end, true, { id = "opening-undo-house", flex = 1, height = 44, fontSize = 12 })) end
         if app.previousDraft then table.insert(links, button("回原家谱", function() app:CancelNewRun() end, true, { flex = 1, height = 44, fontSize = 12 })) end
         if #links > 0 then table.insert(footer, row(links)) end
     elseif view == "member" then

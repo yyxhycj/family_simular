@@ -865,6 +865,12 @@ local function NormalizeCurrentPayload(value, sourceVersion)
         local draftArtOk, draftArtMessage = NormalizeMemberArt(candidate.draft.members, identity, "开局草案")
         if not draftArtOk then return nil, draftArtMessage end
         State.NormalizeGenerations(candidate.draft.members)
+        if not UsesLegacyOpeningRules(candidate.draft) then
+            local background = State.BackgroundDefinition(candidate.draft)
+            if not background then return nil, "新规则开局草案缺少有效背景定义。" end
+            candidate.draft.backgroundId = background.id
+            candidate.draft.backgroundDefinition = State.Copy(background)
+        end
     end
     if candidate.run then
         local run = candidate.run

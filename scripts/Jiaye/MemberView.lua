@@ -229,7 +229,8 @@ end
 local function AppendJobActions(app, member, route, drawer, children)
     for _, jobId in ipairs(route.jobIds) do
         local job = Data.Jobs[jobId]
-        if job then
+        local visible = job and (member.age >= job.min or jobId == "play" or jobId == "rest")
+        if visible then
             local available, reason = Simulation.GetJobReason(member, jobId)
             local selected = member.jobId == jobId
             local status = selected and "当前安排" or (available and "当前可安排" or reason)
@@ -247,6 +248,7 @@ local function AppendJobActions(app, member, route, drawer, children)
 end
 
 local function AppendStudyActions(app, member, drawer, children)
+    if not State.IsAdult(member) then return end
     local available, reason = Simulation.GetExamReason(app.run, member.id)
     table.insert(children, ActionCard("info", "应试 · 10 两", "以学识与本局时运决定结果，完整写入经历。", available and "当前可安排" or reason, available, function()
         if available then
@@ -261,6 +263,10 @@ end
 
 local function AppendFamilyActions(app, member, drawer, children)
     local run = app.run
+    if not State.IsAdult(member) then
+        table.insert(children, Text("幼年阶段以随家人生活和休养为主；成年后再开放婚配、收养与托付。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }))
+        return
+    end
     local spouse = member.spouseId and State.FindMember(run.members, member.spouseId)
     local canMarry, marriageReason = Simulation.GetMarriageReason(run, member.id)
     local marriageStatus = spouse and ("已与" .. spouse.name .. "结为配偶") or (canMarry and "当前可安排" or marriageReason)
@@ -319,6 +325,10 @@ local function AppendFamilyActions(app, member, drawer, children)
 end
 
 local function AppendLeadershipActions(app, member, drawer, children)
+    if not State.IsAdult(member) then
+        table.insert(children, Text("成年后才可承担族务。", { fontSize = 13, fontColor = C.secondary }))
+        return
+    end
     local available, reason = Simulation.GetLeaderReason(app.run, member.id)
     table.insert(children, ActionCard("leader", "任命为族长", "开始新的族长任期，现有安排与资产保持原样。", available and "当前可安排" or reason, available, function()
         if available then
