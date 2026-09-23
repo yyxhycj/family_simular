@@ -72,6 +72,36 @@ local function Copy(value)
     return State.Copy(value)
 end
 
+local function BindingName(instance)
+    local form = RelicState.Form(instance)
+    return form and form.name or "信物"
+end
+
+local function RecordBinding(run, instance, action, previousId, currentId, detail)
+    local memberIds = {}
+    if previousId ~= nil then table.insert(memberIds, previousId) end
+    if currentId ~= nil and currentId ~= previousId then table.insert(memberIds, currentId) end
+    State.AddFact(run, "relic_handover", detail, memberIds, {
+        action = action,
+        relicInstanceId = instance.instanceId,
+        fromMemberId = previousId,
+        toMemberId = currentId,
+    })
+    State.AddLog(run, detail)
+end
+
+local function RecordPrimaryBinding(run, instance, previousId)
+    local previous = RelicState.Find(run, previousId)
+    local previousName = previous and BindingName(previous) or "原主件"
+    local detail = "“" .. BindingName(instance) .. "”被立为本成长线主件，替代“" .. previousName .. "”。"
+    State.AddFact(run, "relic_primary", detail, {}, {
+        action = "set_primary",
+        relicInstanceId = instance.instanceId,
+        previousRelicInstanceId = previousId,
+    })
+    State.AddLog(run, detail)
+end
+
 local function IsActiveTask(task)
     return task and (task.status == "active" or task.status == "paused_manual" or task.status == "paused_actor" or task.status == "paused_requirements")
 end
@@ -256,12 +286,14 @@ local function GenerationUse(run, instanceId)
     local facts = UseFacts(run, instanceId)
     for _, earlier in ipairs(facts) do
         for _, later in ipairs(facts) do
-            if earlier.memberId ~= later.memberId and earlier.generation < later.generation and earlier.runYear < later.runYear then
-                return { earlier.generation, later.generation }
+            local earlierGeneration = State.Generation(run.members, earlier.memberId)
+            local laterGeneration = State.Generation(run.members, later.memberId)
+            if earlier.memberId ~= later.memberId and earlierGeneration < laterGeneration and earlier.runYear < later.runYear then
+                return { earlierGeneration, laterGeneration }
             end
         end
     end
-    return #facts > 0 and { facts[1].generation } or {}
+    return #facts > 0 and { State.Generation(run.members, facts[1].memberId) } or {}
 end
 
 local function CostCopy(cost)
@@ -732,11 +764,19 @@ function RelicSystem.AssignUser(run, instanceId, memberId)
     if run.ending then return false, "家史已落笔，本局只读。" end
     local instance = RelicState.Find(run, instanceId)
     if not instance or instance.status ~= "held" then return false, "信物当前无法安排使用者。" end
-    if memberId == nil then instance.userId = nil; return true, "已改为家中保管，暂不指定使用者。" end
+    if instance.userId == memberId then return true, "使用人未变化。" end
+    local previousId = instance.userId
+    local previous = Member(run, previousId)
+    if memberId == nil then
+        instance.userId = nil
+        RecordBinding(run, instance, "release_user", previousId, nil, "“" .. BindingName(instance) .. "”由" .. (previous and previous.name or "原使用人") .. "交回家中保管。")
+        return true, "已改为家中保管，暂不指定使用者。"
+    end
     local member = Member(run, memberId)
     local ok, reason = RelicState.EligibleUser(run, instance, member)
     if not ok then return false, reason end
     instance.userId = memberId
+    RecordBinding(run, instance, "assign_user", previousId, memberId, "“" .. BindingName(instance) .. "”改由" .. member.name .. "实际使用。")
     return true, "已指定使用者。"
 end
 
@@ -745,9 +785,17 @@ function RelicSystem.AssignCustodian(run, instanceId, memberId)
     local instance = RelicState.Find(run, instanceId)
     local member = Member(run, memberId)
     if not instance or instance.status ~= "held" then return false, "信物当前无法安排保管人。" end
-    if memberId == nil then instance.custodianId = nil; return true, "物件已改为家中保管。" end
+    if instance.custodianId == memberId then return true, "保管人未变化。" end
+    local previousId = instance.custodianId
+    local previous = Member(run, previousId)
+    if memberId == nil then
+        instance.custodianId = nil
+        RecordBinding(run, instance, "release_custodian", previousId, nil, "“" .. BindingName(instance) .. "”由" .. (previous and previous.name or "原保管人") .. "交回家中保管。")
+        return true, "物件已改为家中保管。"
+    end
     if not Adult(member) then return false, "保管人必须是在世成年人。" end
     instance.custodianId = memberId
+    RecordBinding(run, instance, "assign_custodian", previousId, memberId, "“" .. BindingName(instance) .. "”改由" .. member.name .. "保管。")
     return true, "已指定保管人。"
 end
 
@@ -756,7 +804,10 @@ function RelicSystem.SetPrimary(run, instanceId)
     local instance = RelicState.Find(run, instanceId)
     if not instance or instance.status ~= "held" then return false, "只有在藏信物可以设为主件。" end
     run.primaryRelics = run.primaryRelics or {}
+    local previousId = run.primaryRelics[instance.relicFamilyId]
+    if previousId == instanceId then return true, "主件未变化。" end
     run.primaryRelics[instance.relicFamilyId] = instanceId
+    RecordPrimaryBinding(run, instance, previousId)
     return true, "已设为该成长线主件。"
 end
 
@@ -790,7 +841,7 @@ local function ApplyAnnual(run, yearStart, ledger)
                     local annual = form.annual or {}
                     local skill = Number(annual.skill)
                     local medicine = Number(annual.medicine)
-                    local fact = { instanceId = startPrimary.instanceId, familyId = family.id, formId = form.id, runYear = run.yearIndex, memberId = startPrimary.userId, generation = assert(startMember.generation), jobId = row.jobId, executed = row.executed, paid = row.paid, growth = { skill = skill, medicine = medicine, money = Number(annual.money) } }
+                    local fact = { instanceId = startPrimary.instanceId, familyId = family.id, formId = form.id, runYear = run.yearIndex, memberId = startPrimary.userId, generation = State.Generation(yearStart.members, startMember.id), jobId = row.jobId, executed = row.executed, paid = row.paid, growth = { skill = skill, medicine = medicine, money = Number(annual.money) } }
                     table.insert(run.relicUseFacts, fact)
                     table.insert(ledger.relicEffects, Copy(fact))
                     State.AddFact(run, "relic", form.name .. "被实际使用，年度效果已结算。", { startPrimary.userId }, { outcome = "relic_use_year", relicInstanceId = startPrimary.instanceId, instanceId = startPrimary.instanceId, runYear = run.yearIndex, jobId = row.jobId, executed = row.executed, paid = row.paid, growth = fact.growth })

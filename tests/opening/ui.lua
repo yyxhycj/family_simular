@@ -43,7 +43,7 @@ local function run()
     local failed = App.New()
     assert(failed.screen == "cover" and failed.openingGenerationFailed and failed.openingFeedback == "注入生成失败")
     failed:Render()
-    assert(findText(UI.root, "家业") and findText(UI.root, "世界一览"), "失败封面缺少当前正式入口")
+    assert(findText(UI.root, "千家纪") and findText(UI.root, "世界一览"), "失败封面缺少当前正式入口")
     failed:PrepareNewRun()
     assert(attempts == 2 and failed.screen == "cover" and failed.openingGenerationFailed and State.Load() == nil,
         "首次生成失败不应暴露固定草案或写入存档")
@@ -55,7 +55,7 @@ local function run()
     app.screen = "opening"
     app.openingView = "summary"
     app.screen = "cover"; app.openingGenerationFailed = false; app:Render()
-    assert(findText(UI.root, "家业") and findText(UI.root, "世界一览"), "正常封面缺少当前正式入口")
+    assert(findText(UI.root, "千家纪") and findText(UI.root, "世界一览"), "正常封面缺少当前正式入口")
     app.screen = "opening"; app:Render()
     assert(findText(UI.root, "开局卷 · 点击改写世界与出身") and findText(UI.root, "首年预计 · 不含突发")
         and findText(UI.root, "改写姓氏") and findKind(UI.root, "SimpleGrid"),

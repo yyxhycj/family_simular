@@ -134,6 +134,7 @@ function Outcomes.ApplyInstant(ctx, run, profile, actionId, input)
         }
         Art.Assign(newMember, run.runId, run.artVersion)
         table.insert(run.members, newMember)
+        State.NormalizeGenerations(run.members)
         run.metrics = run.metrics or {}
         run.metrics.branchInvites = (run.metrics.branchInvites or 0) + 1
         ctx.consumeClaim(run, "genealogy.invite_branch", instance and instance.instanceId or "genealogy")

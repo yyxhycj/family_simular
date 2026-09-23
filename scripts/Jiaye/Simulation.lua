@@ -92,6 +92,15 @@ local function JobYears(run, jobId)
     return total
 end
 
+local function CurrentJobMemberIds(run, jobId)
+    local ids = {}
+    for _, member in ipairs(run.members) do
+        local eligible = member.alive ~= false and member.jobId == jobId and State.CanUseJob(member, jobId)
+        if eligible then table.insert(ids, member.id) end
+    end
+    return ids
+end
+
 local function JobGenerations(run, jobId, years)
     local generations = {}
     for _, member in ipairs(run.members) do
@@ -408,10 +417,11 @@ function Simulation.Marry(run, memberId)
     local member = State.FindMember(run.members, memberId)
     local spouseId = NextMemberId(run)
     local spouseSex = State.Random(run, 0, 1) == 0 and "女" or "男"
-    local spouse = { id = spouseId, name = GeneratedMemberName(run, spouseSex == "男" and "沈" or "顾", spouseSex), sex = spouseSex, age = math.max(Data.AgeRules.adult, member.age - State.Random(run, 0, 5)), parents = {}, spouseId = member.id, talent = 2, focus = "general", experienceId = "basic", trait = "安稳", jobId = "home", alive = true, health = 72, stats = State.Copy(Data.Experience("basic").values), jobYears = {}, biography = { "因婚配加入“" .. run.openingSnapshot.family .. "”家。" }, fertility = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false, generation = State.Generation(run.members, member.id) }
+    local spouse = { id = spouseId, name = GeneratedMemberName(run, spouseSex == "男" and "沈" or "顾", spouseSex), sex = spouseSex, age = math.max(Data.AgeRules.adult, member.age - State.Random(run, 0, 5)), parents = {}, spouseId = member.id, talent = 2, focus = "general", experienceId = "basic", trait = "安稳", jobId = "home", alive = true, health = 72, stats = State.Copy(Data.Experience("basic").values), jobYears = {}, biography = { "因婚配加入“" .. run.openingSnapshot.family .. "”家。" }, fertility = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false }
     Art.Assign(spouse, run.runId, run.artVersion)
     member.spouseId = spouseId; member.fertility = true; member.birthPlan = true; run.money = run.money - 12
     table.insert(run.members, spouse)
+    State.NormalizeGenerations(run.members)
     State.AddFact(run, "marriage", member.name .. "与" .. spouse.name .. "成婚，新成员入谱。", { member.id, spouse.id })
     return true, "婚配已写入家谱。"
 end
@@ -431,9 +441,9 @@ function Simulation.Adopt(run, guardianId)
     local guardian = State.FindMember(run.members, guardianId)
     local childId = NextMemberId(run)
     local sex = State.Random(run, 0, 1) == 0 and "女" or "男"
-    local child = { id = childId, name = GeneratedMemberName(run, run.openingSnapshot.family, sex), sex = sex, age = 6, parents = { guardian.id }, spouseId = nil, talent = 2, focus = "general", experienceId = "none", trait = "敏锐", jobId = "study", alive = true, health = 70, stats = State.Copy(Data.Experience("none").values), jobYears = {}, biography = { "大晟历 " .. tostring(run.calendar) .. " 年被收养，监护人为" .. guardian.name .. "。" }, adopted = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false, generation = State.Generation(run.members, guardian.id) + 1 }
+    local child = { id = childId, name = GeneratedMemberName(run, run.openingSnapshot.family, sex), sex = sex, age = 6, parents = { guardian.id }, spouseId = nil, talent = 2, focus = "general", experienceId = "none", trait = "敏锐", jobId = "study", alive = true, health = 70, stats = State.Copy(Data.Experience("none").values), jobYears = {}, biography = { "大晟历 " .. tostring(run.calendar) .. " 年被收养，监护人为" .. guardian.name .. "。" }, adopted = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false }
     Art.Assign(child, run.runId, run.artVersion)
-    run.money = run.money - 8; table.insert(run.members, child)
+    run.money = run.money - 8; table.insert(run.members, child); State.NormalizeGenerations(run.members)
     State.AddFact(run, "adoption", guardian.name .. "收养了" .. child.name .. "，孩子获得与其他族人同等的成长和继任资格。", { guardian.id, child.id })
     return true, "收养已完成。"
 end
@@ -560,11 +570,11 @@ function Simulation.InviteBranch(run, instanceId)
         id = id, name = GeneratedMemberName(run, run.openingSnapshot.family, "男", "怀远"), sex = "男", age = 22, parents = {}, spouseId = nil,
         talent = 2, focus = "general", experienceId = "basic", trait = "念旧", jobId = "farm", alive = true, health = 72,
         stats = State.Copy(Data.Experience("basic").values), jobYears = {}, birthPlan = true, lastBirthYear = -5,
-        hadHomeAfterGuard = false, generation = leader and leader.generation or 1,
+        hadHomeAfterGuard = false, generationFloor = leader and State.Generation(run.members, leader.id) or 1,
         biography = { "因补完的族谱寻回旁支，于大晟历 " .. tostring(run.calendar) .. " 年归家。" }, branch = true,
     }
     Art.Assign(member, run.runId, run.artVersion)
-    run.money = run.money - 12; run.flags.branchInvited = true; table.insert(run.members, member)
+    run.money = run.money - 12; run.flags.branchInvited = true; table.insert(run.members, member); State.NormalizeGenerations(run.members)
     State.AddFact(run, "relic", executor.name .. "依照补完的族谱寻回" .. member.name .. "，旁支正式归家。", { executor.id, member.id }, { action = "invite_branch", relicInstanceId = relic.instanceId })
     State.AddLog(run, member.name .. "作为成年旁支归家，名字被正式写回族谱。")
     return true, "成年旁支已归家。"
@@ -905,12 +915,11 @@ local function TryBirths(run)
                     parents = { parent.id, spouse.id }, spouseId = nil, talent = 2, focus = "general", experienceId = "none",
                     trait = "初生", jobId = "play", alive = true, health = 76, stats = State.Copy(Data.Experience("none").values),
                     jobYears = {}, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false,
-                    generation = math.max(parent.generation or 1, spouse.generation or 1) + 1,
                     biography = { "大晟历 " .. tostring(run.calendar) .. " 年出生，亲长是" .. parent.name .. "与" .. spouse.name .. "。" },
                 }
                 Art.Assign(child, run.runId, run.artVersion)
                 parent.lastBirthYear = run.yearIndex; spouse.lastBirthYear = run.yearIndex
-                table.insert(run.members, child)
+                table.insert(run.members, child); State.NormalizeGenerations(run.members)
                 State.AddFact(run, "birth", child.name .. "出生，家谱添了一页新名字。", { parent.id, spouse.id, child.id })
             end
         end
@@ -1126,7 +1135,7 @@ function Simulation.EndingProgress(run, endingId)
         peaceful = { Progress("实际经营十年", run.yearIndex, 10, "累计", { source = "年度账本", factIds = ledgers }), Progress("连续五年生活充足", run.metrics.stable, 5, "连续", { source = "年度账本", factIds = ledgers }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
         scholar = { Progress("两代教书", JobGenerations(run, "teach", 2), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "teach", 2) }), Progress("积蓄", run.money, 200, "当前", { source = "公库" }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
         merchant = { Progress("两代经商", JobGenerations(run, "trade", 3), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "trade", 3) }), Progress("积蓄", run.money, 300, "当前", { source = "公库" }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
-        craft = { Progress("两代手艺", JobGenerations(run, "craft", 3), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "craft", 3) }), Progress("作坊有人经营", run.workshop and JobYears(run, "craft") > 0 and 1 or 0, 1, "当前", { source = "家业与人物" }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
+        craft = { Progress("两代手艺", JobGenerations(run, "craft", 3), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "craft", 3) }), Progress("作坊有人经营", run.workshop and #CurrentJobMemberIds(run, "craft") > 0 and 1 or 0, 1, "当前", { source = "家业与人物", memberIds = CurrentJobMemberIds(run, "craft") }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
         medical = { Progress("两代行医", JobGenerations(run, "doctor", 2), 2, "代际累计", { source = "家谱人物", memberIds = JobMemberIds(run, "doctor", 2) }), Progress("行医人年", JobYears(run, "doctor"), 12, "累计", { source = "家谱人物", memberIds = JobMemberIds(run, "doctor", 1) }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
         grain = { Progress("实际经营", run.yearIndex, 15, "累计", { source = "年度账本", factIds = ledgers }), Progress("连续生活充足", run.metrics.foodYears, 10, "连续", { source = "年度账本", factIds = ledgers }), Progress("存粮", run.grain, 80, "当前", { source = "公库" }) },
         community = { Progress("实际经营", run.yearIndex, 12, "累计", { source = "年度账本", factIds = ledgers }), Progress("援助邻里", run.metrics.aid, 3, "累计", { source = "援助记录", factIds = FactIds(run, "community_aid") }), Progress("声望", run.reputation, 70, "当前", { source = "家族声望" }) },

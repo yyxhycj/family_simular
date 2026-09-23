@@ -1,4 +1,4 @@
--- 《家业》：多代、全员可安排的家族人生模拟器。
+-- 《千家纪》：多代、全员可安排的家族人生模拟器。
 -- 基于 UrhoX scaffold-2d.lua 建立：纯 UI、无物理、手机优先。
 ---@diagnostic disable: undefined-global -- graphics is an UrhoX runtime global.
 
@@ -18,14 +18,14 @@ local function JiayeUIScale()
 end
 
 function Start()
-    graphics.windowTitle = "家业 · 凡世王朝"
+    graphics.windowTitle = "千家纪 · 凡世王朝"
     UI.Init({
         theme = Visual.Theme(),
         scale = JiayeUIScale,
     })
     app_ = App.New()
     app_:Render()
-    print("《家业》已启动：随机家庭、对象编辑与家族生活。")
+    print("《千家纪》已启动：随机家庭、对象编辑与家族生活。")
 end
 
 function Stop()

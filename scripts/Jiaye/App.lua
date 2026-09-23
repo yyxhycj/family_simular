@@ -463,20 +463,17 @@ function App:BuildRunStatusBar()
     }
 end
 
-local function OpeningArtButton(artName, action)
+local function OpeningAction(title, description, action, role)
     return UI.Panel {
-        width = "100%", height = 88, minHeight = 88, padding = 0,
-        onClick = action, pointerEvents = "box-only",
+        width = "100%", gap = 4,
         children = {
-            Visual.OpeningArt(artName, {
-                position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
-                backgroundFit = "contain",
-            }),
+            Button(title, action, { width = "100%", height = 52, role = role or "primary", fontSize = 17 }),
+            Label(description, { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
         },
     }
 end
 
-local function WorldCard(artName, available, action)
+local function WorldCard(artName, title, available, action)
     return UI.Panel {
         flex = 1, minWidth = 0, aspectRatio = 280 / 810, padding = 0,
         overflow = "hidden", onClick = action, pointerEvents = "box-only",
@@ -488,10 +485,13 @@ local function WorldCard(artName, available, action)
                 backgroundFit = "contain",
             }),
             UI.Panel {
-                position = "absolute", left = 5, right = 5, bottom = 6, height = 22,
-                justifyContent = "center", alignItems = "center", pointerEvents = "none",
+                position = "absolute", left = 5, right = 5, bottom = 6, height = 40,
+                justifyContent = "center", alignItems = "center", gap = 1, pointerEvents = "none",
                 backgroundColor = available and { 53, 92, 73, 232 } or { 41, 63, 55, 208 }, borderRadius = 2,
-                children = { Label(available and "当前可游" or "敬请期待", { fontSize = 11, fontColor = C.paperLight }) },
+                children = {
+                    Label(title, { fontSize = 12, fontFamily = "serif", fontColor = C.paperLight }),
+                    Label(available and "当前可游" or "筹备中", { fontSize = 10, fontColor = C.paperLight }),
+                },
             },
         },
     }
@@ -518,10 +518,10 @@ function App:BuildWorldSelection()
                     } },
                     Label("四幅水墨长卷对应四个世界；当前开放山河岁月，其余篇章会在完成后开放。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
                     UI.Row { width = "100%", maxWidth = 560, alignSelf = "center", gap = 5, alignItems = "center", justifyContent = "center", children = {
-                        WorldCard("worldMountains", true, openWorld),
-                        WorldCard("worldCapital", false, waiting),
-                        WorldCard("worldSilk", false, waiting),
-                        WorldCard("worldSea", false, waiting),
+                        WorldCard("worldMountains", "山河岁月", true, openWorld),
+                        WorldCard("worldCapital", "京畿百业", false, waiting),
+                        WorldCard("worldSilk", "丝路商旅", false, waiting),
+                        WorldCard("worldSea", "海隅渔火", false, waiting),
                     } },
                     UI.Panel { gap = 6, padding = 12, backgroundColor = C.card, borderWidth = 1, borderColor = C.gold, borderRadius = 6, children = {
                         Label("山河岁月 · 当前可游", { fontSize = 18, fontFamily = "serif", fontColor = C.ink }),
@@ -537,10 +537,9 @@ end
 function App:BuildCover()
     if self.coverView == "worlds" then return self:BuildWorldSelection() end
     local actions = {
-        OpeningArtButton("startFamilyButton", function() self.coverView = "worlds"; self:Render() end),
+        OpeningAction("立一部家谱", "选择世界，生成一户家人，从这一年的安排开始写。", function() self.coverView = "worlds"; self:Render() end),
     }
-    if self.run then table.insert(actions, OpeningArtButton("continueFamilyButton", function() self:Load() end)) end
-    table.insert(actions, Button("世界一览", function() self.coverView = "worlds"; self:Render() end, { width = "100%", height = 44, role = "secondary" }))
+    if self.run then table.insert(actions, OpeningAction("续写当前家谱", "读取已保存的家人、账本与家史。", function() self:Load() end, "secondary")) end
     if self.openingGenerationFailed then
         table.insert(actions, 1, Label(self.openingFeedback, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal", lineHeight = 1.5 }))
     end
@@ -552,15 +551,24 @@ function App:BuildCover()
         Visual.OpeningArt("tableau", { position = "absolute", right = -80, bottom = -90, width = 360, height = 430, backgroundFit = "contain", opacity = 0.17 }),
         UI.SafeAreaView { width = "100%", height = "100%", edges = "all", children = {
             UI.Panel { width = "100%", height = "100%", padding = 18, justifyContent = "space-between", pointerEvents = "box-none", children = {
-                UI.Panel { gap = 4, padding = 14, backgroundColor = { 247, 240, 223, 214 }, borderWidth = 1, borderColor = C.gold, borderRadius = 6, pointerEvents = "none", children = {
+                UI.Row { width = "100%", alignItems = "flex-start", justifyContent = "space-between", pointerEvents = "box-none", children = {
+                    UI.Panel { flex = 1, gap = 4, pointerEvents = "none", children = {
                     UI.Row { gap = 7, alignItems = "center", children = {
                         Visual.Decor("seal_square", { width = 24, height = 24 }),
-                        Label("凡世王朝 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.green }),
+                        Label("世界 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.green }),
                     } },
-                    Label("家业", { fontSize = 48, fontWeight = "bold", fontFamily = "serif", letterSpacing = 8, textShadow = { offsetX = 1, offsetY = 2, blur = 2, color = { 255, 249, 235, 180 } } }),
-                    Label("一户人的家谱，代代相传", { fontSize = 18, fontColor = C.green, fontFamily = "serif", letterSpacing = 2 }),
+                    Label("千家纪", { fontSize = 48, fontWeight = "bold", fontFamily = "serif", letterSpacing = 8, textShadow = { offsetX = 1, offsetY = 2, blur = 2, color = { 255, 249, 235, 180 } } }),
+                    Label("一姓起笔，百年成卷", { fontSize = 18, fontColor = C.green, fontFamily = "serif", letterSpacing = 2 }),
+                    } },
+                    Button("世界一览", function() self.coverView = "worlds"; self:Render() end, { width = 92, height = 38, role = "secondary", fontSize = 13 }),
                 } },
-                UI.Panel { width = "100%", gap = 4, pointerEvents = "box-none", children = actions },
+                UI.Panel { width = "100%", gap = 10, pointerEvents = "box-none", children = {
+                    UI.Panel { gap = 4, pointerEvents = "none", children = {
+                        Label("一部由选择写成的家史", { fontSize = 24, fontFamily = "serif", fontColor = C.ink }),
+                        Label("从一户人家开始，安排人生，守住家业，把每一次交托写进家谱。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
+                    } },
+                    UI.Panel { width = "100%", gap = 8, pointerEvents = "box-none", children = actions },
+                } },
             } },
         } },
     } }

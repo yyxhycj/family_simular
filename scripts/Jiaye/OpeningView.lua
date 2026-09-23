@@ -548,7 +548,7 @@ function View.Build(app)
         backgroundFit = "cover", flexDirection = "column", padding = 0,
         children = {
             UI.Panel { height = 52, padding = 12, flexShrink = 0, borderBottomWidth = 1, borderBottomColor = C.line, children = {
-                row({ Visual.Decor("seal_square", { width = 28, height = 28 }), text("家业", 20), text(view == "summary" and ("凡世王朝 · " .. Data.WORLD_NAME) or "开局草案", 12, C.muted) }, { alignItems = "center" }),
+                row({ Visual.Decor("seal_square", { width = 28, height = 28 }), text("千家纪", 20), text(view == "summary" and ("凡世王朝 · " .. Data.WORLD_NAME) or "开局草案", 12, C.muted) }, { alignItems = "center" }),
             } },
             UI.ScrollView { width = "100%", flexGrow = 1, flexBasis = 0, minHeight = 0, padding = 12, children = { contentPanel } },
             UI.Panel { padding = 6, gap = 6, backgroundColor = C.card, flexShrink = 0, borderTopWidth = 1, borderTopColor = C.line, children = footer },

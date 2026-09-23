@@ -116,7 +116,7 @@ function Art.Portrait(member, size, visualStatus)
     local version = normalizeVersion(member.artVersion)
     local stage = member.artStageAtDeath or Art.Stage(age)
     local state = member.alive == false and "deceased" or (visualStatus == "sick" and "sick" or "normal")
-    if version == FORMAL_VERSION and state == "normal" then
+    if version == FORMAL_VERSION then
         local formalFile = formalPortraits[member.artId][stage]
         if formalFile then return FORMAL_ROOT .. formalFile end
     end

@@ -251,6 +251,21 @@ function Visual.Portrait(member, props)
             backgroundFit = "contain", pointerEvents = "none",
         },
     }
+    if status == "sick" then
+        table.insert(children, UI.Panel {
+            position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
+            backgroundColor = { 106, 122, 108, 70 }, pointerEvents = "none",
+        })
+    elseif status == "deceased" then
+        table.insert(children, UI.Panel {
+            position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
+            backgroundColor = { 41, 63, 55, 118 }, pointerEvents = "none",
+        })
+        table.insert(children, UI.Label {
+            text = "故", position = "absolute", right = 4, bottom = 2, fontSize = V7.Font(12),
+            fontFamily = "serif", fontColor = V7.Colors.paperLight, pointerEvents = "none",
+        })
+    end
     if result.selected then table.insert(children, UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundImage = requireAsset(V7.Art.SelectedOverlay(), "selected 头像叠层未登记。"), backgroundFit = "contain", pointerEvents = "none" }) end
     if result.focus and V7.Art.FocusOverlay then table.insert(children, UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundImage = requireAsset(V7.Art.FocusOverlay(), "focus 头像叠层未登记。"), backgroundFit = "contain", pointerEvents = "none" }) end
     if result.leader then table.insert(children, UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundImage = requireAsset(V7.Art.LeaderOverlay(), "族长头像叠层未登记。"), backgroundFit = "contain", pointerEvents = "none" }) end

@@ -142,7 +142,7 @@ local function RelicSourceRows(effects)
     return rows
 end
 
-local function NewMemberRow(run, snapshot, period, place)
+local function NewMemberRow(run, snapshot, period, place, incomeCollected)
     local job = Data.Jobs[snapshot.jobId]
     local row = {
         memberId = snapshot.id, name = snapshot.name, jobId = snapshot.jobId,
@@ -165,16 +165,20 @@ local function NewMemberRow(run, snapshot, period, place)
     local member = State.FindMember(run.members, snapshot.id)
     if not member then row.reason = "成员已不在当前家谱中，年度安排未执行。"; return row end
     if payment > 0 then run.money = run.money - payment; row.paid = payment end
-    if effectiveMoney > 0 then run.money = run.money + effectiveMoney end
+    if not incomeCollected and effectiveMoney > 0 then run.money = run.money + effectiveMoney end
     local grain = JobGrain(run, snapshot, place)
     run.grain = run.grain + grain
     local origin = OriginEffects.ForMember(run, snapshot, (run.yearIndex or 0) + 1)
-    if origin.money ~= 0 then run.money = run.money + origin.money end
+    if incomeCollected then
+        if origin.money < 0 then run.money = run.money + origin.money end
+    elseif origin.money ~= 0 then run.money = run.money + origin.money end
     row.money = effectiveMoney + effects.money + origin.money
     row.relicIncome = effects.money
     row.originIncome = origin.money
     row.originSources = origin.sources
-    if effects.money > 0 then run.money = run.money + effects.money end
+    if incomeCollected then
+        if effects.money < 0 then run.money = run.money + effects.money end
+    elseif effects.money > 0 then run.money = run.money + effects.money end
     row.grain = grain
     row.executed = true
     row.growth = ApplyGrowth(run, member, job, place, effects, origin)
@@ -186,6 +190,16 @@ local function NewMemberRow(run, snapshot, period, place)
     member.jobYears = member.jobYears or {}
     member.jobYears[snapshot.jobId] = (member.jobYears[snapshot.jobId] or 0) + 1
     return row
+end
+
+local function AvailableAnnualIncome(run, snapshot, period, place)
+    local job = Data.Jobs[snapshot.jobId]
+    local eligible = job and State.CanUseJob(snapshot, snapshot.jobId)
+    if not eligible then return 0 end
+    local effects = RelicState.EffectsFor(run, snapshot)
+    local origin = OriginEffects.ForMember(run, snapshot, (run.yearIndex or 0) + 1)
+    local jobIncome = EffectiveJobMoney(run, snapshot, job, period, place)
+    return math.max(0, jobIncome) + math.max(0, effects.money) + math.max(0, origin.money)
 end
 
 local function ApplyLegacyIncome(run, member, job, period, place)
@@ -360,13 +374,16 @@ local function SettleV12(run)
     local income, training, relicPassiveIncome, originIncome, originGrowth = 0, 0, 0, 0, 0
     local snapshots = {}
     for _, member in ipairs(living) do table.insert(snapshots, State.Copy(member)) end
+    table.sort(snapshots, function(left, right) return left.id < right.id end)
+    local availableIncome = 0
+    for _, snapshot in ipairs(snapshots) do availableIncome = availableIncome + AvailableAnnualIncome(run, snapshot, period, place) end
+    run.money = run.money + availableIncome
     for _, snapshot in ipairs(snapshots) do
-        local before = run.money
-        local row = NewMemberRow(run, snapshot, period, place)
+        local row = NewMemberRow(run, snapshot, period, place, true)
         table.insert(rows, row)
         if row.executed then
-            local baseDelta = run.money - before - (row.relicIncome or 0) - (row.originIncome or 0)
-            if baseDelta > 0 then income = income + baseDelta end
+            local jobIncome = row.money - (row.relicIncome or 0) - (row.originIncome or 0)
+            if jobIncome > 0 then income = income + jobIncome end
             training = training + row.paid
             originIncome = originIncome + (row.originIncome or 0)
             originGrowth = originGrowth + (row.originGrowth or 0)

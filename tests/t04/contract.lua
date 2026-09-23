@@ -91,7 +91,7 @@ local function run()
 
     -- 封面沿用纸面信息层级，关键入口保持可读。
     app.screen = "cover"; app:Render()
-    assert(assert(text(UI.root, "家业")).fontSize == 29 and text(UI.root, "凡世王朝 · " .. Data.WORLD_NAME), "封面没有使用家业与凡世王朝的纸面标题")
+    assert(assert(text(UI.root, "千家纪")).fontSize == 29 and text(UI.root, "凡世王朝 · " .. Data.WORLD_NAME), "封面没有使用千家纪与凡世王朝的纸面标题")
     assert(contains(UI.root, "默认会生成一户完整且合法的人家") and text(UI.root, "完整家谱") and text(UI.root, "钱粮预估"), "封面没有说明生成家庭与可核对的开局信息")
     assert(assert(text(UI.root, "立一部家谱")).fontSize == 17, "封面按钮仍被全局缩小")
     app.screen = "opening"; app.openingView = "summary"; app:Render()

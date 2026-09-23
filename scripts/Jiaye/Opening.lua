@@ -233,6 +233,7 @@ local function randomPage(candidate, page, profile, roll, pick)
         candidate.backgroundId = background and background.id or nil
     elseif page == "people" then
         buildMembers(candidate, candidate.family, roll, pick)
+        State.NormalizeGenerations(candidate.members)
         for _, member in ipairs(candidate.members) do Art.Assign(member, candidate.rngSeed, candidate.artVersion) end
     elseif page == "estate" then
         candidate.money = roll(0, 12) * Data.OpeningCosts.moneyUnit
@@ -290,6 +291,7 @@ function Opening.Generate(profile, seed, worldId)
         draft.habitId = "none"
         draft.tieId = "none"
         buildMembers(draft, draft.family, roll, pick)
+        State.NormalizeGenerations(draft.members)
         for _, page in ipairs({ "world", "estate", "relics" }) do randomPage(draft, page, profile, roll, pick) end
         local background = backgroundForOrigin(draft.originId)
         draft.backgroundId = background and background.id or nil
@@ -328,6 +330,7 @@ function Opening.EditMember(draft, editing, leaderId, profile)
         end
     end
     candidate.leaderId = leaderId
+    State.NormalizeGenerations(candidate.members)
     Opening.EnsureRelicUsers(candidate, profile)
     local issues = State.ValidateDraft(candidate, profile, true)
     if #issues > 0 then return nil, table.concat(issues, "\n") end

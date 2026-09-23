@@ -183,18 +183,81 @@ function State.FindMember(members, id)
     return nil
 end
 
-function State.Generation(members, memberId, visited)
-    local member = State.FindMember(members, memberId)
-    if not member then return 1 end
-    visited = visited or {}
-    if visited[memberId] then return 1 end
-    visited[memberId] = true
-    local generation = type(member.generation) == "number" and math.max(1, member.generation) or 1
-    for _, parentId in ipairs(type(member.parents) == "table" and member.parents or {}) do
-        generation = math.max(generation, State.Generation(members, parentId, visited) + 1)
+local function GenerationMap(members)
+    local byId, parent = {}, {}
+    for _, member in ipairs(type(members) == "table" and members or {}) do
+        if type(member) == "table" and member.id ~= nil then
+            byId[member.id] = member
+            parent[member.id] = member.id
+        end
     end
-    visited[memberId] = nil
-    return generation
+    local function root(id)
+        local value = parent[id]
+        if value == nil then return nil end
+        if value ~= id then
+            parent[id] = root(value)
+        end
+        return parent[id]
+    end
+    local function join(left, right)
+        local leftRoot, rightRoot = root(left), root(right)
+        if leftRoot and rightRoot and leftRoot ~= rightRoot then parent[rightRoot] = leftRoot end
+    end
+    for _, member in pairs(byId) do
+        if byId[member.spouseId] then join(member.id, member.spouseId) end
+    end
+    local groups, groupFor = {}, {}
+    for id, member in pairs(byId) do
+        local groupId = root(id)
+        local group = groups[groupId]
+        if not group then
+            group = { members = {}, parents = {}, floor = 1 }
+            groups[groupId] = group
+        end
+        groupFor[id] = groupId
+        table.insert(group.members, member)
+        local declared = type(member.generationFloor) == "number" and math.max(1, math.floor(member.generationFloor)) or nil
+        if not declared and (member.branch == true or type(member.externalLineage) == "table") and type(member.generation) == "number" then
+            declared = math.max(1, math.floor(member.generation))
+        end
+        if declared then group.floor = math.max(group.floor, declared) end
+    end
+    for id, member in pairs(byId) do
+        local group = groups[groupFor[id]]
+        for _, parentId in ipairs(type(member.parents) == "table" and member.parents or {}) do
+            local parentGroup = groupFor[parentId]
+            if parentGroup and parentGroup ~= groupFor[id] then group.parents[parentGroup] = true end
+        end
+    end
+    local values, resolving = {}, {}
+    local function resolve(groupId)
+        if values[groupId] then return values[groupId] end
+        local group = groups[groupId]
+        if not group then return 1 end
+        if resolving[groupId] then return group.floor end
+        resolving[groupId] = true
+        local generation = group.floor
+        for parentGroup in pairs(group.parents) do generation = math.max(generation, resolve(parentGroup) + 1) end
+        resolving[groupId] = nil
+        values[groupId] = generation
+        return generation
+    end
+    local result = {}
+    for id in pairs(byId) do result[id] = resolve(groupFor[id]) end
+    return result
+end
+
+function State.Generation(members, memberId, visited)
+    local map = GenerationMap(members)
+    return map[memberId] or 1
+end
+
+function State.NormalizeGenerations(members)
+    local map = GenerationMap(members)
+    for _, member in ipairs(type(members) == "table" and members or {}) do
+        if type(member) == "table" and member.id ~= nil then member.generation = map[member.id] or 1 end
+    end
+    return map
 end
 
 local function HasCycle(members, member, targetId, visited)
@@ -349,6 +412,7 @@ local function CreateRun(draft, profile, allowOverBudget)
     if newRules and not background then return nil, { "当前开局缺少有效背景定义，不能开始。" } end
     local runId = "run-" .. tostring(os.time())
     local openingSnapshot = State.Copy(draft)
+    State.NormalizeGenerations(openingSnapshot.members)
     openingSnapshot.rulesVersion = rulesVersion
     if background then
         openingSnapshot.backgroundId = background.id
@@ -365,10 +429,10 @@ local function CreateRun(draft, profile, allowOverBudget)
         member.birthPlan = true
         member.lastBirthYear = -5
         member.hadHomeAfterGuard = false
-        member.generation = State.Generation(draft.members, member.id)
         member.biography = { "大晟历 " .. tostring(draft.calendar) .. " 年，以“" .. Data.Jobs[member.jobId].name .. "”开始这一段人生。" }
         table.insert(members, member)
     end
+    State.NormalizeGenerations(members)
     local relicInstances = {}
     for index, relicId in ipairs(draft.relicRulesVersion and {} or draft.selectedRelicIds) do
         table.insert(relicInstances, {
@@ -800,6 +864,7 @@ local function NormalizeCurrentPayload(value, sourceVersion)
         if type(candidate.draft) ~= "table" then return nil, "开局草案结构无效。" end
         local draftArtOk, draftArtMessage = NormalizeMemberArt(candidate.draft.members, identity, "开局草案")
         if not draftArtOk then return nil, draftArtMessage end
+        State.NormalizeGenerations(candidate.draft.members)
     end
     if candidate.run then
         local run = candidate.run
@@ -852,6 +917,8 @@ local function NormalizeCurrentPayload(value, sourceVersion)
         if not snapshotArtOk then return nil, snapshotArtMessage end
         local runArtOk, runArtMessage = NormalizeMemberArt(run.members, runIdentity, "运行家谱")
         if not runArtOk then return nil, runArtMessage end
+        State.NormalizeGenerations(run.openingSnapshot.members)
+        State.NormalizeGenerations(run.members)
         for _, member in ipairs(run.members) do
             member.factIds = member.factIds or {}
             member.biography = member.biography or {}

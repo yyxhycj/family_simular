@@ -2,6 +2,8 @@
 local UI = require "urhox-libs/UI"
 local App = require "Jiaye.App"
 local Economy = require "Jiaye.Economy"
+local RelicState = require "Jiaye.RelicState"
+local RelicSystem = require "Jiaye.RelicSystem"
 local Simulation = require "Jiaye.Simulation"
 local State = require "Jiaye.State"
 
@@ -36,6 +38,25 @@ local function factFor(run, memberId, kind)
     end
 end
 
+local function factsOfKind(run, kind)
+    local result = {}
+    for _, fact in ipairs(run.facts or {}) do if fact.kind == kind then table.insert(result, fact) end end
+    return result
+end
+
+local function v12Draft()
+    local draft = State.NewDraft()
+    draft.generatorVersion = 2
+    draft.rulesVersion = 2
+    draft.backgroundId = "artisan_workshop"
+    draft.originRulesVersion = "origin-opportunities-1.0"
+    draft.relicRulesVersion = RelicSystem.VERSION
+    draft.selectedRelicIds = nil
+    draft.selectedRelicFormIds = { "ruler.1" }
+    draft.relicUsers = {}
+    return draft
+end
+
 local function run()
     local run, profile, draft = fresh()
     local preview = Economy.Preview(State.Copy(run))
@@ -64,7 +85,7 @@ local function run()
     collapseApp:Render()
     assert(contains(UI.root, "本局已落笔 · 家道散尽") and contains(UI.root, "年度结算后公库与存粮同时归零时自动写入"), "家道终局没有在家族页显示准确状态")
     collapseApp.gameTab, collapseApp.historySection = "history", "annals"; collapseApp:Render()
-    assert(contains(UI.root, "年末：公库与存粮同时归零。"), "家道终局没有在年鉴显示钱粮归零")
+    assert(contains(UI.root, "公库与存粮同时耗尽，家人离散，家谱在此落笔。"), "家道终局没有在年鉴显示钱粮归零")
 
     local lineage, lineageProfile = fresh()
     lineage.money = 200
@@ -85,6 +106,66 @@ local function run()
     local spouse = lineage.members[#lineage.members]
     sibling.jobYears.teach, spouse.jobYears.teach = 2, 2
     assert(spouse.sex == sibling.sex and spouse.generation == sibling.generation and Simulation.EndingProgress(lineage, "scholar")[1][2] == 1, "同性爱侣婚入或代际记录错误")
+
+    local openingProfile = State.NewProfile()
+    local openingDraft = State.NewDraft()
+    openingDraft.members = { State.Copy(openingDraft.members[1]), State.Copy(openingDraft.members[2]), State.Copy(openingDraft.members[3]) }
+    local elder, child, childSpouse = openingDraft.members[1], openingDraft.members[2], openingDraft.members[3]
+    elder.age, elder.spouseId, elder.parents = 65, nil, {}
+    child.age, child.parents, child.spouseId = 40, { elder.id }, childSpouse.id
+    childSpouse.age, childSpouse.parents, childSpouse.spouseId = 38, {}, child.id
+    openingDraft.nextId = 4
+    local openingRun = assert(State.NewRun(openingDraft, openingProfile))
+    assert(State.Generation(openingRun.members, child.id) == 2 and State.Generation(openingRun.members, childSpouse.id) == 2
+        and State.FindMember(openingRun.members, childSpouse.id).generation == 2 and State.Generation(openingRun.openingSnapshot.members, childSpouse.id) == 2,
+        "开局婚入配偶没有与配偶归入同一代，或开局快照仍保留错误代际")
+
+    local annualProfile = State.NewProfile()
+    local annualRun = assert(State.NewRun(v12Draft(), annualProfile))
+    annualRun.members = { annualRun.members[1], annualRun.members[2] }
+    local student, farmer = annualRun.members[1], annualRun.members[2]
+    student.age, student.jobId, student.birthPlan = 30, "study", false
+    farmer.age, farmer.jobId, farmer.birthPlan = 30, "farm", false
+    annualRun.money, annualRun.grain, annualRun.land = 0, 100, 0
+    local reversedAnnualRun = State.Copy(annualRun)
+    reversedAnnualRun.members = { reversedAnnualRun.members[2], reversedAnnualRun.members[1] }
+    local annualLedger = Economy.Settle(annualRun)
+    local reversedAnnualLedger = Economy.Settle(reversedAnnualRun)
+    local studyRow, reversedStudyRow
+    for _, row in ipairs(annualLedger.members) do if row.memberId == student.id then studyRow = row end end
+    for _, row in ipairs(reversedAnnualLedger.members) do if row.memberId == student.id then reversedStudyRow = row end end
+    assert(studyRow and studyRow.executed and studyRow.paid == 6 and reversedStudyRow and reversedStudyRow.executed and reversedStudyRow.paid == 6
+        and annualRun.money == reversedAnnualRun.money and annualRun.grain == reversedAnnualRun.grain
+        and annualLedger.training == reversedAnnualLedger.training and annualLedger.income == reversedAnnualLedger.income,
+        "年度培养费仍受成员数组排列影响，或年度收入没有先汇入公库")
+
+    local craftProgress = fresh()
+    craftProgress.workshop = true
+    for _, member in ipairs(craftProgress.members) do member.jobId, member.birthPlan = "rest", false end
+    craftProgress.members[1].jobYears = { craft = 3 }
+    assert(Simulation.EndingProgress(craftProgress, "craft")[2][2] == 0,
+        "作坊经营条件仍把已往手艺人年当作当前经营")
+    craftProgress.members[1].jobId = "craft"
+    assert(Simulation.EndingProgress(craftProgress, "craft")[2][2] == 1,
+        "在世且合格的手艺人没有被计入当前作坊经营")
+
+    local relicProfile = State.NewProfile()
+    local relicRun = assert(State.NewRun(v12Draft(), relicProfile))
+    local relicFirst, relicSecond = relicRun.members[1], relicRun.members[2]
+    relicFirst.age, relicFirst.jobId, relicFirst.stats.skill = 30, "craft", 50
+    relicSecond.age, relicSecond.jobId, relicSecond.stats.skill = 30, "craft", 50
+    local ruler = assert(relicRun.relicInstances[1])
+    assert(RelicSystem.AssignCustodian(relicRun, ruler.instanceId, relicSecond.id))
+    assert(RelicSystem.AssignUser(relicRun, ruler.instanceId, relicFirst.id))
+    assert(RelicSystem.AssignUser(relicRun, ruler.instanceId, relicSecond.id))
+    assert(RelicSystem.AssignUser(relicRun, ruler.instanceId, relicSecond.id))
+    local rulerSuccessor = assert(RelicState.CreateInstance(relicRun, "ruler.2", "合同核验", relicSecond.id, relicSecond.id))
+    assert(RelicSystem.SetPrimary(relicRun, rulerSuccessor.instanceId))
+    local handovers = factsOfKind(relicRun, "relic_handover")
+    local primaryFacts = factsOfKind(relicRun, "relic_primary")
+    assert(#handovers == 3 and handovers[1].fromMemberId == relicFirst.id and handovers[1].toMemberId == relicSecond.id
+        and #primaryFacts == 1 and primaryFacts[1].relicInstanceId == rulerSuccessor.instanceId and #relicRun.relicUseFacts == 0,
+        "信物改用、保管与主件变更没有留下独立交托事实，或交托被误写成有效使用年")
 
     local handover, handoverProfile, handoverDraft = fresh()
     handover.members = { handover.members[1], handover.members[2] }
@@ -179,6 +260,7 @@ local function run()
     return {
         annualLedgerFrozen = true, hungerResets = true, collapseReadOnly = true, collapseUI = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },
         custodyRecovered = true, factsPersisted = true, historyEntrances = true, ageRules = true,
+        spouseGenerationNormalized = true, annualIncomeOrderIndependent = true, currentCraftOperatorRequired = true, relicHandoversRecorded = true,
     }
 end
 
