@@ -139,6 +139,7 @@ function App:Init()
     self.draft = State.NewDraft()
     self.run = nil
     self.screen = "cover"
+    self.coverView = "home"
     self.openingPage = "world"
     self.openingView = "summary"
     self.gameTab = "family"
@@ -460,45 +461,104 @@ function App:BuildRunStatusBar()
     }
 end
 
-function App:BuildCover()
-    local actions = {
-        UI.Panel { gap = 3, children = {
-            UI.Row { gap = 8, alignItems = "center", children = {
-                Visual.Decor("seal_square", { width = 28, height = 28 }),
-                Label("凡世王朝 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.green }),
-            } },
-            Label("家业", { fontSize = 46, fontWeight = "bold", fontFamily = "serif", letterSpacing = 8, textShadow = { offsetX = 1, offsetY = 2, blur = 2, color = { 255, 249, 235, 180 } } }),
-            Label("一户人的家谱，代代相传", { fontSize = 19, fontColor = C.green, fontFamily = "serif", letterSpacing = 2 }),
-        } },
-        UI.Panel { gap = 8, padding = 15, backgroundColor = { 247, 240, 223, 235 }, borderWidth = 1, borderColor = C.gold, borderRadius = 8, boxShadow = { { x = 0, y = 3, blur = 10, color = { 20, 43, 33, 45 } } }, children = {
-            Label("从一页家书开始", { fontSize = 19, fontColor = C.ink, fontFamily = "serif" }),
-            Label("生成一户人家，逐项改写家人、家底与首年安排。每一次抉择都会留在家谱里。", { fontSize = 15, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.65 }),
-            UI.Row { gap = 6, children = {
-                Label("家人", { flex = 1, fontSize = 13, fontColor = C.green, textAlign = "center" }),
-                Label("家业", { flex = 1, fontSize = 13, fontColor = C.green, textAlign = "center" }),
-                Label("家史", { flex = 1, fontSize = 13, fontColor = C.green, textAlign = "center" }),
-            } },
-        } },
+local function OpeningArtButton(artName, action)
+    return UI.Panel {
+        width = "100%", height = 88, minHeight = 88, padding = 0,
+        onClick = action, pointerEvents = "box-only",
+        children = {
+            Visual.OpeningArt(artName, {
+                position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
+                backgroundFit = "contain",
+            }),
+        },
     }
-    if self.openingGenerationFailed then
-        table.insert(actions, Label(self.openingFeedback, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal", lineHeight = 1.5 }))
+end
+
+local function WorldCard(artName, available, action)
+    return UI.Panel {
+        flex = 1, minWidth = 0, aspectRatio = 280 / 810, padding = 0,
+        overflow = "hidden", onClick = action, pointerEvents = "box-only",
+        borderWidth = available and 2 or 1, borderColor = available and C.gold or C.rule,
+        borderRadius = 5, boxShadow = { { x = 0, y = 3, blur = 7, color = { 20, 43, 33, available and 48 or 22 } } },
+        children = {
+            Visual.OpeningArt(artName, {
+                position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
+                backgroundFit = "contain",
+            }),
+            UI.Panel {
+                position = "absolute", left = 5, right = 5, bottom = 6, height = 22,
+                justifyContent = "center", alignItems = "center", pointerEvents = "none",
+                backgroundColor = available and { 53, 92, 73, 232 } or { 41, 63, 55, 208 }, borderRadius = 2,
+                children = { Label(available and "当前可游" or "敬请期待", { fontSize = 11, fontColor = C.paperLight }) },
+            },
+        },
+    }
+end
+
+function App:BuildWorldSelection()
+    local openWorld = function()
+        self.coverView = "home"
+        self:PrepareNewRun()
     end
-    table.insert(actions, Button(self.run and "另立家谱" or "展开家谱", function() self:PrepareNewRun() end, { height = 54, fontSize = 17, marginTop = 4 }))
-    if self.run then
-        table.insert(actions, Button("续写当前家谱", function() self:Load() end, { height = 46, role = "secondary" }))
+    local waiting = function() self:Notify("该世界仍在筹备，当前可从山河岁月开始家谱。", "info") end
+    return UI.Panel {
+        width = "100%", height = "100%", backgroundColor = C.paper,
+        backgroundImage = V7.Images.paperTexture, backgroundFit = "cover",
+        children = {
+            UI.SafeAreaView { width = "100%", height = "100%", edges = "all", children = {
+                UI.Panel { width = "100%", height = "100%", padding = 16, gap = 12, overflow = "scroll", children = {
+                    UI.Row { alignItems = "center", gap = 8, children = {
+                        Button("返回", function() self.coverView = "home"; self:Render() end, { width = 72, height = 44, role = "secondary" }),
+                        UI.Panel { flex = 1, minWidth = 0, children = {
+                            Label("选择一个世界", { fontSize = 23, fontFamily = "serif", fontWeight = "bold" }),
+                            Label("一姓一世界，一家一春秋", { fontSize = 13, fontColor = C.muted }),
+                        } },
+                    } },
+                    Label("四幅水墨长卷对应四个世界；当前开放山河岁月，其余篇章会在完成后开放。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
+                    UI.Row { width = "100%", maxWidth = 560, alignSelf = "center", gap = 5, alignItems = "center", justifyContent = "center", children = {
+                        WorldCard("worldMountains", true, openWorld),
+                        WorldCard("worldCapital", false, waiting),
+                        WorldCard("worldSilk", false, waiting),
+                        WorldCard("worldSea", false, waiting),
+                    } },
+                    UI.Panel { gap = 6, padding = 12, backgroundColor = C.card, borderWidth = 1, borderColor = C.gold, borderRadius = 6, children = {
+                        Label("山河岁月 · 当前可游", { fontSize = 18, fontFamily = "serif", fontColor = C.ink }),
+                        Label("以凡世王朝为舞台，生成一户家人，写下属于这一家的开篇。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }),
+                    } },
+                    Button("从山河岁月开始", openWorld, { width = "100%", height = 52 }),
+                } },
+            } },
+        },
+    }
+end
+
+function App:BuildCover()
+    if self.coverView == "worlds" then return self:BuildWorldSelection() end
+    local actions = {
+        OpeningArtButton("startFamilyButton", function() self.coverView = "worlds"; self:Render() end),
+    }
+    if self.run then table.insert(actions, OpeningArtButton("continueFamilyButton", function() self:Load() end)) end
+    table.insert(actions, Button("世界一览", function() self.coverView = "worlds"; self:Render() end, { width = "100%", height = 44, role = "secondary" }))
+    if self.openingGenerationFailed then
+        table.insert(actions, 1, Label(self.openingFeedback, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal", lineHeight = 1.5 }))
     end
     return UI.Panel { width = "100%", height = "100%", overflow = "hidden", children = {
         Visual.OpeningArt("landscape", { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundFit = "cover" }),
         UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundGradient = {
-            type = "linear", direction = "to-bottom", from = { 247, 240, 223, 45 }, to = { 247, 240, 223, 222 },
+            type = "linear", direction = "to-bottom", from = { 247, 240, 223, 14 }, to = { 247, 240, 223, 128 },
         }, pointerEvents = "none" },
-        Visual.OpeningArt("tableau", { position = "absolute", left = 0, bottom = -38, width = "100%", height = 340, backgroundFit = "contain", opacity = 0.94 }),
+        Visual.OpeningArt("tableau", { position = "absolute", right = -80, bottom = -90, width = 360, height = 430, backgroundFit = "contain", opacity = 0.17 }),
         UI.SafeAreaView { width = "100%", height = "100%", edges = "all", children = {
-            UI.Panel { width = "100%", height = "100%", padding = 22, justifyContent = "space-between", pointerEvents = "box-none", children = {
-                UI.Panel { pointerEvents = "none", children = {
-                    Label("家谱从此落笔", { fontSize = 13, fontColor = C.muted, textAlign = "right" }),
+            UI.Panel { width = "100%", height = "100%", padding = 18, justifyContent = "space-between", pointerEvents = "box-none", children = {
+                UI.Panel { gap = 4, padding = 14, backgroundColor = { 247, 240, 223, 214 }, borderWidth = 1, borderColor = C.gold, borderRadius = 6, pointerEvents = "none", children = {
+                    UI.Row { gap = 7, alignItems = "center", children = {
+                        Visual.Decor("seal_square", { width = 24, height = 24 }),
+                        Label("凡世王朝 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.green }),
+                    } },
+                    Label("家业", { fontSize = 48, fontWeight = "bold", fontFamily = "serif", letterSpacing = 8, textShadow = { offsetX = 1, offsetY = 2, blur = 2, color = { 255, 249, 235, 180 } } }),
+                    Label("一户人的家谱，代代相传", { fontSize = 18, fontColor = C.green, fontFamily = "serif", letterSpacing = 2 }),
                 } },
-                UI.Panel { gap = 14, pointerEvents = "box-none", children = actions },
+                UI.Panel { width = "100%", gap = 4, pointerEvents = "box-none", children = actions },
             } },
         } },
     } }

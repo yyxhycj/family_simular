@@ -241,6 +241,12 @@ function Art.Opening(name)
     local openingArt = {
         landscape = "Jiaye/Opening/01-水墨四境山河图.png",
         tableau = "Jiaye/Opening/02-水墨古风桌案与远眺人物素材集.png",
+        startFamilyButton = "Jiaye/Opening/start_family_button.png",
+        continueFamilyButton = "Jiaye/Opening/continue_family_button.png",
+        worldMountains = "Jiaye/Opening/world_mountains.png",
+        worldCapital = "Jiaye/Opening/world_capital.png",
+        worldSilk = "Jiaye/Opening/world_silk.png",
+        worldSea = "Jiaye/Opening/world_sea.png",
     }
     return requireKnown(openingArt[name], "未知开局视觉资源：" .. tostring(name))
 end
