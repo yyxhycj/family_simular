@@ -160,7 +160,7 @@ function App:Init()
     if not saved and not self.storageBlocked then
         local draft, issue = Opening.Generate(self.profile, Opening.FreshSeed(), "mortal")
         if draft then
-            self.draft = draft; self.screen = "opening"
+            self.draft = draft
         else
             self.openingGenerationFailed = true
             self.openingFeedback = issue or "暂未生成合法家庭，请重试。"
@@ -462,41 +462,45 @@ end
 
 function App:BuildCover()
     local actions = {
-        UI.Row { gap = 10, alignItems = "center", children = {
-            Visual.Decor("seal_square", { width = 30, height = 30 }),
-            UI.Panel { flex = 1, gap = 1, children = {
-                Label("家业", { fontSize = 29, fontWeight = "bold", fontFamily = "serif" }),
-                Label("凡世王朝 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.muted }),
+        UI.Panel { gap = 3, children = {
+            UI.Row { gap = 8, alignItems = "center", children = {
+                Visual.Decor("seal_square", { width = 28, height = 28 }),
+                Label("凡世王朝 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.green }),
             } },
+            Label("家业", { fontSize = 46, fontWeight = "bold", fontFamily = "serif", letterSpacing = 8, textShadow = { offsetX = 1, offsetY = 2, blur = 2, color = { 255, 249, 235, 180 } } }),
+            Label("一户人的家谱，代代相传", { fontSize = 19, fontColor = C.green, fontFamily = "serif", letterSpacing = 2 }),
         } },
-        Label("一部由选择写成的家谱", { fontSize = 18, fontColor = C.green, marginTop = 18, fontFamily = "serif" }),
-        Label("生成一户人家，看看家人、家底和首年预计。点击想调整的对象，便能写下家谱的开篇。", { fontSize = 15, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.65 }),
-        UI.Panel { gap = 7, padding = 12, backgroundColor = C.card, borderWidth = 1, borderColor = C.line, borderRadius = 10, children = {
-            UI.Row { gap = 8, children = {
-                Label("完整家谱", { fontSize = 14, fontWeight = "bold", fontColor = C.green }),
-                Label("人口、亲缘与主业一并生成", { fontSize = 13, fontColor = C.muted }),
-            } },
-            UI.Row { gap = 8, children = {
-                Label("钱粮预估", { fontSize = 14, fontWeight = "bold", fontColor = C.green }),
-                Label("首年净变化和总分可直接核对", { fontSize = 13, fontColor = C.muted }),
-            } },
-            UI.Row { gap = 8, children = {
-                Label("家谱延续", { fontSize = 14, fontWeight = "bold", fontColor = C.green }),
-                Label("人生、信物与决定都会留下记录", { fontSize = 13, fontColor = C.muted }),
+        UI.Panel { gap = 8, padding = 15, backgroundColor = { 247, 240, 223, 235 }, borderWidth = 1, borderColor = C.gold, borderRadius = 8, boxShadow = { { x = 0, y = 3, blur = 10, color = { 20, 43, 33, 45 } } }, children = {
+            Label("从一页家书开始", { fontSize = 19, fontColor = C.ink, fontFamily = "serif" }),
+            Label("生成一户人家，逐项改写家人、家底与首年安排。每一次抉择都会留在家谱里。", { fontSize = 15, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.65 }),
+            UI.Row { gap = 6, children = {
+                Label("家人", { flex = 1, fontSize = 13, fontColor = C.green, textAlign = "center" }),
+                Label("家业", { flex = 1, fontSize = 13, fontColor = C.green, textAlign = "center" }),
+                Label("家史", { flex = 1, fontSize = 13, fontColor = C.green, textAlign = "center" }),
             } },
         } },
     }
     if self.openingGenerationFailed then
         table.insert(actions, Label(self.openingFeedback, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal", lineHeight = 1.5 }))
     end
-    table.insert(actions, Button("立一部家谱", function() self:PrepareNewRun() end, { height = 52, fontSize = 17, marginTop = 10 }))
+    table.insert(actions, Button(self.run and "另立家谱" or "展开家谱", function() self:PrepareNewRun() end, { height = 54, fontSize = 17, marginTop = 4 }))
     if self.run then
-        table.insert(actions, Button("继续家谱", function() self:Load() end, { height = 46, backgroundColor = C.pale, textColor = C.green }))
+        table.insert(actions, Button("续写当前家谱", function() self:Load() end, { height = 46, role = "secondary" }))
     end
-    return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, justifyContent = "center", padding = 22, children = {
-        Visual.Decor("clouds", { position = "absolute", top = 12, right = 0, width = 190, height = 76, opacity = 0.2, pointerEvents = "none" }),
-        Visual.Decor("mountains", { position = "absolute", bottom = 0, left = 0, width = "100%", height = 220, opacity = 0.2, pointerEvents = "none" }),
-        UI.Panel { gap = 14, children = actions },
+    return UI.Panel { width = "100%", height = "100%", overflow = "hidden", children = {
+        Visual.OpeningArt("landscape", { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundFit = "cover" }),
+        UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundGradient = {
+            type = "linear", direction = "to-bottom", from = { 247, 240, 223, 45 }, to = { 247, 240, 223, 222 },
+        }, pointerEvents = "none" },
+        Visual.OpeningArt("tableau", { position = "absolute", left = 0, bottom = -38, width = "100%", height = 340, backgroundFit = "contain", opacity = 0.94 }),
+        UI.SafeAreaView { width = "100%", height = "100%", edges = "all", children = {
+            UI.Panel { width = "100%", height = "100%", padding = 22, justifyContent = "space-between", pointerEvents = "box-none", children = {
+                UI.Panel { pointerEvents = "none", children = {
+                    Label("家谱从此落笔", { fontSize = 13, fontColor = C.muted, textAlign = "right" }),
+                } },
+                UI.Panel { gap = 14, pointerEvents = "box-none", children = actions },
+            } },
+        } },
     } }
 end
 

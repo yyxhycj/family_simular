@@ -85,6 +85,9 @@ local function AuditLegacyUiPaths()
     for _, name in ipairs({ "paper_subtle_512", "paper_fiber_alpha_512", "paper_medium_512", "paper_aged_512" }) do
         Check(Art.Texture(name), "纹理/" .. name)
     end
+    for _, name in ipairs({ "landscape", "tableau" }) do
+        Check(Art.Opening(name), "开局视觉/" .. name)
+    end
 end
 
 local function AuditFonts()

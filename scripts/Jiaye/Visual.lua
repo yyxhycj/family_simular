@@ -310,6 +310,14 @@ function Visual.House(homeId, state, props)
     return UI.Panel(result)
 end
 
+function Visual.OpeningArt(name, props)
+    local result = copyProps(props)
+    result.backgroundImage = requireAsset(Art.Opening(name), "开局视觉资源未登记：" .. tostring(name))
+    result.backgroundFit = result.backgroundFit or "cover"
+    result.pointerEvents = result.pointerEvents or "none"
+    return UI.Panel(result)
+end
+
 function Visual.Decor(name, props)
     local result = copyProps(props)
     result.backgroundImage = requireAsset(V7.Art.Decor(name), "装饰未登记：" .. tostring(name))

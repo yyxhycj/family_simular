@@ -237,6 +237,14 @@ function Art.Texture(name)
     return LEGACY_ROOT .. "textures/" .. tostring(name) .. ".png"
 end
 
+function Art.Opening(name)
+    local openingArt = {
+        landscape = "Jiaye/Opening/01-水墨四境山河图.png",
+        tableau = "Jiaye/Opening/02-水墨古风桌案与远眺人物素材集.png",
+    }
+    return requireKnown(openingArt[name], "未知开局视觉资源：" .. tostring(name))
+end
+
 function Art.Panel(state)
     local states = { default = true, selected = true, disabled = true, danger = true, confirmation = true }
     requireKnown(states[state], "未知面板状态：" .. tostring(state))

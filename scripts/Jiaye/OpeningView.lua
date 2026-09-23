@@ -202,6 +202,38 @@ local function relicArtId(form)
     return form.id
 end
 
+local function summaryHero(app, draft, period, origin, place, background)
+    return UI.Panel {
+        height = 190, minHeight = 190, overflow = "hidden", padding = 0,
+        borderWidth = 1, borderColor = C.gold, borderRadius = 8,
+        onClick = function() app:BeginOpeningEdit("world") end,
+        pointerEvents = "box-only",
+        children = {
+            Visual.OpeningArt("landscape", {
+                position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
+                backgroundFit = "cover",
+            }),
+            UI.Panel {
+                position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
+                backgroundGradient = {
+                    type = "linear", direction = "to-bottom",
+                    from = { 247, 240, 223, 20 }, to = { 247, 240, 223, 238 },
+                },
+                pointerEvents = "none",
+            },
+            UI.Panel {
+                position = "absolute", left = 14, right = 14, bottom = 12, gap = 4,
+                pointerEvents = "none",
+                children = {
+                    text("开局卷 · 点击改写世界与出身", 12, C.green),
+                    text(draft.family .. "氏家族", 29, C.ink, { fontWeight = "bold" }),
+                    text((period and period.name or "") .. " · " .. (background and background.name or (origin and origin.name or "")) .. " · " .. (place and place.short or ""), 13, C.muted),
+                },
+            },
+        },
+    }
+end
+
 function View.Summary(app)
     local draft = app.draft
     local ledger = preview(app)
@@ -212,10 +244,10 @@ function View.Summary(app)
     local adults = 0
     for _, member in ipairs(draft.members) do if State.IsAdult(member) then adults = adults + 1 end end
     local children = {
+        summaryHero(app, draft, period, origin, place, background),
         row({
-            UI.Panel { flex = 1, minWidth = 0, height = 44, justifyContent = "center", onClick = function() app:BeginOpeningEdit("name") end, children = { text(draft.family .. "氏家族", 25) } },
-            UI.Panel { width = 44, height = 44, padding = 0, borderRadius = 0, alignItems = "center", justifyContent = "center", pointerEvents = "box-only", onClick = function() app:BeginOpeningEdit("name") end, children = { Visual.Icon("edit", 20) } },
-            UI.Panel { width = 44, height = 44, padding = 0, borderRadius = 0, alignItems = "center", justifyContent = "center", pointerEvents = "box-only", onClick = function() app:RandomFamilyName() end, children = { Visual.Icon("random", 20) } },
+            button("改写姓氏", function() app:BeginOpeningEdit("name") end, true, { flex = 2, height = 44 }),
+            button("掷名", function() app:RandomFamilyName() end, true, { flex = 1, height = 44 }),
         }),
         row({
             button("历 " .. tostring(draft.calendar) .. " 年", function() app:BeginOpeningEdit("world") end, true, { flex = 1, height = 44, fontSize = 13, paddingHorizontal = 4 }),
