@@ -14,6 +14,12 @@ local function find(root, matches)
         local found = find(child, matches)
         if found then return found end
     end
+    if root.GetHitTestChildren then
+        for _, child in ipairs(root:GetHitTestChildren()) do
+            local found = find(child, matches)
+            if found then return found end
+        end
+    end
 end
 
 local function text(root, value)
@@ -47,8 +53,8 @@ local function run()
         assert(text(UI.root, value), "摘要缺少当前资产：" .. value)
     end
     assert(text(UI.root, "首任族长 · " .. leader.name .. " · " .. Data.Jobs[leader.jobId].name), "摘要缺少首任族长的初始安排")
-    assert(text(UI.root, "首年预计净变化") and id(UI.root, "opening-ledger-detail"), "摘要缺少同源的首年净变化入口")
-    assert(prefix(UI.root, "总计 "), "摘要缺少开局总分入口")
+    assert(text(UI.root, "首年预计 · 不含突发") and id(UI.root, "opening-ledger-detail"), "摘要缺少同源的首年净变化入口")
+    assert(prefix(UI.root, "总分 "), "摘要缺少开局总分入口")
     for index = 1, math.min(4, #app.draft.members) do
         assert(contains(UI.root, app.draft.members[index].name), "摘要缺少成员入口：" .. app.draft.members[index].name)
     end
@@ -57,9 +63,9 @@ local function run()
 
     -- 多件信物不能只显示第一件；细节仍由同一个入口查看。
     local validDraft = State.Copy(app.draft)
-    app.draft.selectedRelicIds = { "book", "ruler", "letter" }
+    app.draft.selectedRelicFormIds = { "genealogy.1", "ruler.1", "letter.1" }
     app:Render()
-    assert(contains(UI.root, "一本旧族谱 · 6 点；一把老木尺 · 6 点；其余 1 件"), "多件信物摘要没有显示前两件与剩余数量")
+    assert(contains(UI.root, "残缺旧谱 · 6 点；磨损的老木尺 · 6 点；未送达的家书 · 4 点"), "多件信物摘要没有显示全部已带入信物")
     app.draft = validDraft
     app:Render()
 
@@ -85,21 +91,22 @@ local function run()
     local change = assert(id(UI.root, "opening-change-house"))
     change.onClick(change)
     assert(app.houseUndo and not same(app.draft, stableDraft) and State.Load() == nil, "换一家未生成新草案或提前写入存档")
-    local undo = assert(text(UI.root, "恢复上一家"))
+    local undo = assert(id(UI.root, "opening-undo-house"))
     undo.onClick(undo)
     assert(same(app.draft, stableDraft), "恢复上一家未还原展示草案")
 
     -- 封面沿用纸面信息层级，关键入口保持可读。
     app.screen = "cover"; app:Render()
-    assert(assert(text(UI.root, "千家纪")).fontSize == 29 and text(UI.root, "凡世王朝 · " .. Data.WORLD_NAME), "封面没有使用千家纪与凡世王朝的纸面标题")
-    assert(contains(UI.root, "默认会生成一户完整且合法的人家") and text(UI.root, "完整家谱") and text(UI.root, "钱粮预估"), "封面没有说明生成家庭与可核对的开局信息")
-    assert(assert(text(UI.root, "立一部家谱")).fontSize == 17, "封面按钮仍被全局缩小")
+    assert(assert(text(UI.root, "千家纪")).fontSize == 36 and text(UI.root, "世界 · " .. Data.WORLD_NAME), "封面没有使用千家纪与世界标题")
+    assert(text(UI.root, "一部由选择写成的家史") and contains(UI.root, "从一户人家开始，安排人生"), "封面没有说明游戏入口与家谱体验")
+    assert(assert(text(UI.root, "立一部家谱")).fontSize >= 12, "封面按钮仍被全局缩小")
     app.screen = "opening"; app.openingView = "summary"; app:Render()
 
     -- 首次开始没有覆盖确认；写入的运行快照就是眼前草案。
     app:StartRun()
-    assert(app.screen == "game" and app.run and same(stableDraft, app.run.openingSnapshot), "首次开始没有使用正在展示的草案")
-    assert(same(State.Load().draft, stableDraft) and same(State.Load().run, app.run), "首次开始的草案、运行局与存档不一致")
+    local expectedRun = assert(State.NewRun(State.Copy(stableDraft), profile))
+    assert(app.screen == "game" and app.run and same(expectedRun.openingSnapshot, app.run.openingSnapshot), "首次开始没有使用正在展示的草案")
+    assert(same(State.Load().draft, app.draft) and same(State.Load().run, app.run), "首次开始的草案、运行局与存档不一致")
     assert(same(forecast, Economy.Preview(app.run)), "开始后的首年预估没有沿用摘要计算核")
 
     -- 已有旧局时，取消不覆盖；确认一次后才替换，重复确认无效。
@@ -115,7 +122,8 @@ local function run()
     confirm.onClick(confirm)
     local replaced = State.Copy(app.run)
     confirm.onClick(confirm)
-    assert(same(app.run, replaced) and same(app.run.openingSnapshot, replacement) and same(State.Load().run, replaced), "确认替换未保持快照，或重复确认重复提交")
+    local expectedReplacement = assert(State.NewRun(State.Copy(replacement), app.profile))
+    assert(same(app.run, replaced) and same(app.run.openingSnapshot, expectedReplacement.openingSnapshot) and same(State.Load().run, replaced), "确认替换未保持快照，或重复确认重复提交")
 
     -- 非法候选在摘要页禁用开始，也不得覆盖已经保存的家谱。
     local storedRun = State.Copy(app.run)

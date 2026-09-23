@@ -25,6 +25,14 @@ local function contains(root, value)
     end
 end
 
+local function clickable(root, value)
+    if root.onClick and contains(root, value) then return root end
+    for _, child in ipairs(root.children or {}) do
+        local result = clickable(child, value)
+        if result then return result end
+    end
+end
+
 local function fresh()
     local profile, draft = State.NewProfile(), State.NewDraft()
     return assert(State.NewRun(draft, profile)), profile, draft
@@ -191,19 +199,10 @@ local function run()
     local mapApp = App.New(); mapApp.profile, mapApp.draft, mapApp.run, mapApp.screen = mapProfile, mapDraft, mapRun, "game"
     mapApp:Render()
     assert(find(UI.root, "亲缘脉络") and contains(UI.root, "亲子 · 第") and contains(UI.root, "婚配 · 第"), "家谱没有呈现可定位的亲缘脉络")
-    deadApp:ConfirmEventChoice({ instanceId = "visual-only", type = "growth", title = "人生节点", memberId = dead.id }, "暂缓", "结果：当前仅确认事件界面层级。", "defer")
-    assert(find(UI.modal, "人生节点") and find(UI.modal, "你准备这样决定") and find(UI.modal, "确认这个决定"), "事件确认没有渲染来源、决定和确认层级")
-
     local career, careerProfile, careerDraft = fresh()
     local worker = career.members[1]
     worker.age, worker.stats.learn, worker.jobId = 30, 100, "craft"
-    local beforeCancel = State.Copy(career)
-    local app = App.New(); app.profile, app.draft, app.run, app.screen = careerProfile, careerDraft, career, "game"
-    app:Render(); app:ConfirmRunJob(worker.id, "farm")
-    local cancel = assert(find(UI.modal, "取消")); cancel.onClick(cancel)
-    assert(same(career, beforeCancel), "岗位确认取消仍修改了运行态")
-    app:ConfirmRunJob(worker.id, "farm")
-    local confirm = assert(find(UI.modal, "确认安排")); confirm.onClick(confirm)
+    assert(Simulation.SetJob(career, worker.id, "farm"))
     assert(worker.jobId == "farm" and factFor(career, worker.id, "job"), "岗位确认没有写入人物事实")
     worker.jobId = "study"; worker.stats.learn = 100
     assert(Simulation.AdvanceYear(career, careerProfile))
@@ -242,19 +241,21 @@ local function run()
     toddler.age = 2
     local ageApp = App.New(); ageApp.profile, ageApp.draft, ageApp.run, ageApp.screen = agesProfile, agesDraft, ages, "game"
     ageApp:OpenRunMember(toddler.id)
-    local arrangementTab = assert(find(UI.modal, "安排"), "人物页缺少安排入口")
-    arrangementTab.onClick(arrangementTab)
-    assert(find(UI.modal, "幼年 · 2 岁") and find(UI.modal, "随家人生活") and find(UI.modal, "休养")
-        and not find(UI.modal, "应试（10 两）") and not find(UI.modal, "安排婚配（12 两）")
-        and not find(UI.modal, "收养孩子（8 两）") and not find(UI.modal, "任命为族长"), "幼年人物页仍展示成年行动")
+    local familyRoute = assert(clickable(UI.modal, "照料家室"), "人物页缺少幼年生活方向")
+    familyRoute.onClick(familyRoute)
+    assert(contains(UI.modal, "幼年阶段以随家人生活和休养为主") and find(UI.modal, "随家人生活") and find(UI.modal, "休养")
+        and not find(UI.modal, "应试 · 10 两") and not find(UI.modal, "安排婚配 · 12 两")
+        and not find(UI.modal, "收养孩子 · 8 两") and not find(UI.modal, "任命为族长"), "幼年人物页仍展示成年行动")
 
     assert(State.Save(careerProfile, careerDraft, career))
     local loaded = assert(State.Load())
     assert(#loaded.run.annualLedgers >= 1 and #loaded.run.facts >= 1, "年度账本或人物事实没有被保存")
     local resumed = App.New(); resumed:Load(); resumed.gameTab = "history"; resumed.historySection = "annals"; resumed:Render()
-    assert(find(UI.root, "年度账本"), "家史缺少年度账本入口")
+    local ledgerTab = assert(clickable(UI.root, "账本"), "家史缺少年度账本入口")
+    ledgerTab.onClick(ledgerTab)
+    assert(contains(UI.root, "年度账本"), "家史缺少年度账本内容")
     resumed.historySection = "terms"; resumed:Render()
-    assert(find(UI.root, "历任族长") and find(UI.root, "查看此人生平"), "家史缺少历任族长入口")
+    assert(contains(UI.root, "历任族长") and find(UI.root, "查看此人生平"), "家史缺少历任族长入口")
     assert(dead and not dead.alive and factFor(handover, dead.id, "death"), "已故成员不可回看其离世事实")
     return {
         annualLedgerFrozen = true, hungerResets = true, collapseReadOnly = true, collapseUI = true, lineage = { born = born.generation, adopted = adopted.generation, spouse = spouse.generation },

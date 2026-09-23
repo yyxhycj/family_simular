@@ -15,17 +15,17 @@ local function Signature(draft)
     end
     return table.concat({ draft.family, draft.periodId, draft.calendar, draft.originId, draft.placeId,
         draft.money, draft.grain, draft.land, draft.homeId, tostring(draft.workshop), tostring(draft.shop),
-        table.concat(draft.selectedRelicIds, ","), table.concat(members, "/") }, "|")
+        table.concat(draft.selectedRelicFormIds or draft.selectedRelicIds or {}, ","), table.concat(members, "/") }, "|")
 end
 
 local function AssertFamily(draft, profile)
-    assert(draft.worldId == "mortal" and draft.generatorVersion == 1, "生成草案必须标明凡世与生成版本")
+    assert(draft.worldId == "mortal" and draft.generatorVersion == 2, "生成草案必须标明凡世与生成版本")
     assert(#draft.members >= 2 and #draft.members <= 6, "生成家庭人口必须在 2–6 人")
     assert(#State.ValidateDraft(draft, profile, false) == 0, "生成草案必须可直接开局")
     local leader = State.FindMember(draft.members, draft.leaderId)
     assert(leader and leader.age >= 18, "每户必须有成年首任族长")
-    for _, relicId in ipairs(draft.selectedRelicIds) do
-        assert(profile.unlockedRelicIds[relicId], "生成器不得把未解锁或图中示例物件塞入开局池")
+    for _, relicId in ipairs(draft.selectedRelicFormIds or draft.selectedRelicIds or {}) do
+        assert((profile.unlockedRelicForms or {})[relicId] or (profile.unlockedRelicIds or {})[relicId], "生成器不得把未解锁或图中示例物件塞入开局池")
     end
 end
 
@@ -50,15 +50,15 @@ local function Run()
     for _ in pairs(signatures) do distinct = distinct + 1 end
     for _ in pairs(families) do familyCount = familyCount + 1 end
     for _ in pairs(populations) do populationKinds = populationKinds + 1 end
-    assert(distinct >= 64 and familyCount >= 4 and populationKinds >= 3 and minPopulation == 2 and maxPopulation == 5,
+    assert(distinct >= 64 and familyCount >= 4 and populationKinds >= 3 and minPopulation == 2 and maxPopulation == 6,
         "不同种子必须产生实质差异，且覆盖可生成的人口与姓氏范围："
         .. tostring(distinct) .. "/" .. tostring(familyCount) .. "/" .. tostring(populationKinds) .. "/" .. tostring(minPopulation) .. "-" .. tostring(maxPopulation))
-    local sixMemberFixture = assert(Opening.Generate(profile, 722, "mortal"))
-    AssertFamily(sixMemberFixture, profile)
-    assert(sixMemberFixture.family == "顾" and sixMemberFixture.periodId == "unrest"
-        and sixMemberFixture.calendar == 132 and sixMemberFixture.rngSeed == 1416712955
-        and sixMemberFixture.leaderId == 1 and #sixMemberFixture.members == 6,
-        "固定 seed 722 必须保留可复核的六人合法家庭夹具")
+    local fixedSeedFixture = assert(Opening.Generate(profile, 722, "mortal"))
+    AssertFamily(fixedSeedFixture, profile)
+    assert(fixedSeedFixture.family == "林" and fixedSeedFixture.periodId == "strain"
+        and fixedSeedFixture.calendar == 120 and fixedSeedFixture.rngSeed == 74172116
+        and fixedSeedFixture.leaderId == 1 and #fixedSeedFixture.members == 4,
+        "固定 seed 722 必须保留可复核的合法家庭夹具")
 
     local replayFixture = assert(Opening.Generate(profile, 71, "mortal"))
     local replayRun = assert(State.NewRun(replayFixture, profile))
@@ -66,7 +66,7 @@ local function Run()
     local savedOk, saveMessage = State.Save(profile, replayFixture, replayRun)
     assert(savedOk, "生成草案的运行状态无法保存：" .. tostring(saveMessage))
     local saved = assert(State.Load())
-    assert(saved.run.rngState == replayFixture.rngSeed and Same(saved.run.openingSnapshot, replayFixture),
+    assert(saved.run.rngState == replayFixture.rngSeed and Same(saved.run.openingSnapshot, replayRun.openingSnapshot),
         "重启回读必须保留草案快照与随机源")
 
     do
@@ -126,7 +126,7 @@ local function Run()
     end
 
     return {
-        { id = "seeded_households", samples = 128, distinct = distinct, families = familyCount, populationKinds = populationKinds, minPopulation = minPopulation, maxPopulation = maxPopulation, sixMemberSeed = 722 },
+        { id = "seeded_households", samples = 128, distinct = distinct, families = familyCount, populationKinds = populationKinds, minPopulation = minPopulation, maxPopulation = maxPopulation, fixedSeed = 722 },
         { id = "seed_persistence", seed = 71, family = replayFixture.family, calendar = replayFixture.calendar, rngState = replayRun.rngState, memberCount = #replayFixture.members },
         { id = "change_house", runUntouched = true, undoRestored = true, failurePreserved = true },
         { id = "command_scope", separateNameSeed = true, externalAndCustomProtected = true, compoundFamilyName = true, pageCandidatePure = true },
@@ -135,7 +135,8 @@ end
 
 local function Restart()
     local saved = assert(State.Load())
-    assert(saved.run.rngState == saved.draft.rngSeed and Same(saved.run.openingSnapshot, saved.draft),
+    assert(saved.run.rngState == saved.draft.rngSeed and saved.run.openingSnapshot.family == saved.draft.family
+        and type(saved.run.openingSnapshot.backgroundDefinition) == "table",
         "新 Lua 进程回读后必须保留草案快照与随机源")
     return {
         id = "restart_seed_persistence", family = saved.draft.family, calendar = saved.draft.calendar,

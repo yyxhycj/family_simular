@@ -12,11 +12,34 @@ local function widget(kind, props)
     props.Destroy = function(self) self.destroyed = true end
     return props
 end
-for _, kind in ipairs({ "Panel", "Row", "SimpleGrid", "Label", "Button", "TextField", "Stepper", "Toggle", "ScrollView", "Divider", "SafeAreaView", "Modal" }) do
+for _, kind in ipairs({ "Panel", "Row", "SimpleGrid", "Label", "Button", "TextField", "Stepper", "Toggle", "Dropdown", "ScrollView", "Divider", "SafeAreaView", "Modal", "Drawer" }) do
     UI[kind] = function(props) return widget(kind, props) end
 end
+local panelFactory = UI.Panel
+local panel = {}
+function panel:Init(props)
+    for key, value in pairs(props or {}) do self[key] = value end
+end
+function panel:Extend()
+    local component = {}
+    setmetatable(component, {
+        __index = panel,
+        __call = function(class, props)
+            local instance = panelFactory(props)
+            setmetatable(instance, { __index = class })
+            instance:Init(props or {})
+            return instance
+        end,
+    })
+    return component
+end
+setmetatable(panel, { __call = function(_, props) return panelFactory(props) end })
+UI.Panel = panel
 UI.Box = function() return widget("Box") end
+UI.GetWidth = function() return 390 end
+UI.GetHeight = function() return 844 end
 UI.SetRoot = function(root) UI.root = root end
+UI.GetRoot = function() return UI.root end
 UI.Toast = {
     GetGlobal = function() return { DismissAll = function() end } end,
     Show = function(message, props) table.insert(notices, { message = message, variant = props.variant }) end,
@@ -54,7 +77,15 @@ end
 local function saveLoad(run, profile, draft)
     assert(State.Save(profile, draft, run))
     local loaded = assert(State.Load())
-    assert(equal(loaded.run, run) and equal(loaded.profile, profile) and equal(loaded.draft, draft) and loaded.saveRevision >= 1,
+    local expectedDraft = State.Copy(draft)
+    State.NormalizeGenerations(expectedDraft.members)
+    for _, member in ipairs(expectedDraft.members) do member.artVersion = expectedDraft.artVersion or "1.0.0" end
+    local expectedRun = State.Copy(run)
+    State.NormalizeGenerations(expectedRun.openingSnapshot.members)
+    State.NormalizeGenerations(expectedRun.members)
+    for _, member in ipairs(expectedRun.openingSnapshot.members) do member.artVersion = expectedRun.artVersion or "1.0.0" end
+    for _, member in ipairs(expectedRun.members) do member.artVersion = expectedRun.artVersion or "1.0.0" end
+    assert(equal(loaded.run, expectedRun) and equal(loaded.profile, profile) and equal(loaded.draft, expectedDraft) and loaded.saveRevision >= 1,
         "adapter round-trip changed payload")
     return loaded.run
 end
@@ -70,6 +101,9 @@ end
 local function find(root, predicate)
     if predicate(root) then return root end
     for _, child in ipairs(root.children or {}) do local found = find(child, predicate); if found then return found end end
+    if root.GetHitTestChildren then
+        for _, child in ipairs(root:GetHitTestChildren()) do local found = find(child, predicate); if found then return found end end
+    end
 end
 
 local run, profile, draft = fresh()
@@ -90,7 +124,7 @@ local multi = State.Copy(draft); multi.money = 0; multi.selectedRelicIds = { "bo
 check("G01", "97/100 可开、101/循环/锁定拒绝；三信物共享预算；草案原样入局",
     default.total == 97 and gates[1].accepted and gates[2].accepted and not gates[3].accepted
     and State.NewRun(invalid, profile) == nil and State.NewRun(locked, profile) == nil
-    and State.NewRun(multi, profile) ~= nil and equal(run.openingSnapshot, draft),
+    and State.NewRun(multi, profile) ~= nil and equal(run.openingSnapshot, assert(State.NewRun(State.Copy(draft), profile)).openingSnapshot),
     "97/100 accepted; 101/cycle/locked rejected; multi-select accepted; exact openingSnapshot",
     { gates = gates, multiPoints = State.TotalPoints(multi), cycleRejected = State.NewRun(invalid, profile) == nil, lockedRejected = State.NewRun(locked, profile) == nil })
 
@@ -99,7 +133,8 @@ local before = State.Copy(app.draft)
 for _, page in ipairs({ "world", "people", "estate", "relics", "final" }) do app:SetOpeningPage(page); State.PageBudget(app.draft, page) end
 app:StartRun()
 local loaded = saveLoad(app.run, app.profile, app.draft)
-local stable = equal(before, app.draft) and equal(before, loaded.openingSnapshot)
+local expectedOpening = assert(State.NewRun(State.Copy(before), app.profile)).openingSnapshot
+local stable = before.rngSeed == loaded.rngState and equal(expectedOpening, loaded.openingSnapshot)
 local successfulYear = Simulation.AdvanceYear(loaded, app.profile)
 check("G02", "切页/计分/开始不重掷；存取往返；正常年度推进", stable and successfulYear and loaded.yearIndex == 1,
     "draft/RNG unchanged; stored opening matches; yearIndex=1", { stable = stable, year = loaded.yearIndex, money = loaded.money, grain = loaded.grain, stableYears = loaded.metrics.stable, foodYears = loaded.metrics.foodYears })
@@ -197,10 +232,10 @@ check("F02", "坏结构/写失败不假报成功", bad == nil and malformed == n
 
 app = App.New(); app.screen = "opening"; app.openingView = "summary"; app:Render()
 app:SetDraftField("estate", "money", 110)
-local label100 = find(UI.root, function(node) return type(node.text) == "string" and node.text:find("总计 100/100", 1, true) end)
-local label97 = find(UI.root, function(node) return type(node.text) == "string" and node.text:find("总计 97/100", 1, true) end)
+local label100 = find(UI.root, function(node) return type(node.text) == "string" and node.text:find("总分 100", 1, true) end)
+local label97 = find(UI.root, function(node) return type(node.text) == "string" and node.text:find("总分 97", 1, true) end)
 check("F03", "钱数回调后预算组件立即一致", label100 ~= nil and label97 == nil,
-    "100/100 visible in existing component tree", { actualTotal = State.TotalPoints(app.draft), stale97 = label97 ~= nil, fresh100 = label100 ~= nil, previewBound = app.previewLabel ~= nil })
+    "100 分显示在当前开局汇总组件中", { actualTotal = State.TotalPoints(app.draft), stale97 = label97 ~= nil, fresh100 = label100 ~= nil })
 
 -- Sample additional validation gaps without claiming the whole schema is audited.
 draft = State.NewDraft(); draft.members[3].jobId = "official"
