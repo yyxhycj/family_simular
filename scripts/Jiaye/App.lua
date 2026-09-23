@@ -473,12 +473,12 @@ local function OpeningAction(title, description, action, role)
     }
 end
 
-local function WorldCard(artName, title, available, action)
+local function WorldCard(artName, title, action)
     return UI.Panel {
-        flex = 1, minWidth = 0, aspectRatio = 280 / 810, padding = 0,
+        width = "100%", maxWidth = 250, alignSelf = "center", aspectRatio = 280 / 810, padding = 0,
         overflow = "hidden", onClick = action, pointerEvents = "box-only",
-        borderWidth = available and 2 or 1, borderColor = available and C.gold or C.rule,
-        borderRadius = 5, boxShadow = { { x = 0, y = 3, blur = 7, color = { 20, 43, 33, available and 48 or 22 } } },
+        borderWidth = 2, borderColor = C.gold,
+        borderRadius = 5, boxShadow = { { x = 0, y = 3, blur = 7, color = { 20, 43, 33, 48 } } },
         children = {
             Visual.OpeningArt(artName, {
                 position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
@@ -487,10 +487,10 @@ local function WorldCard(artName, title, available, action)
             UI.Panel {
                 position = "absolute", left = 5, right = 5, bottom = 6, height = 40,
                 justifyContent = "center", alignItems = "center", gap = 1, pointerEvents = "none",
-                backgroundColor = available and { 53, 92, 73, 232 } or { 41, 63, 55, 208 }, borderRadius = 2,
+                backgroundColor = { 53, 92, 73, 232 }, borderRadius = 2,
                 children = {
                     Label(title, { fontSize = 12, fontFamily = "serif", fontColor = C.paperLight }),
-                    Label(available and "当前可游" or "筹备中", { fontSize = 10, fontColor = C.paperLight }),
+                    Label("当前可游", { fontSize = 10, fontColor = C.paperLight }),
                 },
             },
         },
@@ -502,7 +502,6 @@ function App:BuildWorldSelection()
         self.coverView = "home"
         self:PrepareNewRun()
     end
-    local waiting = function() self:Notify("该世界仍在筹备，当前可从山河岁月开始家谱。", "info") end
     return UI.Panel {
         width = "100%", height = "100%", backgroundColor = C.paper,
         backgroundImage = V7.Images.paperTexture, backgroundFit = "cover",
@@ -516,13 +515,8 @@ function App:BuildWorldSelection()
                             Label("一姓一世界，一家一春秋", { fontSize = 13, fontColor = C.muted }),
                         } },
                     } },
-                    Label("四幅水墨长卷对应四个世界；当前开放山河岁月，其余篇章会在完成后开放。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
-                    UI.Row { width = "100%", maxWidth = 560, alignSelf = "center", gap = 5, alignItems = "center", justifyContent = "center", children = {
-                        WorldCard("worldMountains", "山河岁月", true, openWorld),
-                        WorldCard("worldCapital", "京畿百业", false, waiting),
-                        WorldCard("worldSilk", "丝路商旅", false, waiting),
-                        WorldCard("worldSea", "海隅渔火", false, waiting),
-                    } },
+                    Label("山河岁月现已开放，家谱将从凡世王朝的一户人家开始。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
+                    WorldCard("worldMountains", "山河岁月", openWorld),
                     UI.Panel { gap = 6, padding = 12, backgroundColor = C.card, borderWidth = 1, borderColor = C.gold, borderRadius = 6, children = {
                         Label("山河岁月 · 当前可游", { fontSize = 18, fontFamily = "serif", fontColor = C.ink }),
                         Label("以凡世王朝为舞台，生成一户家人，写下属于这一家的开篇。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }),
