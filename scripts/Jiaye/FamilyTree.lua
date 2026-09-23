@@ -70,6 +70,33 @@ end
 
 local FamilyTree = {}
 
+local function RelationshipSummary(members)
+    local parentLinks, marriageLinks, seenParents, seenMarriages = {}, {}, {}, {}
+    for _, member in ipairs(members) do
+        local childGeneration = State.Generation(members, member.id)
+        for _, parentId in ipairs(member.parents or {}) do
+            local parent = State.FindMember(members, parentId)
+            local key = tostring(parentId) .. ":" .. tostring(member.id)
+            if parent and not seenParents[key] then
+                seenParents[key] = true
+                table.insert(parentLinks, "第" .. tostring(State.Generation(members, parent.id)) .. "代→第" .. tostring(childGeneration) .. "代")
+            end
+        end
+        local spouse = State.FindMember(members, member.spouseId)
+        if spouse then
+            local first, second = math.min(member.id, spouse.id), math.max(member.id, spouse.id)
+            local key = tostring(first) .. ":" .. tostring(second)
+            if not seenMarriages[key] then
+                seenMarriages[key] = true
+                table.insert(marriageLinks, "第" .. tostring(State.Generation(members, member.id)) .. "代")
+            end
+        end
+    end
+    table.sort(parentLinks)
+    table.sort(marriageLinks)
+    return parentLinks, marriageLinks
+end
+
 function FamilyTree.Build(app)
     local generations, order = {}, {}
     for _, member in ipairs(app.run.members) do
@@ -127,11 +154,17 @@ function FamilyTree.Build(app)
         table.insert(filters, Visual.Button("第" .. generation .. "代", function() app.familyGeneration = generation; app:Render() end,
             { role = "secondary", selected = app.familyGeneration == generation }))
     end
+    local parentLinks, marriageLinks = RelationshipSummary(app.run.members)
+    local relationChildren = { Visual.Text("亲缘脉络", { fontSize = 13, fontColor = V7.Colors.secondary }) }
+    if #parentLinks > 0 then table.insert(relationChildren, Visual.Text("亲子 · " .. table.concat(parentLinks, "、"), { fontSize = 12, fontColor = V7.Colors.secondary, whiteSpace = "normal" })) end
+    if #marriageLinks > 0 then table.insert(relationChildren, Visual.Text("婚配 · " .. table.concat(marriageLinks, "、"), { fontSize = 12, fontColor = V7.Colors.secondary, whiteSpace = "normal" })) end
+    if #parentLinks == 0 and #marriageLinks == 0 then table.insert(relationChildren, Visual.Text("当前家谱尚未形成可连的亲缘关系。", { fontSize = 12, fontColor = V7.Colors.secondary })) end
     local children = {
         UI.Row { justifyContent = "space-between", alignItems = "center", children = {
             Visual.Text((app.run.openingSnapshot.family or "") .. "氏家谱", { fontSize = 20, flex = 1, whiteSpace = "normal" }),
             Visual.Button(tostring(#app.run.members) .. " 人  ›", function() app.gameTab = "people"; app:Render() end, { role = "secondary", fontSize = 14, width = 74 }),
         } },
+        UI.Panel { gap = 2, children = relationChildren },
     }
     if #order > 3 then table.insert(children, UI.Panel { flexDirection = "row", flexWrap = "wrap", gap = 6, children = filters }) end
     table.insert(children, UI.ScrollView { height = math.max(140, #rows * 148), scrollX = true, scrollY = false, showScrollbar = widest > 4, children = { tree } })

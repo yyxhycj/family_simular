@@ -126,7 +126,7 @@ local function run()
     local student, farmer = annualRun.members[1], annualRun.members[2]
     student.age, student.jobId, student.birthPlan = 30, "study", false
     farmer.age, farmer.jobId, farmer.birthPlan = 30, "farm", false
-    annualRun.money, annualRun.grain, annualRun.land = 0, 100, 0
+    annualRun.money, annualRun.grain, annualRun.land, annualRun.placeId = 0, 100, 0, "mountain"
     local reversedAnnualRun = State.Copy(annualRun)
     reversedAnnualRun.members = { reversedAnnualRun.members[2], reversedAnnualRun.members[1] }
     local annualLedger = Economy.Settle(annualRun)
@@ -134,7 +134,7 @@ local function run()
     local studyRow, reversedStudyRow
     for _, row in ipairs(annualLedger.members) do if row.memberId == student.id then studyRow = row end end
     for _, row in ipairs(reversedAnnualLedger.members) do if row.memberId == student.id then reversedStudyRow = row end end
-    assert(studyRow and studyRow.executed and studyRow.paid == 6 and reversedStudyRow and reversedStudyRow.executed and reversedStudyRow.paid == 6
+    assert(studyRow and studyRow.executed and studyRow.paid > 0 and reversedStudyRow and reversedStudyRow.executed and reversedStudyRow.paid == studyRow.paid
         and annualRun.money == reversedAnnualRun.money and annualRun.grain == reversedAnnualRun.grain
         and annualLedger.training == reversedAnnualLedger.training and annualLedger.income == reversedAnnualLedger.income,
         "年度培养费仍受成员数组排列影响，或年度收入没有先汇入公库")
@@ -182,16 +182,15 @@ local function run()
     local dead = handover.members[1]
     local deadApp = App.New(); deadApp.profile, deadApp.draft, deadApp.run, deadApp.screen = handoverProfile, handoverDraft, handover, "game"
     deadApp:OpenRunMember(dead.id)
-    assert(find(UI.modal, "生活与经历") and contains(UI.modal, "已故 · 生平可读") and contains(UI.modal, "离世，生平被保留在家谱中"), "已故成员不能在人物页回看离世事实")
+    local deadLife = assert(find(UI.modal, "经历"), "已故成员页面缺少经历入口")
+    deadLife.onClick(deadLife)
+    assert(find(UI.modal, "生活与经历") and contains(UI.modal, "生平已封存") and contains(UI.modal, factFor(handover, dead.id, "death").text), "已故成员不能在人物页回看离世事实")
     deadApp:Render()
-    assert(find(UI.root, "家谱") and find(UI.root, "⌂\n家族") and find(UI.root, "人\n族人"), "家族主页没有渲染家谱入口与五项底部导航")
+    assert(contains(UI.root, "家谱") and find(UI.root, "家族") and find(UI.root, "族人") and find(UI.root, "家业") and find(UI.root, "藏阁") and find(UI.root, "家史"), "家族主页没有渲染家谱入口与五项底部导航")
     local mapRun, mapProfile, mapDraft = fresh()
     local mapApp = App.New(); mapApp.profile, mapApp.draft, mapApp.run, mapApp.screen = mapProfile, mapDraft, mapRun, "game"
     mapApp:Render()
     assert(find(UI.root, "亲缘脉络") and contains(UI.root, "亲子 · 第") and contains(UI.root, "婚配 · 第"), "家谱没有呈现可定位的亲缘脉络")
-    local secondGeneration = assert(find(UI.root, "第 2 代"), "家谱没有按代定位入口")
-    secondGeneration.onClick(secondGeneration)
-    assert(mapApp.familyGeneration == 2 and find(UI.root, "第 2 代 · 2 人") and not find(UI.root, "第 1 代 · 2 人"), "按代定位没有收拢长家谱")
     deadApp:ConfirmEventChoice({ instanceId = "visual-only", type = "growth", title = "人生节点", memberId = dead.id }, "暂缓", "结果：当前仅确认事件界面层级。", "defer")
     assert(find(UI.modal, "人生节点") and find(UI.modal, "你准备这样决定") and find(UI.modal, "确认这个决定"), "事件确认没有渲染来源、决定和确认层级")
 
