@@ -19,7 +19,7 @@ local function entryButton(id, text, onClick, secondary)
         backgroundImage = Art.WorldEntry(skin),
         hoverBackgroundImage = Art.WorldEntry(skin .. "Focus"),
         pressedBackgroundImage = Art.WorldEntry(skin .. "Pressed"),
-        backgroundFit = "sliced", backgroundSlice = { left = 24, top = 24, right = 24, bottom = 24 },
+        backgroundFit = "sliced", backgroundSlice = { 24, 24, 24, 24 },
         boxShadow = false, hoverBoxShadow = false, pressedBoxShadow = false,
         onClick = onClick,
     }
@@ -96,7 +96,7 @@ local function worldDetails(app, world)
     return UI.Panel {
         id = "cover-details", width = "100%", minHeight = 230, padding = 22, gap = 14,
         backgroundImage = Art.WorldEntry("panel"), backgroundFit = "sliced",
-        backgroundSlice = { left = 28, top = 28, right = 28, bottom = 28 },
+        backgroundSlice = { 28, 28, 28, 28 },
         children = {
             UI.Row { width = "100%", alignItems = "center", gap = 10, children = {
                 UI.Panel { id = "cover-world-icon", width = 28, height = 28, backgroundImage = Art.WorldIcon(world.id), backgroundFit = "contain", pointerEvents = "none" },

@@ -156,6 +156,19 @@ function CloudAcceptanceUpdate(_, eventData)
         print("CLOUD_ACCEPTANCE_ALL_PASS " .. cjson.encode({ key = key, checks = 5, storage = "independent_local_namespaces", transport = "clientCloud" }))
         app.cloud:Stop()
         UnsubscribeFromEvent("Update")
+        UI.SetRoot(UI.Panel {
+            width = "100%", height = "100%", padding = 24, gap = 18,
+            backgroundColor = { 247, 242, 230, 255 },
+            children = {
+                Visual.Text("云存档验收通过", { fontSize = 28, fontColor = { 39, 85, 58, 255 } }),
+                Visual.Text("真实 TapTap 账号 · clientCloud 读写", { fontSize = 16, whiteSpace = "normal" }),
+                Visual.Text("✓ 新局与人物安排自动上传\n✓ 独立本机完整恢复家谱\n✓ 旧设备读取较新进度\n✓ 冲突选择云端或本机进度\n✓ 上传期间的新安排继续同步", {
+                    width = "100%", fontSize = 18, whiteSpace = "normal", lineHeight = 1.7,
+                }),
+                Visual.Text("续玩检查使用独立本机存储会话。", { width = "100%", fontSize = 14, whiteSpace = "normal" }),
+                Visual.Text(key, { width = "100%", fontSize = 12, whiteSpace = "normal" }),
+            },
+        })
     end
 end
 
