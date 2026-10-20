@@ -1,0 +1,136 @@
+{
+  "frames": {
+    "mortal": {
+      "frame": {
+        "x": 4,
+        "y": 4,
+        "w": 224,
+        "h": 600
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 600
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 600
+      }
+    },
+    "wuxia": {
+      "frame": {
+        "x": 236,
+        "y": 4,
+        "w": 224,
+        "h": 600
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 600
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 600
+      }
+    },
+    "cultivation": {
+      "frame": {
+        "x": 468,
+        "y": 4,
+        "w": 224,
+        "h": 600
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 600
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 600
+      }
+    },
+    "modern": {
+      "frame": {
+        "x": 700,
+        "y": 4,
+        "w": 224,
+        "h": 600
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 600
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 600
+      }
+    },
+    "wasteland": {
+      "frame": {
+        "x": 932,
+        "y": 4,
+        "w": 224,
+        "h": 600
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 600
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 600
+      }
+    },
+    "stellar": {
+      "frame": {
+        "x": 1164,
+        "y": 4,
+        "w": 224,
+        "h": 600
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 600
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 600
+      }
+    }
+  },
+  "meta": {
+    "image": "world_scenes.png",
+    "size": {
+      "w": 2048,
+      "h": 1024
+    },
+    "scale": "1",
+    "origin": "top-left",
+    "extrude": 2,
+    "padding": 4,
+    "premultipliedAlpha": false
+  }
+}
