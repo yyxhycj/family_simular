@@ -4,7 +4,7 @@
   "author": {
     "id": "1704647939"
   },
-  "entry": "QA/CloudSave.lua",
+  "entry": "main.lua",
   "version": "1.0.8",
   "taptap_publish": {
     "title": "千家纪",
