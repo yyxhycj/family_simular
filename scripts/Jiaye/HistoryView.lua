@@ -167,7 +167,7 @@ end
 
 local function BuildFacts(app)
     local names = {
-        job = "人生安排", marriage = "婚配", adoption = "收养", birth = "出生", exam = "应试", leadership = "族长交接",
+        job = "人生安排", marriage = "婚配", kinship = "亲家与传承", adoption = "收养", birth = "出生", exam = "应试", leadership = "族长交接",
         migration = "迁居", asset_purchase = "置办家业", grain_purchase = "公市购粮", community_aid = "乡里接济",
         relic = "信物故事", growth = "成长节点", annual_ledger = "年度结算", ending = "终章", habit = "家风经历", opening = "家谱开篇",
         relic_upgrade = "信物进阶", relic_project = "信物项目", relic_use = "信物使用", relic_task = "信物办理", relic_acquired = "信物入藏",

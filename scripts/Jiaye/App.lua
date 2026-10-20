@@ -159,6 +159,8 @@ function App:Init()
     self.saveMessage = ""
     local saved, message, status = State.Load()
     if saved then self.profile, self.draft, self.run = saved.profile, saved.draft, saved.run end
+    self.autoSaveElapsed = 0
+    self.autoSaveSnapshot = saved and State.Copy({ profile = self.profile, draft = self.draft, run = self.run }) or nil
     self.storageBlocked = status == "invalid"
     if status == "invalid" or status == "recovered" then self.saveMessage = message end
     if not saved and not self.storageBlocked then
@@ -250,22 +252,21 @@ function App:Save(silent)
 end
 
 function App:AutoSave()
-    if not self.cloud or self.cloud.blocked or self.unsaved or self.storageBlocked or self.openingGenerationFailed then return end
+    if (self.cloud and self.cloud.blocked) or self.unsaved or self.storageBlocked or self.openingGenerationFailed then return end
     if self.openingEditDraft or self.memberEditing or (not self.run and self.screen ~= "opening") then return end
     local current = { profile = self.profile, draft = self.previousDraft or self.draft, run = self.run }
     if not Opening.Equal(current, self.autoSaveSnapshot) and #State.ValidateDraft(current.draft, current.profile, true) == 0 then self:Save(true) end
 end
 
 function App:UpdateCloud(dt)
-    if not self.cloud then return end
     self.autoSaveElapsed = self.autoSaveElapsed + dt
     if self.autoSaveElapsed >= 2 then self.autoSaveElapsed = 0; self:AutoSave() end
-    self.cloud:Update(dt, self.screen == "cover")
+    if self.cloud then self.cloud:Update(dt, self.screen == "cover") end
 end
 
 function App:FlushCloud()
-    if not self.cloud then return end
     self:AutoSave()
+    if not self.cloud then return end
     self.cloud:Retry()
     self.cloud:Update(0, true)
 end
@@ -483,7 +484,7 @@ end
 function App:GetRunOverview()
     local living = 0
     for _, member in ipairs(self.run.members) do
-        if member.alive then living = living + 1 end
+        if member.alive and State.IsResident(member) then living = living + 1 end
     end
     return living, Economy.StandardAnnualFoodNeed(self.run)
 end
@@ -669,7 +670,7 @@ end
 function App:SelectedLivingMembers()
     local members = {}
     for _, member in ipairs(self.run.members) do
-        if member.alive and self.peopleSelected[member.id] then table.insert(members, member) end
+        if member.alive and State.IsResident(member) and self.peopleSelected[member.id] then table.insert(members, member) end
     end
     return members
 end
@@ -681,7 +682,7 @@ end
 
 function App:SelectAllLivingPeople()
     self.peopleSelected = {}
-    for _, member in ipairs(self.run.members) do if member.alive then self.peopleSelected[member.id] = true end end
+    for _, member in ipairs(self.run.members) do if member.alive and State.IsResident(member) then self.peopleSelected[member.id] = true end end
     self:Render()
 end
 
@@ -826,7 +827,7 @@ function App:BuildPeopleTab()
     table.insert(cards, SectionTitle("在世族人", tostring(#living) .. " 人"))
     for _, member in ipairs(living) do
         local isSelected = self.peopleSelected[member.id] == true
-        local state = member.id == self.run.leaderId and "族长" or "在世"
+        local state = member.id == self.run.leaderId and "族长" or (State.IsResident(member) and "在家" or "在外成家")
         local pendingText = pendingByMember[member.id] and (" · 待办 " .. tostring(pendingByMember[member.id])) or ""
         table.insert(cards, Card({
             UI.Row { gap = 12, alignItems = "center", children = {
@@ -895,7 +896,8 @@ function App:BuildEstateTab()
             local placeId = place.id
             local current = self.run.placeId == placeId
             local quote = current and { cost = 0 } or assert(Simulation.MigrationQuote(self.run, placeId))
-            local affordable = self.run.money >= quote.cost
+            local totalCost = quote.totalCost or quote.cost
+            local affordable = self.run.money >= totalCost
             if current then
                 table.insert(placeButtons, Card({
                     UI.Row { gap = 10, alignItems = "center", children = {
@@ -910,18 +912,19 @@ function App:BuildEstateTab()
             else
                 table.insert(placeButtons, EstateActionCard({
                     title = "迁居 " .. place.short,
-                    costCaption = "安置费",
-                    costText = tostring(quote.cost) .. " 两",
+                    costCaption = "迁居支出",
+                    costText = tostring(totalCost) .. " 两",
                     outcome = place.desc,
-                    detail = place.burden,
+                    detail = place.burden .. (#quote.marriageConsequences.lines > 0 and ("\n" .. table.concat(quote.marriageConsequences.lines, "\n")) or ""),
                     timing = "迁居后立即生效，并写入家史",
                     available = affordable,
-                    status = affordable and "可迁居" or "尚差 " .. tostring(quote.cost - self.run.money) .. " 两",
+                    status = affordable and "可迁居" or "尚差 " .. tostring(totalCost - self.run.money) .. " 两",
                     onClick = function()
                         local currentQuote, reason = Simulation.MigrationQuote(self.run, placeId)
                         if not currentQuote then self:Notify(reason, "warning"); return end
                         local benefit = currentQuote.discount > 0 and ("\n通家玉佩抵扣 " .. tostring(currentQuote.discount) .. " 两，本次实迁后进入冷却。") or ""
-                        self:ConfirmRunAction("确认迁居 · " .. place.short, "成本：" .. tostring(currentQuote.cost) .. " 两安置费。" .. benefit .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
+                        local obligations = #currentQuote.marriageConsequences.lines > 0 and ("\n婚约结清：\n" .. table.concat(currentQuote.marriageConsequences.lines, "\n")) or ""
+                        self:ConfirmRunAction("确认迁居 · " .. place.short, "合计：" .. tostring(currentQuote.totalCost) .. " 两，其中安置费" .. currentQuote.cost .. "两。" .. benefit .. obligations .. "\n结果：全家迁居到" .. place.short .. "，迁居年份与费用写入家史。", function() return Simulation.MoveFamily(self.run, placeId) end, "确认迁居", nil, { type = "migration" })
                     end,
                 }))
             end
@@ -932,8 +935,8 @@ function App:BuildEstateTab()
     ---@type string[]
     local tradeNames = {}
     for _, member in ipairs(self.run.members) do
-        if member.alive and member.jobId == "craft" then table.insert(craftNames, member.name) end
-        if member.alive and member.jobId == "trade" then table.insert(tradeNames, member.name) end
+        if member.alive and State.IsResident(member) and member.jobId == "craft" then table.insert(craftNames, member.name) end
+        if member.alive and State.IsResident(member) and member.jobId == "trade" then table.insert(tradeNames, member.name) end
     end
     local assetActions = {}
     local assets = {

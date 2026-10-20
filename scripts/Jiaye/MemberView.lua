@@ -5,6 +5,7 @@ local Simulation = require "Jiaye.Simulation"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
 local RelicState = require "Jiaye.RelicState"
+local MarriageView = require "Jiaye.MarriageView"
 
 local MemberView = {}
 
@@ -153,8 +154,10 @@ end
 local function BuildDrawerIdentity(app, member)
     local spouse = member.spouseId and State.FindMember(app.run.members, member.spouseId)
     local canMarry, marriageReason = Simulation.GetMarriageReason(app.run, member.id)
-    local relation = spouse and ("已婚 · 配偶 " .. spouse.name)
+    local relation = spouse and spouse.alive and ("已婚 · 配偶 " .. spouse.name)
+        or (spouse and ("丧偶 · " .. (canMarry and "可再议亲" or marriageReason)))
         or ("未婚 · " .. (canMarry and "可安排婚配" or marriageReason))
+    if not State.IsResident(member) then relation = relation .. " · 在外成家" end
     return UI.Row {
         gap = 13, alignItems = "center", paddingRight = 24,
         children = {
@@ -292,15 +295,10 @@ local function AppendMarriageAction(app, member, drawer, children)
     local run = app.run
     local spouse = member.spouseId and State.FindMember(run.members, member.spouseId)
     local canMarry, marriageReason = Simulation.GetMarriageReason(run, member.id)
-    local marriageStatus = spouse and ("已与" .. spouse.name .. "结为配偶") or (canMarry and "当前可安排" or marriageReason)
-    table.insert(children, ActionOption("relationship", "安排婚配 · 12 两", "新配偶加入家谱，关系与事实一并保存。", marriageStatus, canMarry, function()
-        if canMarry then
-            app:ConfirmRunAction("确认婚配 · " .. member.name, "成本：12 两安置费。结果：新配偶加入家谱，原有族人资料保持不变。", function()
-                return Simulation.Marry(app.run, member.id)
-            end, "确认婚配", drawer)
-        else
-            app:Notify(marriageStatus, "warning")
-        end
+    local marriageStatus = spouse and spouse.alive and ("配偶：" .. spouse.name) or (canMarry and "可托媒访亲" or marriageReason)
+    local viewable = canMarry or member.marriageId ~= nil or (spouse and spouse.alive)
+    table.insert(children, ActionOption("relationship", canMarry and "议亲成家" or "婚约与亲家", "认识具体对象，商议居所、礼仪、资助与婚后约定。", marriageStatus, viewable, function()
+        if viewable then drawer:Close(); MarriageView.Open(app, member.id) end
     end))
 end
 
@@ -494,7 +492,7 @@ function MemberView.Open(app, memberId)
         if page == "routes" then
             local routeCards = {}
             local sections = { BuildCurrentArrangement(app.run, member) }
-            if member.alive and State.IsAdult(member) and not member.spouseId and not app.run.ending then
+            if member.alive and State.IsAdult(member) then
                 local marriageOptions = {}
                 AppendMarriageAction(app, member, drawer, marriageOptions)
                 table.insert(sections, ActionCard(marriageOptions[1]))

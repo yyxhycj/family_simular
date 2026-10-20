@@ -12,7 +12,7 @@ function O.Get(run)
 end
 
 local function Member(run, id) return State.FindMember(run.members, id) end
-local function Alive(member) return member and member.alive ~= false end
+local function Alive(member) return member and member.alive ~= false and State.IsResident(member) end
 local function Has(ids, id)
     for _, value in ipairs(ids or {}) do if value == id then return true end end
     return false
@@ -95,7 +95,10 @@ local function WorkerReason(run, o, member, checkSlot)
     if not Alive(member) then return "请选择一位在世办理人。" end
     if not State.IsAdult(member) then return "办理人须年满 " .. Data.AgeRules.adult .. " 岁。" end
     local origin, stats = o.sourceOriginId, member.stats
-    if origin == "plain" and (member.jobId ~= "farm" or run.land < 1) then return "需要至少1亩田地，办理人当前安排为耕作。" end
+    if origin == "plain" then
+        if run.land < 1 then return "需要至少1亩田地。" end
+        if member.jobId ~= "farm" then return "办理人当前需安排为耕作。" end
+    end
     if origin == "artisan" and (stats.skill or 0) < 35 then return "办理人手艺须达到35。" end
     if origin == "merchant" and (stats.trade or 0) < 25 then return "续单办理人经营须达到25。" end
     if origin == "military" and ((stats.martial or 0) < 35 or member.health < 50) then return "护送需要武艺35、体魄50。" end

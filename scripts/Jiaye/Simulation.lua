@@ -6,6 +6,7 @@ local Art = require "Jiaye.Art"
 local RelicState = require "Jiaye.RelicState"
 local RelicSystem = require "Jiaye.RelicSystem"
 local Habits = require "Jiaye.Habits"
+local Marriage = require "Jiaye.Marriage"
 
 local Simulation = {}
 
@@ -70,7 +71,7 @@ end
 
 local function Living(run)
     local result = {}
-    for _, member in ipairs(run.members) do if member.alive then table.insert(result, member) end end
+    for _, member in ipairs(run.members) do if member.alive and State.IsResident(member) then table.insert(result, member) end end
     return result
 end
 
@@ -133,7 +134,7 @@ end
 
 local function LivingAdult(run, memberId)
     local member = State.FindMember(run.members, memberId)
-    if member and member.alive and State.IsAdult(member) then return member end
+    if member and member.alive and State.IsResident(member) and State.IsAdult(member) then return member end
     return nil
 end
 
@@ -144,7 +145,7 @@ local function FindDefaultExecutor(run, instance)
     if custodian then return custodian end
     local leader = LivingAdult(run, run.leaderId)
     if leader then return leader end
-    for _, member in ipairs(run.members) do if member.alive and State.IsAdult(member) then return member end end
+    for _, member in ipairs(run.members) do if member.alive and State.IsResident(member) and State.IsAdult(member) then return member end end
     return nil
 end
 
@@ -283,6 +284,50 @@ function Simulation.SetJob(run, memberId, jobId)
     return true, "安排已保存。"
 end
 
+function Simulation.QuoteOriginAction(run, actionId, input)
+    local quote = OriginSystem.Quote(run, actionId, input)
+    if quote.allowed then return quote end
+    local origin = OriginSystem.Get(run)
+    ---@type string?
+    local jobId = nil
+    if origin and origin.sourceOriginId == "plain" and (actionId == "start" or actionId == "resume") then
+        jobId = "farm"
+    elseif actionId == "borrow" or actionId == "assign_reader" then
+        jobId = "study"
+    end
+    local member = input and State.FindMember(run.members, input.memberId)
+    if not jobId or not member or not member.alive or member.jobId == jobId then return quote end
+    if not State.CanUseJob(member, jobId) then return quote end
+    local proposed = State.Copy(run)
+    State.FindMember(proposed.members, member.id).jobId = jobId
+    local prepared = OriginSystem.Quote(proposed, actionId, input)
+    if not prepared.allowed then return quote end
+    proposed.money = proposed.money - prepared.cost.money
+    proposed.grain = proposed.grain - prepared.cost.grain
+    local jobQuote, issue = Economy.JobQuote(proposed, member.id, jobId)
+    assert(jobQuote, issue)
+    if not jobQuote.executed then
+        table.insert(quote.reasons, "改为“" .. Data.Jobs[jobId].name .. "”后：" .. jobQuote.reason)
+        return quote
+    end
+    prepared.preparation = { jobId = jobId, fromJobId = member.jobId, annualFee = jobQuote.paid }
+    return prepared
+end
+
+function Simulation.ExecuteOriginAction(run, actionId, input)
+    local quote = Simulation.QuoteOriginAction(run, actionId, input)
+    if not quote.allowed then return false, table.concat(quote.reasons, "；") end
+    if quote.preparation then
+        local ok, message = Simulation.SetJob(run, input.memberId, quote.preparation.jobId)
+        if not ok then return false, message end
+    end
+    local ok, message = OriginSystem.Execute(run, actionId, input)
+    if ok and quote.preparation then
+        message = "已安排为“" .. Data.Jobs[quote.preparation.jobId].name .. "”。" .. message
+    end
+    return ok, message
+end
+
 function Simulation.SetBirthPlan(run, memberId, enabled)
     local closed, message = IsClosed(run)
     if closed then return false, message end
@@ -299,6 +344,7 @@ function Simulation.GetExamReason(run, memberId)
     if closed then return false, message end
     local member = State.FindMember(run.members, memberId)
     if not member or not member.alive or not State.IsAdult(member) then return false, "只有在世成年族人可以应试。" end
+    if not State.IsResident(member) then return false, "在外族人自行安排应试。" end
     if member.examPassed then return false, "已取得地方任职资格。" end
     if member.examYear == run.yearIndex then return false, "此人今年已经应试。" end
     if run.money < 10 then return false, "应试需要 10 两盘缠。" end
@@ -310,9 +356,10 @@ function Simulation.TakeExam(run, memberId)
     if not ok then return false, reason end
     local member = State.FindMember(run.members, memberId)
     member.examYear = run.yearIndex; run.money = run.money - 10
-    local score = (member.stats.learn or 0) + State.Random(run, 1, 40)
-    if score >= 75 then member.examPassed = true; State.AddFact(run, "exam", member.name .. "应试得中，取得地方任职资格。", { member.id }, { passed = true }) return true, "应试通过。" end
-    State.AddFact(run, "exam", member.name .. "此次应试未中，仍可继续读书后再试。", { member.id }, { passed = false })
+    local bonus = Marriage.ExamBonus(run, memberId, true)
+    local chance = math.min(1, math.max(0, ((member.stats.learn or 0) - 34) / 40) + bonus)
+    if State.Random(run) < chance then member.examPassed = true; State.AddFact(run, "exam", member.name .. "应试得中，取得地方任职资格。", { member.id }, { passed = true, chance = chance, kinBonus = bonus }) return true, "应试通过。" end
+    State.AddFact(run, "exam", member.name .. "此次应试未中，仍可继续读书后再试。", { member.id }, { passed = false, chance = chance, kinBonus = bonus })
     return true, "此次未中，盘缠已计入年鉴。"
 end
 
@@ -332,6 +379,7 @@ function Simulation.GetLeaderReason(run, memberId)
     if closed then return false, message end
     local target = State.FindMember(run.members, memberId)
     if not target or not target.alive or not State.IsAdult(target) then return false, "族长必须是在世成年族人。" end
+    if not State.IsResident(target) then return false, "族长需要在本家生活。" end
     if run.leaderId == memberId then
         return false, "此人已是族长。"
     end
@@ -377,14 +425,7 @@ function Simulation.AppointLeader(run, memberId, reason)
 end
 
 function Simulation.GetMarriageReason(run, memberId)
-    local closed, message = IsClosed(run)
-    if closed then return false, message end
-    local member = State.FindMember(run.members, memberId)
-    if not member or not member.alive then return false, "只有在世族人可以安排婚配。" end
-    if not State.IsAdult(member) then return false, "婚配需满 " .. tostring(Data.AgeRules.adult) .. " 岁。" end
-    if member.spouseId then return false, "此人已有配偶。" end
-    if run.money < 12 then return false, "婚配需要 12 两安置费用。" end
-    return true, ""
+    return Marriage.Reason(run, memberId)
 end
 
 local function HasMemberName(run, name)
@@ -412,19 +453,8 @@ local function GeneratedMemberName(run, surname, sex, preferredGivenName)
     error("新增族人时没有可用姓名。")
 end
 
-function Simulation.Marry(run, memberId)
-    local ok, reason = Simulation.GetMarriageReason(run, memberId)
-    if not ok then return false, reason end
-    local member = State.FindMember(run.members, memberId)
-    local spouseId = NextMemberId(run)
-    local spouseSex = State.Random(run, 0, 1) == 0 and "女" or "男"
-    local spouse = { id = spouseId, name = GeneratedMemberName(run, spouseSex == "男" and "沈" or "顾", spouseSex), sex = spouseSex, age = math.max(Data.AgeRules.adult, member.age - State.Random(run, 0, 5)), parents = {}, spouseId = member.id, talent = 2, focus = "general", experienceId = "basic", trait = "安稳", jobId = "home", alive = true, health = 72, stats = State.Copy(Data.Experience("basic").values), jobYears = {}, biography = { "因婚配加入“" .. run.openingSnapshot.family .. "”家。" }, fertility = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false }
-    Art.Assign(spouse, run.runId)
-    member.spouseId = spouseId; member.fertility = true; member.birthPlan = true; run.money = run.money - 12
-    table.insert(run.members, spouse)
-    State.NormalizeGenerations(run.members)
-    State.AddFact(run, "marriage", member.name .. "与" .. spouse.name .. "成婚，新成员入谱。", { member.id, spouse.id })
-    return true, "婚配已写入家谱。"
+function Simulation.Marry(run, memberId, input)
+    return Marriage.Marry(run, memberId, input)
 end
 
 function Simulation.GetAdoptionReason(run, guardianId)
@@ -432,6 +462,7 @@ function Simulation.GetAdoptionReason(run, guardianId)
     if closed then return false, message end
     local guardian = State.FindMember(run.members, guardianId)
     if not guardian or not guardian.alive or not State.IsAdult(guardian) then return false, "需要一位在世成年监护人。" end
+    if not State.IsResident(guardian) then return false, "需要一位在家监护人。" end
     if run.money < 8 then return false, "收养安置需要 8 两。" end
     return true, ""
 end
@@ -444,6 +475,7 @@ function Simulation.Adopt(run, guardianId)
     local sex = State.Random(run, 0, 1) == 0 and "女" or "男"
     local child = { id = childId, name = GeneratedMemberName(run, run.openingSnapshot.family, sex), sex = sex, age = 6, parents = { guardian.id }, spouseId = nil, talent = 2, focus = "general", experienceId = "none", trait = "敏锐", jobId = "study", alive = true, health = 70, stats = State.Copy(Data.Experience("none").values), jobYears = {}, biography = { "大晟历 " .. tostring(run.calendar) .. " 年被收养，监护人为" .. guardian.name .. "。" }, adopted = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false }
     Art.Assign(child, run.runId)
+    child.kinGeneration = (guardian.kinGeneration or guardian.generation or 1) + 1
     run.money = run.money - 8; table.insert(run.members, child); State.NormalizeGenerations(run.members)
     State.AddFact(run, "adoption", guardian.name .. "收养了" .. child.name .. "，孩子获得与其他族人同等的成长和继任资格。", { guardian.id, child.id })
     return true, "收养已完成。"
@@ -459,6 +491,8 @@ function Simulation.MigrationQuote(run, placeId)
     local quote = RelicState.IsNew(run) and RelicSystem.MigrationQuote(run, baseCost) or { cost = baseCost, discount = 0 }
     quote.baseCost = baseCost
     quote.placeId = placeId
+    quote.marriageConsequences = Marriage.MigrationConsequences(run, placeId)
+    quote.totalCost = quote.cost + quote.marriageConsequences.money
     return quote
 end
 
@@ -466,10 +500,11 @@ function Simulation.MoveFamily(run, placeId)
     local quote, message = Simulation.MigrationQuote(run, placeId)
     if not quote then return false, message end
     local place, fee = Data.Place(placeId), quote.cost
-    if run.money < fee then return false, "迁居需要 " .. tostring(fee) .. " 两安置费。" end
+    if run.money < quote.totalCost then return false, "迁居与婚约结清共需 " .. tostring(quote.totalCost) .. " 两。" end
     run.money = run.money - fee; run.placeId = placeId; run.metrics.migrations = run.metrics.migrations + 1; run.metrics.lastMove = run.yearIndex; run.homeState = "relocated"
     if RelicState.IsNew(run) then RelicSystem.RecordMigration(run, quote, placeId) end
     State.AddFact(run, "migration", "全家迁居至" .. place.short .. "，花费 " .. tostring(fee) .. " 两。", {}, { placeId = placeId, fee = fee, discount = quote.discount, migrationCount = run.metrics.migrations })
+    Marriage.OnMigration(run, placeId)
     return true, "迁居已记入家史。"
 end
 
@@ -535,6 +570,7 @@ function Simulation.TransferRelic(run, instanceId, memberId)
     local member = State.FindMember(run.members, memberId)
     if not relic or relic.status ~= "held" then return false, "信物当前无法安排保管人。" end
     if not member or not member.alive or not State.IsAdult(member) then return false, "保管人必须是在世成年人。" end
+    if not State.IsResident(member) then return false, "保管人需要在本家生活。" end
     if RelicState.IsNew(run) then return RelicSystem.AssignCustodian(run, instanceId, memberId) end
     relic.custodianId = member.id
     AddRelicFact(run, relic, "“" .. Data.Relic(relic.definitionId).name .. "改由" .. member.name .. "保管。", { action = "transfer", relicInstanceId = relic.instanceId })
@@ -906,9 +942,10 @@ end
 local function TryBirths(run)
     local range = Data.AgeRules.birth
     for _, parent in ipairs(run.members) do
-        if parent.alive and parent.age >= range.min and parent.age <= range.max and parent.birthPlan and parent.spouseId and run.yearIndex - (parent.lastBirthYear or -5) >= 4 and run.money >= 16 then
+        if parent.alive and parent.age >= range.min and parent.age <= range.max and parent.birthPlan and parent.spouseId and run.yearIndex - (parent.lastBirthYear or -5) >= 4 then
             local spouse = State.FindMember(run.members, parent.spouseId)
-            if spouse and spouse.id > parent.id and spouse.alive and spouse.age >= range.min and spouse.age <= range.max and spouse.birthPlan and State.Random(run) < 0.27 then
+            local childHome = Marriage.ChildResidence(run, parent)
+            if spouse and spouse.id > parent.id and spouse.alive and spouse.age >= range.min and spouse.age <= range.max and spouse.birthPlan and (childHome == "external" or run.money >= 16) and State.Random(run) < 0.27 then
                 local childId = NextMemberId(run)
                 local sex = State.Random(run, 0, 1) == 0 and "女" or "男"
                 local child = {
@@ -917,6 +954,8 @@ local function TryBirths(run)
                     trait = "初生", jobId = "play", alive = true, health = 76, stats = State.Copy(Data.Experience("none").values),
                     jobYears = {}, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false,
                     biography = { "大晟历 " .. tostring(run.calendar) .. " 年出生，亲长是" .. parent.name .. "与" .. spouse.name .. "。" },
+                    residence = childHome, residencePlaceId = childHome == "home" and run.placeId or spouse.residencePlaceId, bornYearIndex = run.yearIndex,
+                    kinGeneration = math.max(parent.kinGeneration or parent.generation or 1, spouse.kinGeneration or spouse.generation or 1) + 1,
                 }
                 Art.Assign(child, run.runId)
                 parent.lastBirthYear = run.yearIndex; spouse.lastBirthYear = run.yearIndex
@@ -931,7 +970,7 @@ local function QueueGrowthEvents(run)
     run.flags.growthNotices = run.flags.growthNotices or {}
     local promotions = { apprentice = "craft", medical = "doctor", train = "guard", study = "teach" }
     for _, member in ipairs(run.members) do
-        if member.alive and member.age == Data.AgeRules.adult and not run.flags.growthNotices["adult-" .. tostring(member.id)] then
+        if member.alive and State.IsResident(member) and member.age == Data.AgeRules.adult and not run.flags.growthNotices["adult-" .. tostring(member.id)] then
             run.flags.growthNotices["adult-" .. tostring(member.id)] = true
             AddEvent(run, { type = "growth", growthId = "adult", memberId = member.id, title = member.name .. "已成年", blocking = false })
         end
@@ -949,8 +988,8 @@ end
 local function QueueRoutineEvents(run)
     local hasStudent, craftMember = false, nil
     for _, member in ipairs(run.members) do
-        if member.alive and member.age >= Data.AgeRules.study and not State.IsAdult(member) then hasStudent = true end
-        if member.alive and member.jobId == "craft" and not craftMember then craftMember = member end
+        if member.alive and State.IsResident(member) and member.age >= Data.AgeRules.study and not State.IsAdult(member) then hasStudent = true end
+        if member.alive and State.IsResident(member) and member.jobId == "craft" and not craftMember then craftMember = member end
     end
     local plan = HasRelic(run, "plan")
     if not RelicState.IsNew(run) and plan and craftMember and run.yearIndex % 4 == 0 and run.flags.planWorkYear ~= run.yearIndex then
@@ -1006,7 +1045,7 @@ local function HandleLeadership(run)
     local leader = State.FindMember(run.members, run.leaderId)
     if leader and leader.alive then return end
     local candidates = {}
-    for _, member in ipairs(run.members) do if member.alive and State.IsAdult(member) then table.insert(candidates, member) end end
+    for _, member in ipairs(run.members) do if member.alive and State.IsResident(member) and State.IsAdult(member) then table.insert(candidates, member) end end
     if #candidates > 0 then AddEvent(run, { type = "leader", title = "族长之位空缺", blocking = true }) else State.AddLog(run, "家中暂时只剩未成年人，由乡里代为照应，待成年后再定族长。") end
 end
 
@@ -1039,7 +1078,7 @@ function Simulation.AdvanceYear(run, profile)
         State.RecordAnnualLedger(run, run.lastLedger, yearStart)
     end
     UpdateHabitFormation(run, run.lastLedger)
-    TryBirths(run); AgeAndLife(run, living); QueueGrowthEvents(run)
+    TryBirths(run); AgeAndLife(run, living); Marriage.AfterYear(run); QueueGrowthEvents(run)
     if newRelics then RelicSystem.AfterDeaths(run) else QueueDueRelicEvents(run) end
     OriginSystem.AfterDeaths(run)
     HandleLeadership(run); MaybeShiftEra(run)
@@ -1207,6 +1246,7 @@ function Simulation.FinalizeEnding(run, ending, profile)
     profile.endingRecords = profile.endingRecords or {}
     if RelicState.IsNew(run) then RelicSystem.Archive(run) end
     OriginSystem.Archive(run)
+    Marriage.Archive(run)
     local closingEventIds = ClosePendingEvents(run, ending.id)
     local memberIds = {}
     for _, member in ipairs(run.members) do table.insert(memberIds, member.id) end

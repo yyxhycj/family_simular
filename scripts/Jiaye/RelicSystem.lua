@@ -37,7 +37,7 @@ local function Member(run, memberId)
 end
 
 local function Alive(member)
-    return type(member) == "table" and member.alive ~= false
+    return type(member) == "table" and member.alive ~= false and State.IsResident(member)
 end
 
 local function Adult(member)

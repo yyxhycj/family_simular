@@ -3,6 +3,7 @@ local State = require "Jiaye.State"
 local Habits = require "Jiaye.Habits"
 local RelicState = require "Jiaye.RelicState"
 local OriginEffects = require "Jiaye.OriginEffects"
+local Marriage = require "Jiaye.Marriage"
 
 local Economy = {}
 
@@ -21,7 +22,7 @@ end
 local function Living(run)
     local result = {}
     for _, member in ipairs(List(run.members)) do
-        if member.alive ~= false then table.insert(result, member) end
+        if member.alive ~= false and State.IsResident(member) then table.insert(result, member) end
     end
     return result
 end
@@ -283,7 +284,7 @@ function Economy.GrainPurchasePrice(run, amount)
     return GrainPurchasePrice(run, amount)
 end
 
-local function ResolveLivingCosts(run, living, period, place)
+local function ResolveLivingCosts(run, living, period, place, marriage)
     local ledger = { foodCost = 0, boughtGrain = 0, grainSold = 0, saleIncome = 0 }
     local home = Data.Home(run.homeId)
     local baseExpense, carers = home.upkeep, 0
@@ -294,6 +295,7 @@ local function ResolveLivingCosts(run, living, period, place)
     local expense = math.floor(baseExpense * period.expense * (place.expenseMultiplier or 1))
     expense = math.max(0, expense - carers * 3)
     if run.habitId == "frugal" then expense = math.floor(expense * 0.9) end
+    expense = math.max(0, expense - (marriage and marriage.thrift or 0))
     ledger.livingExpense = expense
     run.money = run.money - expense
     local foodNeed = StandardAnnualFoodNeedFor(run, living)
@@ -355,7 +357,9 @@ local function SettleLegacy(run)
         if hasCraft then run.money = run.money + 5 end
     end
     local industryIncome = run.money - industryStart
-    local ledger = ResolveLivingCosts(run, living, period, place)
+    local marriage = Marriage.Settle(run, rows)
+    local ledger = ResolveLivingCosts(run, living, period, place, marriage)
+    ledger.marriage = marriage
     ledger.members = rows
     ledger.income = income
     ledger.training = training
@@ -412,7 +416,9 @@ local function SettleV12(run)
         if hasTrade then run.money = run.money + 10 else State.AddLog(run, "商铺无人经营，今年没有额外收益。") end
     end
     local industryIncome = run.money - industryStart
-    local ledger = ResolveLivingCosts(run, living, period, place)
+    local marriage = Marriage.Settle(run, rows)
+    local ledger = ResolveLivingCosts(run, living, period, place, marriage)
+    ledger.marriage = marriage
     ledger.members = rows
     ledger.income = income
     ledger.training = training

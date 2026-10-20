@@ -4,6 +4,7 @@ local RelicDefinitions = require "Jiaye.RelicDefinitions"
 local RelicState = require "Jiaye.RelicState"
 local RelicValidation = require "Jiaye.RelicValidation"
 local OriginState = require "Jiaye.OriginState"
+local MarriageState = require "Jiaye.MarriageState"
 ---@diagnostic disable: undefined-global -- UrhoX runtime injects File/fileSystem/cjson.
 
 local State = {}
@@ -69,6 +70,10 @@ function State.IsAdult(member)
     return type(member) == "table" and type(member.age) == "number" and member.age >= Data.AgeRules.adult
 end
 
+function State.IsResident(member)
+    return type(member) == "table" and member.residence ~= "external"
+end
+
 function State.BirthAgeRange(member)
     if type(member) ~= "table" then return nil end
     return Data.AgeRules.birth
@@ -76,6 +81,7 @@ end
 
 function State.CanPlanBirth(member, members)
     if type(member) ~= "table" or member.alive == false then return false, "只有在世族人可以安排添丁计划。" end
+    if not State.IsResident(member) then return false, "在外家庭自行安排添丁。" end
     local range = State.BirthAgeRange(member)
     if member.age < range.min then return false, "添丁计划需满 " .. tostring(range.min) .. " 岁。" end
     if member.age > range.max then return false, "当前年龄已超过可安排窗口。" end
@@ -389,6 +395,7 @@ function State.ValidateDraft(draft, profile, allowOverBudget)
 end
 
 function State.CanUseJob(member, jobId)
+    if not State.IsResident(member) then return false, "此人在外成家，由外家安排生计。" end
     local job = Data.Jobs[jobId]
     if not job then return false, "岗位不存在。" end
     if member.age < job.min then return false, "年龄不足，需要 " .. tostring(job.min) .. " 岁。" end
@@ -453,6 +460,7 @@ local function CreateRun(draft, profile, allowOverBudget)
     }
     if draft.relicRulesVersion == RelicDefinitions.VERSION then RelicState.InitNewRun(run, draft, profile) end
     OriginState.Init(run, draft)
+    MarriageState.Ensure(run)
     for _, member in ipairs(run.members) do
         State.AddFact(run, "opening", member.name .. "以“" .. Data.Jobs[member.jobId].name .. "”开始这一段人生。", { member.id }, { recordLog = false })
     end
@@ -819,6 +827,8 @@ local function ValidateRun(run)
     if not relicOk then return false, relicMessage end
     local originOk, originMessage = OriginState.Validate(run, memberIds)
     if not originOk then return false, originMessage end
+    local marriageOk, marriageMessage = MarriageState.Validate(run, memberIds)
+    if not marriageOk then return false, marriageMessage end
     if run.ending and (type(run.ending) ~= "table" or not Data.Ending(run.ending.id)) then return false, "终章引用无效。" end
     return true
 end
@@ -933,6 +943,7 @@ local function NormalizeCurrentPayload(value, sourceVersion)
             member.stats = member.stats or State.Copy((Data.Experience(member.experienceId) or Data.Experience("none")).values)
             member.jobYears = member.jobYears or {}
         end
+        MarriageState.Ensure(run)
     end
     candidate.saveSchemaVersion = State.SAVE_SCHEMA_VERSION
     if sourceVersion == 1 then candidate.migratedFromSaveSchemaVersion = 1 end
@@ -948,11 +959,18 @@ local externalExportName = "jiaye-backup.json"
 local failedSavePath = nil
 
 function State.UseVerificationStorage(suite)
-    assert(suite == nil or suite == "origin" or suite == "t14" or suite == "cloud", "未知验收存档范围。")
+    assert(suite == nil or suite == "origin" or suite == "t14" or suite == "cloud" or suite == "marriage", "未知验收存档范围。")
     local prefix = suite and ("jiaye_" .. suite .. "_verification") or "jiaye_v12_verification"
     SAVE_PATHS = { prefix .. ".json", prefix .. ".backup.json" }
     exportPath = prefix .. ".export.json"
     externalExportName = prefix .. ".json"
+    failedSavePath = nil
+end
+
+function State.UseDevelopmentStorage()
+    SAVE_PATHS = { "jiaye_development.json", "jiaye_development.backup.json" }
+    exportPath = "jiaye_development.export.json"
+    externalExportName = "jiaye_development.json"
     failedSavePath = nil
 end
 

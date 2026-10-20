@@ -32,7 +32,7 @@ end
 local function livingAdults(run)
     local result = {}
     for _, member in ipairs(run.members or {}) do
-        if member.alive and State.IsAdult(member) then table.insert(result, member) end
+        if member.alive and State.IsResident(member) and State.IsAdult(member) then table.insert(result, member) end
     end
     return result
 end

@@ -126,7 +126,7 @@ local function Overview(ledger, run)
         } }, Text("银钱收支", 17, C.ink, { fontFamily = "serif", marginTop = 6 }) }
     local items = {
         { "谋生所得", ledger.income or 0 }, { "信物年度收益", ledger.relicIncome or 0 },
-        { "背景年度收益", ledger.originIncome or 0 }, { "产业收入", ledger.industryIncome or 0 },
+        { "背景年度收益", ledger.originIncome or 0 }, { "亲家年度往来", (ledger.marriage or {}).money or 0 }, { "产业收入", ledger.industryIncome or 0 },
         { "售粮所得", ledger.saleIncome or 0 }, { "族人培养", -(ledger.training or 0) },
         { "全家生活", -(ledger.livingExpense or 0) }, { "补购口粮", -(ledger.foodCost or 0) },
     }
@@ -166,6 +166,11 @@ local function Overview(ledger, run)
         table.insert(other, Row(item[1], tostring(item[2]) .. item[3]))
     end
     for _, source in ipairs(ledger.originGrainSources or {}) do table.insert(other, Text(OriginSourceText(source), 13, C.secondary)) end
+    for _, source in ipairs((ledger.marriage or {}).sources or {}) do
+        local value = source.stat and (Data.FocusNames[source.stat] .. "+" .. source.growth) or source.grain and (Signed(source.grain) .. "石") or (Signed(source.money or 0) .. "两")
+        table.insert(other, Text(source.name .. " · " .. value, 13, C.primary, { whiteSpace = "normal" }))
+    end
+    if (ledger.marriage or {}).thrift == 2 then table.insert(other, Text("持家有方 · 生活费减2两", 13, C.primary)) end
     table.insert(children, Disclosure("ledger-other", "其他分项与年度加成", UI.Panel { gap = 9, paddingBottom = 12, children = other }))
     local transactions = {}
     for _, entry in ipairs(ledger.relicTransactions or {}) do table.insert(transactions, Text(TransactionText(entry), 13, C.secondary, { whiteSpace = "normal" })) end
@@ -208,7 +213,9 @@ local function MemberDetails(row)
         end
         table.insert(children, UI.Row { gap = 4, children = sources })
     elseif (growth.health or 0) ~= 0 then table.insert(children, Text(GrowthText(row), 14, Tone(growth.health))) end
-    table.insert(children, Row("职业收支", Signed((row.money or 0) - (row.relicIncome or 0) - (row.originIncome or 0)) .. " 两"))
+    table.insert(children, Row("职业收支", Signed((row.money or 0) - (row.relicIncome or 0) - (row.originIncome or 0) - (row.marriageIncome or 0)) .. " 两"))
+    if (row.marriageIncome or 0) ~= 0 then table.insert(children, Row("亲家资助", Signed(row.marriageIncome) .. " 两")) end
+    if (row.marriageGrowth or 0) ~= 0 then table.insert(children, Row("亲家传习成长", "+" .. row.marriageGrowth)) end
     table.insert(children, Row("信物收益", Signed(row.relicIncome or 0) .. " 两"))
     table.insert(children, Row("背景收益", Signed(row.originIncome or 0) .. " 两"))
     if (row.grain or 0) ~= 0 then table.insert(children, Row("收获粮食", Signed(row.grain) .. " 石")) end

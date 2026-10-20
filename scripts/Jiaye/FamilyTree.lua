@@ -139,7 +139,7 @@ function FamilyTree.Build(app)
                     portrait,
                     Visual.Text(member.name, { fontSize = 15, textAlign = "center", maxLines = 2, width = "100%" }),
                     Visual.Text(tostring(member.age) .. "岁 · " .. tostring(member.talent) .. "/5", { fontSize = 12, textAlign = "center" }),
-                    Visual.Text(member.alive and Data.Jobs[member.jobId].name or "已故", { fontSize = 12, textAlign = "center", fontColor = V7.Colors.secondary }),
+                    Visual.Text(member.alive and (member.residence == "external" and "在外成家" or Data.Jobs[member.jobId].name) or "已故", { fontSize = 12, textAlign = "center", fontColor = V7.Colors.secondary }),
                 } }
             tree.nodesById[member.id] = { portrait = portrait, tile = tile }
             table.insert(nodes, tile)

@@ -6,6 +6,7 @@ local Visual = require "Jiaye.Visual"
 local RelicState = require "Jiaye.RelicState"
 local RelicDefinitions = require "Jiaye.RelicDefinitions"
 local OriginSystem = require "Jiaye.OriginSystem"
+local Simulation = require "Jiaye.Simulation"
 local ModalLayout = require "Jiaye.ModalLayout"
 
 local View = {}
@@ -61,6 +62,7 @@ local function quoteText(quote)
 end
 
 local function reasonsText(quote)
+    if quote.preparation then return "确认后将安排为“" .. Data.Jobs[quote.preparation.jobId].name .. "”，并执行本次行动。" end
     if quote.allowed then return "当前条件已满足，可以确认。" end
     local reasons = quote.reasons or {}
     if #reasons == 0 then return "暂不可执行：当前家谱条件未满足。" end
@@ -126,7 +128,7 @@ local function candidateRow(member, quote, selected, onClick)
             Visual.Portrait(member, { size = 46, leader = false, selected = selected }),
             UI.Panel { flex = 1, minWidth = 0, gap = 3, children = {
                 text(memberLabel(member), { fontSize = 15, fontWeight = selected and "bold" or "normal", fontColor = titleColor, whiteSpace = "normal" }),
-                text(available and quoteText(quote) or reasonsText(quote), { fontSize = 12, fontColor = summaryColor, whiteSpace = "normal", lineHeight = 1.3 }),
+                text(available and ((quote.preparation and "可一键改为“" .. Data.Jobs[quote.preparation.jobId].name .. "”\n" or "") .. quoteText(quote)) or reasonsText(quote), { fontSize = 12, fontColor = summaryColor, whiteSpace = "normal", lineHeight = 1.3 }),
             } },
         } },
     }, {
@@ -194,19 +196,23 @@ function View.OpenAction(app, actionId, parentModal)
     end
 
     local function currentQuote()
-        return OriginSystem.Quote(app.run, action.id, currentInput())
+        return Simulation.QuoteOriginAction(app.run, action.id, currentInput())
     end
 
     local function refreshQuote()
         local quote = currentQuote()
         quoteLabel:SetText(quoteText(quote) .. "\n\n" .. tostring(quote.description or "按当前家谱事实结算。"))
         reasonLabel:SetText(reasonsText(quote))
+        reasonLabel.props.fontColor = quote.allowed and C.primary or C.danger
         return quote
     end
 
     local function refreshQuoteAndButton()
         local quote = refreshQuote()
-        if confirmButton then confirmButton:SetDisabled(not quote.allowed) end
+        if confirmButton then
+            confirmButton:SetDisabled(not quote.allowed)
+            confirmButton:SetText(quote.preparation and "安排并执行" or "确认执行")
+        end
         return quote
     end
 
@@ -218,17 +224,20 @@ function View.OpenAction(app, actionId, parentModal)
         local quotes = {}
         local allowedCount = 0
         local firstAllowed
+        ---@type number?
+        local firstReady = nil
         for _, member in ipairs(candidates) do
             local candidateInput = { memberId = member.id, attachedInstanceIds = {} }
             for id, enabled in pairs(selectedAttachments) do if enabled then table.insert(candidateInput.attachedInstanceIds, id) end end
-            quotes[member.id] = OriginSystem.Quote(app.run, action.id, candidateInput)
+            quotes[member.id] = Simulation.QuoteOriginAction(app.run, action.id, candidateInput)
             if quotes[member.id].allowed then
                 allowedCount = allowedCount + 1
                 if not firstAllowed then firstAllowed = member.id end
+                if not quotes[member.id].preparation and not firstReady then firstReady = member.id end
             end
         end
         local selectedQuote = selectedMemberId and quotes[selectedMemberId] or nil
-        if not selectedQuote or not selectedQuote.allowed then selectedMemberId = firstAllowed end
+        if not selectedQuote or not selectedQuote.allowed then selectedMemberId = firstReady or firstAllowed end
         candidateFilters:AddChild(button("可执行 " .. tostring(allowedCount), function()
             onlyExecutable = true
             rebuildCandidates()
@@ -287,6 +296,12 @@ function View.OpenAction(app, actionId, parentModal)
         if candidate.input.memberId then
             table.insert(chosen, "选定族人：" .. memberLabel(State.FindMember(app.run.members, candidate.input.memberId)))
         end
+        if quote.preparation then
+            table.insert(chosen, "本年安排：“" .. Data.Jobs[quote.preparation.fromJobId].name .. "” → “" .. Data.Jobs[quote.preparation.jobId].name .. "”。")
+            if quote.preparation.annualFee > 0 then
+                table.insert(chosen, "本年培养费预计 " .. tostring(quote.preparation.annualFee) .. " 两，年度结算时支付。")
+            end
+        end
         for _, id in ipairs(candidate.input.attachedInstanceIds) do
             local instance = assert(RelicState.Find(app.run, id))
             table.insert(chosen, "参与工程的信物：" .. RelicState.Form(instance).name)
@@ -297,9 +312,9 @@ function View.OpenAction(app, actionId, parentModal)
             quote.label or action.label or action.id,
             table.concat(chosen, "\n\n"),
             function(run, profile)
-                return OriginSystem.Execute(run, candidate.actionId, candidate.input)
+                return Simulation.ExecuteOriginAction(run, candidate.actionId, candidate.input)
             end,
-            "确认执行", modal
+            quote.preparation and "安排并执行" or "确认执行", modal
         )
     end, { flex = 1 })
 
@@ -313,7 +328,7 @@ function View.OpenAction(app, actionId, parentModal)
     body:AddChild(Visual.Paper({
         text(action.label or action.id, { fontSize = 22, fontWeight = "bold", whiteSpace = "normal" }),
         text("当前公库 · 银 " .. tostring(app.run.money or 0) .. " 两 · 粮 " .. tostring(app.run.grain or 0) .. " 石", { fontSize = 14, fontColor = C.primary, whiteSpace = "normal" }),
-        text("选择前显示人物门槛和实际结果；确认后写入同一份家谱记录。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 }),
+        text("支持一键调整人物安排；确认后将安排与行动一并记入家谱。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 }),
         actionNeedsMember(action) and text("人选", { fontSize = 16, fontWeight = "bold", marginTop = 4 }) or UI.Panel { height = 0 },
         candidateFilters,
         candidatePanel,
