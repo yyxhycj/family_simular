@@ -6,170 +6,153 @@ local Visual = require "Jiaye.Visual"
 
 local View = {}
 local C = V7.Colors
+local CARD_WIDTH, CARD_HEIGHT, CARD_GAP = 112, 300, 24
 
-local function menuEntry(id, text, onClick, primary)
+local function entryButton(id, text, onClick, secondary)
+    local skin = secondary and "secondary" or "primary"
     return UI.Button {
-        id = id, width = "100%", height = primary and 72 or 48,
-        padding = 0, borderWidth = 0, borderRadius = 0, opacity = 0.94,
+        id = id, text = text, width = "100%", height = 50, minHeight = 50,
+        fontSize = 20, fontFamily = "serif", borderWidth = 0, borderRadius = 0,
+        textColor = secondary and C.primary or C.paperLight,
         backgroundColor = { 0, 0, 0, 0 },
-        hoverBackgroundColor = { 0, 0, 0, 0 },
-        pressedBackgroundColor = { 0, 0, 0, 0 },
+        hoverBackgroundColor = { 0, 0, 0, 0 }, pressedBackgroundColor = { 0, 0, 0, 0 },
+        backgroundImage = Art.WorldEntry(skin),
+        hoverBackgroundImage = Art.WorldEntry(skin .. "Focus"),
+        pressedBackgroundImage = Art.WorldEntry(skin .. "Pressed"),
+        backgroundFit = "sliced", backgroundSlice = { left = 24, top = 24, right = 24, bottom = 24 },
         boxShadow = false, hoverBoxShadow = false, pressedBoxShadow = false,
-        alignItems = "center", justifyContent = "center",
         onClick = onClick,
-        onPointerEnter = function(_, widget) widget:SetOpacity(1) end,
-        onPointerLeave = function(_, widget) widget:SetOpacity(0.94) end,
-        onPointerDown = function(_, widget) widget:SetOpacity(0.6) end,
-        onPointerUp = function(_, widget) widget:SetOpacity(1) end,
-        onPointerCancel = function(_, widget) widget:SetOpacity(0.94) end,
+    }
+end
+
+local function worldCard(app, world)
+    local selected = app.coverWorldId == world.id
+    local normalFrame = Art.WorldEntry(selected and "frameSelected" or "frameDefault")
+    local frame = UI.Panel {
+        id = "cover-frame-" .. world.id, position = "absolute", left = 0, top = 0,
+        width = "100%", height = "100%", backgroundImage = normalFrame,
+        backgroundFit = "contain", pointerEvents = "none",
+    }
+    return UI.Button {
+        id = "cover-world-" .. world.id, width = CARD_WIDTH, height = 360, flexShrink = 0,
+        paddingHorizontal = 0, paddingVertical = 0, gap = 10,
+        flexDirection = "column", alignItems = "center", justifyContent = "flex-start",
+        backgroundColor = { 0, 0, 0, 0 }, hoverBackgroundColor = { 0, 0, 0, 0 },
+        pressedBackgroundColor = { 0, 0, 0, 0 }, borderWidth = 0, borderRadius = 0,
+        boxShadow = false, hoverBoxShadow = false, pressedBoxShadow = false,
+        onClick = function() app:SelectCoverWorld(world.id) end,
+        onPointerEnter = function() frame:SetStyle({ backgroundImage = Art.WorldEntry("frameFocus") }) end,
+        onPointerLeave = function() frame:SetStyle({ backgroundImage = normalFrame }) end,
+        onPointerDown = function() frame:SetStyle({ backgroundImage = Art.WorldEntry("framePressed") }) end,
+        onPointerUp = function() frame:SetStyle({ backgroundImage = normalFrame }) end,
+        onPointerCancel = function() frame:SetStyle({ backgroundImage = normalFrame }) end,
         children = {
-            Visual.Text(text, {
-                width = "100%", fontSize = primary and 34 or 21,
-                fontFamily = "serif", letterSpacing = primary and 4 or 2,
-                fontColor = primary and { 255, 244, 213, 255 } or { 235, 222, 193, 255 },
-                textAlign = "center", whiteSpace = "nowrap", pointerEvents = "none",
-                textShadow = { offsetX = 0, offsetY = 2, blur = 5, color = { 14, 29, 24, 200 } },
+            Visual.Text(world.name, { width = "100%", height = 24, fontSize = 20, fontFamily = "serif", fontColor = C.primary, textAlign = "center", whiteSpace = "nowrap", pointerEvents = "none" }),
+            UI.Panel {
+                id = "cover-scene-" .. world.id, width = CARD_WIDTH, height = CARD_HEIGHT, flexShrink = 0,
+                backgroundImage = Art.WorldScene(world.id), backgroundFit = "contain", pointerEvents = "none",
+                children = { frame },
+            },
+            Visual.Text(selected and "已选世界" or (world.available and "可进入" or "未开放"), {
+                width = "100%", height = 16, fontSize = 12, textAlign = "center",
+                fontColor = selected and C.primary or C.secondary, whiteSpace = "nowrap", pointerEvents = "none",
             }),
         },
     }
 end
 
-local function worldRegion(app, world, masked)
-    local selected = app.coverWorldId == world.id
-    local ink = masked and C.paperLight or C.primary
-    return UI.Button {
-        id = "cover-world-" .. world.id, text = "",
-        position = "absolute", paddingHorizontal = 0, paddingVertical = 0,
-        minWidth = 0, minHeight = 0, borderRadius = 0,
-        backgroundColor = { 255, 249, 235, 0 },
-        hoverBackgroundColor = { 255, 249, 235, 34 },
-        pressedBackgroundColor = { 255, 249, 235, 58 },
-        borderWidth = selected and 1 or 0, borderColor = C.gold,
-        boxShadow = false, hoverBoxShadow = false, pressedBoxShadow = false,
-        onClick = function() app:SelectCoverWorld(world.id) end,
-        children = {
-            UI.Panel {
-                position = "absolute", left = 0, bottom = 14, width = "100%",
-                gap = 4, alignItems = "center", pointerEvents = "none",
-                children = {
-                    Visual.Text(world.name, { width = "100%", fontSize = utf8.len(world.name) > 2 and 13 or 18, fontFamily = "serif", fontColor = ink, textAlign = "center", whiteSpace = "normal", wordBreak = "break-word", lineHeight = 1.2 }),
-                    Visual.Text(world.available and world.title or "未开放", { width = "100%", fontSize = 11, fontColor = ink, textAlign = "center", whiteSpace = "nowrap", lineHeight = 1.3 }),
-                    UI.Panel { width = 28, height = 2, visible = selected, backgroundColor = ink },
-                },
-            },
-        },
+local function worldGallery(app, selectedIndex)
+    local cards = {}
+    for _, world in ipairs(Data.Worlds) do table.insert(cards, worldCard(app, world)) end
+    local gallery = UI.ScrollView {
+        id = "cover-world-gallery", width = "100%", height = 372, flexShrink = 0,
+        scrollX = true, scrollY = false, bounces = false, showScrollbar = true,
+        children = { UI.Row { gap = CARD_GAP, flexShrink = 0, children = cards } },
     }
-end
-
-local function worldRegions(app, image, masked)
-    local regions = {}
-    for _, world in ipairs(Data.Worlds) do table.insert(regions, worldRegion(app, world, masked)) end
-    local layer = UI.Panel {
-        id = "cover-world-regions", position = "absolute", left = 0, top = 0,
-        width = "100%", height = "100%", pointerEvents = "box-none", children = regions,
-    }
-    local lastWidth, lastHeight = 0, 0
-    layer.Update = function(self)
-        local rect = self:GetLayout()
-        if rect.w == lastWidth and rect.h == lastHeight then return end
-        lastWidth, lastHeight = rect.w, rect.h
-        -- 与背景 cover 的居中裁切共用原图坐标。
-        local scale = math.max(rect.w / image.width, rect.h / image.height)
-        local offsetX, offsetY = (rect.w - image.width * scale) / 2, (rect.h - image.height * scale) / 2
-        for index, world in ipairs(Data.Worlds) do
-            local bounds = world.coverRegion
-            local left, top = bounds.x * scale + offsetX, bounds.y * scale + offsetY
-            local right, bottom = left + bounds.width * scale, top + bounds.height * scale
-            local x, y = math.max(0, left), math.max(0, top)
-            local width, height = math.min(rect.w, right) - x, math.min(rect.h, bottom) - y
-            local region = regions[index]
-            region:SetVisible(width > 0 and height > 0)
-            region:SetStyle({ left = x, top = y, width = math.max(0, width), height = math.max(0, height) })
-        end
+    ---@type fun(self: ScrollView, dt: number)
+    local update = gallery.Update
+    local lastWidth = 0
+    ---@param dt number
+    function gallery:Update(dt)
+        update(self, dt)
+        local width = self:GetLayout().w
+        if width <= 0 or width == lastWidth then return end
+        lastWidth = width
+        self:UpdateContentSize()
+        self:SetScroll((selectedIndex - 1) * (CARD_WIDTH + CARD_GAP) - (width - CARD_WIDTH) / 2, 0)
     end
-    return layer
+    return gallery
 end
 
-local function comingSoon(app, world)
+local function worldDetails(app, world)
+    local actions = {}
+    if world.available then
+        if app.openingGenerationFailed then
+            table.insert(actions, Visual.Text(app.openingFeedback, { width = "100%", fontSize = 14, fontColor = C.danger, whiteSpace = "normal" }))
+        end
+        table.insert(actions, entryButton("cover-new-family", "立一部家谱", function() app:PrepareNewRun() end))
+        if app.run then table.insert(actions, entryButton("cover-continue", "续写当前家谱", function() app:Load() end, true)) end
+    end
     return UI.Panel {
-        id = "cover-world-mask", position = "absolute", left = 0, top = 0,
-        width = "100%", height = "100%", backgroundColor = { 24, 39, 35, 172 },
-        borderRadius = 0, pointerEvents = "auto",
+        id = "cover-details", width = "100%", minHeight = 230, padding = 22, gap = 14,
+        backgroundImage = Art.WorldEntry("panel"), backgroundFit = "sliced",
+        backgroundSlice = { left = 28, top = 28, right = 28, bottom = 28 },
         children = {
-            UI.SafeAreaView { width = "100%", height = "100%", edges = "all", nativeMenuInset = true, children = {
-                UI.Panel { width = "100%", height = "100%", padding = 28, paddingTop = 180, alignItems = "center", justifyContent = "center", pointerEvents = "box-none", children = {
-                    UI.Panel {
-                        width = "100%", maxWidth = 360, padding = 28, gap = 14, alignItems = "center",
-                        backgroundColor = { 251, 245, 229, 246 }, borderWidth = 1, borderColor = C.gold, borderRadius = 4,
-                        children = {
-                            Visual.Text(world.name, { width = "100%", fontSize = 20, fontFamily = "serif", fontColor = C.primary, textAlign = "center" }),
-                            UI.Panel { width = 36, height = 1, backgroundColor = C.gold, pointerEvents = "none" },
-                            Visual.Text("敬请期待", { id = "cover-coming-soon", width = "100%", fontSize = 36, fontFamily = "serif", textAlign = "center", whiteSpace = "nowrap" }),
-                            Visual.Text("该世界尚未开放", { width = "100%", fontSize = 15, fontColor = C.secondary, textAlign = "center" }),
-                            Visual.Button("返回大晟", function() app:SelectCoverWorld("mortal") end, { id = "cover-return-mortal", width = "100%", height = 48, marginTop = 8 }),
-                        },
-                    },
-                } },
+            UI.Row { width = "100%", alignItems = "center", gap = 10, children = {
+                UI.Panel { id = "cover-world-icon", width = 28, height = 28, backgroundImage = Art.WorldIcon(world.id), backgroundFit = "contain", pointerEvents = "none" },
+                Visual.Text(world.name .. (world.title and " · " .. world.title or ""), { id = "cover-world-name", fontSize = 24, fontFamily = "serif", fontColor = C.primary }),
             } },
+            Visual.Text(world.available and world.heading or world.tagline, { id = "cover-heading", width = "100%", fontSize = 19, fontFamily = "serif", whiteSpace = "normal" }),
+            Visual.Text(world.description, { id = "cover-description", width = "100%", fontSize = 14, lineHeight = 1.5, fontColor = C.secondary, whiteSpace = "normal" }),
+            UI.Panel { id = "cover-actions", width = "100%", maxWidth = 440, alignSelf = "center", gap = 10, children = actions },
+            not world.available and UI.Panel {
+                id = "cover-world-mask", position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
+                padding = 20, gap = 12, alignItems = "center", justifyContent = "center",
+                backgroundColor = { 242, 235, 218, 238 }, borderRadius = 0,
+                children = {
+                    Visual.Text(world.name, { width = "100%", fontSize = 17, fontColor = C.primary, textAlign = "center" }),
+                    Visual.Text("敬请期待", { id = "cover-coming-soon", width = "100%", fontSize = 36, fontFamily = "serif", textAlign = "center", whiteSpace = "nowrap" }),
+                    Visual.Text("该世界尚未开放", { width = "100%", fontSize = 14, fontColor = C.secondary, textAlign = "center" }),
+                    UI.Panel { width = "100%", maxWidth = 260, children = {
+                        entryButton("cover-return-mortal", "返回凡世", function() app:SelectCoverWorld("mortal") end, true),
+                    } },
+                },
+            } or UI.Panel { width = 0, height = 0, pointerEvents = "none" },
         },
     }
 end
 
 function View.Build(app)
     local world = assert(Data.Find(Data.Worlds, app.coverWorldId), "主页世界未登记。")
-    local image = assert(cache:GetResource("Image", Art.Opening(world.coverArt)), "主页背景图片缺失。")
-    local actions = {}
-    if world.available then
-        table.insert(actions, menuEntry("cover-new-family", "立一部家谱", function() app:PrepareNewRun() end, true))
-        if app.run then
-            table.insert(actions, menuEntry("cover-continue", "续写当前家谱", function() app:Load() end, false))
-        end
-        if app.openingGenerationFailed then
-            table.insert(actions, 1, Visual.Text(app.openingFeedback, { width = "100%", fontSize = 14, fontColor = { 255, 196, 172, 255 }, textAlign = "center", whiteSpace = "normal", lineHeight = 1.5 }))
-        end
-    end
+    local selectedIndex = 1
+    for index, entry in ipairs(Data.Worlds) do if entry.id == world.id then selectedIndex = index end end
     return UI.Panel {
-        id = "cover", width = "100%", height = "100%", overflow = "hidden", backgroundColor = C.paper,
+        id = "cover", width = "100%", height = "100%", backgroundColor = C.paper,
+        backgroundImage = Art.WorldEntry("paper"), backgroundFit = "cover",
         children = {
-            Visual.OpeningArt(world.coverArt, { id = "cover-background", position = "absolute", left = 0, top = 0, width = "100%", height = "100%" }),
-            UI.Panel {
-                position = "absolute", left = 0, top = 0, width = "100%", height = "100%", pointerEvents = "none",
-                backgroundGradient = { type = "linear", direction = "to-bottom", from = { 247, 240, 223, 72 }, to = { 247, 240, 223, 12 } },
-            },
-            UI.Panel {
-                id = "cover-menu-shade", position = "absolute", left = 0, bottom = 0,
-                width = "100%", height = "42%", borderRadius = 0, pointerEvents = "none",
-                visible = world.available,
-                backgroundGradient = { type = "linear", direction = "to-bottom", from = { 25, 43, 36, 0 }, to = { 25, 43, 36, 232 } },
-            },
-            UI.SafeAreaView {
-                width = "100%", height = "100%", edges = "all", nativeMenuInset = true,
-                children = {
-                    UI.Panel { width = "100%", height = "100%", alignItems = "center", pointerEvents = "box-none", children = {
-                        UI.Panel {
-                            width = "100%", maxWidth = 640, height = "100%", padding = 24, gap = 20,
-                            overflow = "scroll", pointerEvents = "box-none", children = {
-                                UI.Row { width = "100%", gap = 8, alignItems = "center", pointerEvents = "none", children = {
-                                    Visual.Decor("seal_square", { width = 26, height = 26 }),
-                                    Visual.Text("世界 · " .. world.name, { id = "cover-world-name", fontSize = 16, fontColor = C.primary }),
+            UI.SafeAreaView { width = "100%", height = "100%", edges = "all", nativeMenuInset = true, children = {
+                UI.ScrollView { id = "cover-page-scroll", width = "100%", flexGrow = 1, flexBasis = 0, scrollX = false, showScrollbar = false, children = {
+                    UI.Panel { width = "100%", alignItems = "center", padding = 24, children = {
+                        UI.Panel { width = "100%", maxWidth = 792, gap = 18, children = {
+                            UI.Row { width = "100%", alignItems = "center", justifyContent = "space-between", children = {
+                                Visual.Text("千家纪", { id = "cover-title", fontSize = 42, fontWeight = "bold", fontFamily = "serif", letterSpacing = 4, whiteSpace = "nowrap" }),
+                                Visual.Decor("seal_square", { width = 28, height = 28 }),
+                            } },
+                            Visual.Text("一姓起笔，百年成卷", { id = "cover-tagline", width = "100%", fontSize = 17, fontFamily = "serif", fontColor = C.secondary }),
+                            UI.Row { width = "100%", alignItems = "center", justifyContent = "space-between", gap = 8, children = {
+                                Visual.Text("选择世界", { fontSize = 16, fontFamily = "serif", fontColor = C.primary }),
+                                UI.Row { gap = 8, alignItems = "center", children = {
+                                    UI.Button { id = "cover-world-previous", text = "‹", width = 44, height = 44, paddingHorizontal = 0, paddingVertical = 0, variant = "secondary", onClick = function() app:SelectCoverWorld(Data.Worlds[(selectedIndex - 2) % #Data.Worlds + 1].id) end },
+                                    Visual.Text(tostring(selectedIndex) .. " / " .. tostring(#Data.Worlds), { fontSize = 13, fontColor = C.secondary }),
+                                    UI.Button { id = "cover-world-next", text = "›", width = 44, height = 44, paddingHorizontal = 0, paddingVertical = 0, variant = "secondary", onClick = function() app:SelectCoverWorld(Data.Worlds[selectedIndex % #Data.Worlds + 1].id) end },
                                 } },
-                                UI.Panel { id = "cover-hero", width = "100%", gap = 10, paddingTop = 22, pointerEvents = "none", children = {
-                                    Visual.Text("千家纪", { id = "cover-title", width = "100%", fontSize = 64, fontWeight = "bold", fontFamily = "serif", letterSpacing = 4, whiteSpace = "nowrap", textShadow = { offsetX = 1, offsetY = 2, blur = 2, color = { 255, 249, 235, 180 } } }),
-                                    Visual.Text(world.tagline, { id = "cover-tagline", width = "100%", fontSize = 20, fontColor = C.primary, fontFamily = "serif", whiteSpace = "normal", lineHeight = 1.5 }),
-                                } },
-                                UI.Panel { flexGrow = 1, flexBasis = 0, minHeight = 24, pointerEvents = "none" },
-                                world.available and UI.Panel { id = "cover-actions", width = "100%", alignItems = "center", gap = 16, paddingBottom = 12, pointerEvents = "box-none", children = {
-                                    UI.Panel { width = "100%", maxWidth = 360, gap = 2, children = actions },
-                                    UI.Panel { width = 36, height = 1, backgroundColor = { 221, 198, 147, 140 }, pointerEvents = "none" },
-                                    Visual.Text(world.heading, { id = "cover-heading", width = "100%", fontSize = 13, fontFamily = "serif", letterSpacing = 1, fontColor = { 235, 222, 193, 190 }, textAlign = "center", whiteSpace = "normal", pointerEvents = "none" }),
-                                } } or UI.Panel { width = 0, height = 0, pointerEvents = "none" },
-                            },
-                        },
+                            } },
+                            worldGallery(app, selectedIndex),
+                            worldDetails(app, world),
+                        } },
                     } },
-                },
-            },
-            world.available and UI.Panel { width = 0, height = 0, pointerEvents = "none" } or comingSoon(app, world),
-            worldRegions(app, image, not world.available),
+                } },
+            } },
         },
     }
 end

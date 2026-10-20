@@ -17,27 +17,30 @@ Data.AgeRules = {
 Data.WORLD_NAME = "大晟"
 Data.Worlds = {
     {
-        id = "mortal", name = Data.WORLD_NAME, title = "山河岁月", available = true,
-        coverArt = "landscape",
-        coverRegion = { x = 400, y = 0, width = 125, height = 660 },
+        id = "mortal", name = "凡世", title = Data.WORLD_NAME, available = true,
         tagline = "一姓起笔，百年成卷",
         heading = "一部由选择写成的家史",
         description = "从一户人家开始，安排人生，守住家业，把每一次交托写进家谱。",
     },
     {
-        id = "capital", name = "帝京风云", available = false,
-        coverArt = "landscape", coverRegion = { x = 525, y = 0, width = 135, height = 680 },
-        tagline = "",
+        id = "wuxia", name = "江湖", available = false,
+        tagline = "山川行远，侠路相逢", description = "渡口、客栈与山间江湖。",
     },
     {
-        id = "silk", name = "丝路胡尘", available = false,
-        coverArt = "landscape", coverRegion = { x = 660, y = 0, width = 130, height = 730 },
-        tagline = "",
+        id = "cultivation", name = "修真", available = false,
+        tagline = "云山深处，问道长生", description = "仙山、云海与凌空楼阁。",
     },
     {
-        id = "sea", name = "海外异闻", available = false,
-        coverArt = "landscape", coverRegion = { x = 790, y = 0, width = 151, height = 800 },
-        tagline = "",
+        id = "modern", name = "近代", available = false,
+        tagline = "汽笛声起，时代新章", description = "铁路、街巷与近代城市。",
+    },
+    {
+        id = "wasteland", name = "废土", available = false,
+        tagline = "荒原余火，生息不绝", description = "废墟、聚落与荒原上的人家。",
+    },
+    {
+        id = "stellar", name = "星海", available = false,
+        tagline = "星河无垠，家在远方", description = "星舰、行星与太空家园。",
     },
 }
 -- V7 改变了开局背景与局内家风的语义；旧 run 继续读取自身的 rulesVersion。

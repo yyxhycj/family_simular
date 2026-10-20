@@ -189,4 +189,28 @@ function Art.Panel(state)
     return UI_ROOT .. "ui/panels/" .. state .. "@2x.png"
 end
 
+local worldArt = { mortal = true, wuxia = true, cultivation = true, modern = true, wasteland = true, stellar = true }
+
+function Art.WorldScene(worldId)
+    requireKnown(worldArt[worldId], "世界场景未登记：" .. tostring(worldId))
+    return "Jiaye/WorldEntry/scenes/" .. worldId .. ".png"
+end
+
+function Art.WorldIcon(worldId)
+    requireKnown(worldArt[worldId], "世界图标未登记：" .. tostring(worldId))
+    return "Jiaye/WorldEntry/icons/world_" .. worldId .. "_ink.png"
+end
+
+function Art.WorldEntry(name)
+    local files = {
+        paper = "textures/paper_tile", panel = "ui/panel_paper",
+        frameDefault = "ui/card_frame_default", frameSelected = "ui/card_frame_selected",
+        framePressed = "ui/card_frame_pressed", frameFocus = "ui/card_frame_focus",
+        primary = "ui/button_primary_default", primaryPressed = "ui/button_primary_pressed",
+        primaryFocus = "ui/button_primary_focus", secondary = "ui/button_secondary_default",
+        secondaryPressed = "ui/button_secondary_pressed", secondaryFocus = "ui/button_secondary_focus",
+    }
+    return "Jiaye/WorldEntry/" .. requireKnown(files[name], "世界入口资源未登记：" .. tostring(name)) .. ".png"
+end
+
 return Art

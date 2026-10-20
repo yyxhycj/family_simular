@@ -57,7 +57,7 @@ end
 
 function Start()
     UI.Init({ theme = Visual.Theme(), scale = UI.Scale.DEFAULT })
-    key = "jiaye_cloud_acceptance_" .. tostring(time:GetTimeSinceEpochMs())
+    key = "jiaye_cloud_acceptance_" .. tostring(os.time()) .. "_" .. tostring(math.random(1, 2147483647))
     switchDevice("a")
     step(1, "等待真实账号云端读取")
     SubscribeToEvent("Update", "CloudAcceptanceUpdate")
