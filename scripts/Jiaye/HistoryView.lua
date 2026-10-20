@@ -4,7 +4,7 @@ local State = require "Jiaye.State"
 local Simulation = require "Jiaye.Simulation"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
-local RelicDefinitions = require "Jiaye.RelicDefinitions"
+local LedgerView = require "Jiaye.LedgerView"
 
 local HistoryView = {}
 
@@ -47,42 +47,9 @@ local OriginCategoryNames = {
     event_grain_in = "事件粮食收入",
 }
 
-local OriginSourceNames = {
-    seed = "留种增产",
-    scroll = "旧卷借阅",
-    study_referral = "求学引荐",
-    work_referral = "谋生引荐",
-}
-
 local function Signed(value)
     value = type(value) == "number" and value or 0
     return (value >= 0 and "+" or "") .. tostring(value)
-end
-
-local function OriginSourceText(source)
-    local values = {}
-    if (source.learn or 0) ~= 0 then table.insert(values, "学识 " .. Signed(source.learn)) end
-    if (source.money or 0) ~= 0 then table.insert(values, "银 " .. Signed(source.money) .. " 两") end
-    if (source.grain or 0) ~= 0 then table.insert(values, "粮 " .. Signed(source.grain) .. " 石") end
-    return "背景来源 · " .. (OriginSourceNames[source.kind] or "背景机会加成") .. " · " .. table.concat(values, " · ")
-end
-
-local function OriginTransactions(run, ledger)
-    local targetYearIndex = ledger.yearIndex
-    local source = run.originTransactions
-    local rows = {}
-    for index, entry in ipairs(source or {}) do
-        if targetYearIndex == nil or entry.yearIndex == targetYearIndex then table.insert(rows, { entry = entry, index = index }) end
-    end
-    table.sort(rows, function(left, right)
-        local leftYear = left.entry.yearIndex or left.entry.year or 0
-        local rightYear = right.entry.yearIndex or right.entry.year or 0
-        if leftYear ~= rightYear then return leftYear < rightYear end
-        return left.index < right.index
-    end)
-    local ordered = {}
-    for _, row in ipairs(rows) do table.insert(ordered, row.entry) end
-    return ordered
 end
 
 local function OriginTransactionText(entry)
@@ -192,56 +159,7 @@ local function BuildTerms(app)
 end
 
 local function BuildLedgers(app)
-    local ledgerCards = PagedCards(app, "ledgers", app.run.annualLedgers or {}, 4, "年度账本", "推进第一年后，这里会保留每一年的年初快照与结算分项。", function(ledger)
-        local start = TableValue(ledger.yearStart)
-        local details = {}
-        if ledger.relicIncome ~= nil then
-            table.insert(details, Text("信物年度收益：" .. tostring(ledger.relicIncome) .. " 两", { fontSize = 14, fontColor = C.primary }))
-            for _, row in ipairs(ledger.members or {}) do
-                local lines = { tostring(row.name) .. " · " .. tostring(row.job) }
-                if row.executed then
-                    table.insert(lines, "职业 " .. tostring((row.money or 0) - (row.relicIncome or 0) - (row.originIncome or 0)) .. " 两 · 信物 " .. tostring(row.relicIncome or 0) .. " 两 · 背景 " .. tostring(row.originIncome or 0) .. " 两")
-                    local growth = row.growth or {}
-                    if growth.stat and growth.stat ~= "health" then
-                        table.insert(lines, (Data.FocusNames[growth.stat] or growth.stat) .. "实际 +" .. tostring(growth.amount or 0) .. "；来源：基础 " .. tostring(row.baseGrowth or 0) .. "、偏向 " .. tostring(row.focusGrowth or 0) .. "、信物 " .. tostring(row.relicGrowth or 0) .. "、家风 " .. tostring(row.habitGrowth or 0) .. "、背景 " .. tostring(row.originGrowth or 0))
-                    elseif growth.health and growth.health ~= 0 then
-                        table.insert(lines, "体魄 +" .. tostring(growth.health))
-                    end
-                    for _, source in ipairs(row.relicSources or {}) do
-                        local form = RelicDefinitions.Form(source.formId)
-                        table.insert(lines, "来源物件：" .. (form and form.name or source.formId) .. " · " .. source.instanceId)
-                    end
-                    for _, source in ipairs(row.originSources or {}) do table.insert(lines, OriginSourceText(source)) end
-                else
-                    table.insert(lines, "未执行：" .. tostring(row.reason or "条件未满足"))
-                end
-                table.insert(details, Text(table.concat(lines, "\n"), { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }))
-            end
-            local categories = { relic_action_cost = "行动费用", relic_principal_return = "本金返还", relic_project_profit = "项目净报酬", relic_migration_discount = "迁居减免", relic_aid = "外部援助", relic_sale = "出售所得", relic_growth = "额外成长" }
-            for _, entry in ipairs(ledger.relicTransactions or {}) do
-                local amount = "银 " .. tostring(entry.money) .. " 两 · 粮 " .. tostring(entry.grain) .. " 石"
-                if entry.discount then amount = "本次少付 " .. tostring(entry.discount) .. " 两" end
-                table.insert(details, Text((categories[entry.category] or entry.category) .. "：" .. amount, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }))
-            end
-        end
-        local originTransactions = OriginTransactions(app.run, ledger)
-        if ledger.originIncome ~= nil or ledger.originGrain ~= nil or #originTransactions > 0 then
-            table.insert(details, Text("背景年度加成：银 " .. Signed(ledger.originIncome) .. " 两 · 学识来源 " .. tostring(ledger.originGrowth or 0) .. " · 粮 " .. Signed(ledger.originGrain) .. " 石", { fontSize = 14, fontColor = C.primary, whiteSpace = "normal" }))
-            for _, source in ipairs(ledger.originGrainSources or {}) do table.insert(details, Text(OriginSourceText(source), { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" })) end
-            for _, entry in ipairs(originTransactions) do table.insert(details, Text(OriginTransactionText(entry), { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 })) end
-        end
-        local summary
-        if ledger.relicIncome ~= nil or ledger.originIncome ~= nil then
-            summary = "年初：银 " .. tostring(start.money or ledger.beforeMoney or 0) .. " 两 · 粮 " .. tostring(start.grain or ledger.beforeGrain or 0) .. " 石\n基础收入 " .. tostring(ledger.income or 0) .. " 两 · 信物收入 " .. tostring(ledger.relicIncome or 0) .. " 两 · 背景收入 " .. tostring(ledger.originIncome or 0) .. " 两 · 培养 " .. tostring(ledger.training or 0) .. " 两 · 产业 " .. tostring(ledger.industryIncome or 0) .. " 两 · 生活 " .. tostring(ledger.livingExpense or 0) .. " 两\n粮食：需 " .. tostring(ledger.foodNeed or 0) .. " 石 · 缺 " .. tostring(ledger.foodShortfall or 0) .. " 石 · 背景加成 " .. tostring(ledger.originGrain or 0) .. " 石 · 净变 " .. tostring(ledger.netGrain or 0) .. " 石"
-        else
-            summary = "年初：银 " .. tostring(start.money or ledger.beforeMoney or 0) .. " 两 · 粮 " .. tostring(start.grain or ledger.beforeGrain or 0) .. " 石\n收入 " .. tostring(ledger.income or 0) .. " 两 · 培养 " .. tostring(ledger.training or 0) .. " 两 · 产业 " .. tostring(ledger.industryIncome or 0) .. " 两 · 生活 " .. tostring(ledger.livingExpense or 0) .. " 两\n粮食：需 " .. tostring(ledger.foodNeed or 0) .. " 石 · 缺 " .. tostring(ledger.foodShortfall or 0) .. " 石 · 净变 " .. tostring(ledger.netGrain or 0) .. " 石"
-        end
-        return Card({
-            Text("大晟历 " .. tostring(ledger.year) .. " 年账本", { fontSize = 16, fontWeight = "bold" }),
-            Text(summary, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
-            UI.Panel { gap = 8, children = details },
-        })
-    end)
+    local ledgerCards = LedgerView.Build(app)
     local originCard = BuildOriginFlowCard(app)
     if not originCard then return ledgerCards end
     return UI.Panel { gap = 10, children = { originCard, ledgerCards } }
@@ -342,10 +260,7 @@ function HistoryView.Build(app)
         Card({
             Text("家史", { fontSize = 21, fontWeight = "bold" }),
             Text("年鉴、任期、账本、事实和终章按类别保留，长记录可分页阅读。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }),
-            UI.Row { gap = 6, children = {
-                Button("导出本局", function() app:Export() end, { flex = 1, role = "primary" }),
-                Button("新立家谱", function() app:PrepareNewRun() end, { flex = 1 }),
-            } },
+            Button("新立家谱", function() app:PrepareNewRun() end, { width = "100%" }),
         }),
         UI.Row { gap = 6, children = { tab("annals", "年鉴"), tab("terms", "历任"), tab("ledgers", "账本") } },
         UI.Row { gap = 6, children = { tab("facts", "事实"), tab("endings", "终章") } },

@@ -136,7 +136,7 @@ function Start()
     print("T11_QA_PASS 生成家庭、年度交接、终章、家道散尽、只读、保存与家史重载通过 " .. cjson.encode(result))
     UI.SetRoot(UI.Panel { width = "100%", height = "100%", justifyContent = "center", padding = 18, children = {
         UI.Label { text = "T11 真实引擎整合验收通过", fontSize = 24 },
-        UI.Label { text = "· 生成合法家庭后入局保存，年度结算、交接与家史持续累积\n· 年末钱粮同归零时自动写入家道终局，人物经历继续可读\n· 重载后终章、条件记录与家史来自同一份保存", whiteSpace = "normal", lineHeight = 1.65 },
+        UI.Label { text = "· 生成合法家庭后入局保存，年度结算、交接与家史持续累积\n· 年末银两或存粮耗尽、或口粮无法补足时自动写入家道终局，人物经历继续可读\n· 重载后终章、条件记录与家史来自同一份保存", whiteSpace = "normal", lineHeight = 1.65 },
     } })
 end
 

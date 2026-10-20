@@ -6,6 +6,7 @@ local Economy = require "Jiaye.Economy"
 local OriginState = require "Jiaye.OriginState"
 local Origin = require "Jiaye.OriginSystem"
 local App = require "Jiaye.App"
+local Art = require "Jiaye.Art"
 
 local function Family(originId, job, experience)
     local profile = State.NewProfile()
@@ -13,11 +14,10 @@ local function Family(originId, job, experience)
     local draft = State.NewDraft()
     draft.family = "验收"
     draft.rulesVersion, draft.relicRulesVersion, draft.originRulesVersion = 2, "1.2", OriginState.VERSION
-    draft.artVersion = "ink_v2_review"
     draft.originId = originId
     draft.members = { draft.members[1], draft.members[2] }
     for _, member in ipairs(draft.members) do
-        member.jobId, member.experienceId, member.artVersion = job, experience, draft.artVersion
+        member.jobId, member.experienceId = job, experience
     end
     draft.selectedRelicIds = nil
     draft.selectedRelicFormIds, draft.relicUsers = { "ruler.1" }, { ["ruler.1"] = 1 }
@@ -50,7 +50,7 @@ function Start()
     saved = assert(State.Load())
     local raw = assert(State.Export(saved.profile, saved.draft, saved.run))
     local imported = assert(State.PreflightImport(raw))
-    assert(imported.run.originOpportunity.status == "settled" and imported.run.artVersion == "ink_v2_review")
+    assert(imported.run.originOpportunity.status == "settled" and Art.Portrait(imported.run.members[1]) == Art.Portrait(saved.run.members[1]))
     print("[背景机会验收] 修缮付8→暂停保存读取→换人免费恢复→真实年度→领取22→重复拒绝→保存读取导出校验通过。")
 
     profile, draft, run = Family("scholar", "study", "basic")

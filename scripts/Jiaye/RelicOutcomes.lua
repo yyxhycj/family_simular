@@ -132,7 +132,7 @@ function Outcomes.ApplyInstant(ctx, run, profile, actionId, input)
             externalLineage = State.Copy(candidate.externalLineage),
             biography = { "旁支候选于本局第 " .. tostring(candidate.discoveredRunYear) .. " 年被核实，父母资料留在外部祖先锚点。" },
         }
-        Art.Assign(newMember, run.runId, run.artVersion)
+        Art.Assign(newMember, run.runId)
         table.insert(run.members, newMember)
         State.NormalizeGenerations(run.members)
         run.metrics = run.metrics or {}

@@ -15,6 +15,31 @@ Data.AgeRules = {
     birth = { min = 21, max = 60 },
 }
 Data.WORLD_NAME = "大晟"
+Data.Worlds = {
+    {
+        id = "mortal", name = Data.WORLD_NAME, title = "山河岁月", available = true,
+        coverArt = "landscape",
+        coverRegion = { x = 400, y = 0, width = 125, height = 660 },
+        tagline = "一姓起笔，百年成卷",
+        heading = "一部由选择写成的家史",
+        description = "从一户人家开始，安排人生，守住家业，把每一次交托写进家谱。",
+    },
+    {
+        id = "capital", name = "帝京风云", available = false,
+        coverArt = "landscape", coverRegion = { x = 525, y = 0, width = 135, height = 680 },
+        tagline = "",
+    },
+    {
+        id = "silk", name = "丝路胡尘", available = false,
+        coverArt = "landscape", coverRegion = { x = 660, y = 0, width = 130, height = 730 },
+        tagline = "",
+    },
+    {
+        id = "sea", name = "海外异闻", available = false,
+        coverArt = "landscape", coverRegion = { x = 790, y = 0, width = 151, height = 800 },
+        tagline = "",
+    },
+}
 -- V7 改变了开局背景与局内家风的语义；旧 run 继续读取自身的 rulesVersion。
 Data.RULES_VERSION = 2
 
@@ -235,7 +260,7 @@ Data.Endings = {
     { id = "ruler", title = "木尺新纹", desc = "旧尺量过前人的屋，也量过后人的路。", type = "development" },
     { id = "reunion", title = "家谱再续", desc = "被折起的一页重新展开。", type = "development" },
     { id = "last", title = "家谱落笔", desc = "直到最后一位家人离开，这一局自然写到结尾。", type = "natural", automatic = true, automaticTrigger = "living_members_exhausted", automaticHint = "全体在世族人归零后自动写入", automaticFact = "全员离世，家谱自然落笔。" },
-    { id = "collapse", title = "家道散尽", desc = "公库与存粮一同耗尽，家人只得各自另谋生路。", type = "natural", automatic = true, automaticTrigger = "resources_exhausted", automaticHint = "年度结算后公库与存粮同时归零时自动写入", automaticFact = "公库与存粮同时耗尽，家人离散，家谱在此落笔。" },
+    { id = "collapse", title = "家道散尽", desc = "年末公库或存粮耗尽，或钱粮兑换仍无法补足口粮，家人只得各自另谋生路。", type = "natural", automatic = true, automaticTrigger = "resources_exhausted", automaticHint = "年末银两或存粮≤0，或无法补足口粮时自动写入；条件满足任一项即可", automaticFact = "年末钱粮无以为继，家人离散，家谱在此落笔。" },
 }
 
 function Data.Find(list, id)

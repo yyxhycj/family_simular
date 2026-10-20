@@ -152,73 +152,100 @@ end
 
 local function BuildDrawerIdentity(app, member)
     local spouse = member.spouseId and State.FindMember(app.run.members, member.spouseId)
-    local currentJob = Data.Jobs[member.jobId]
-    local relation = spouse and ("已婚 · 配偶 " .. spouse.name) or "未婚 · 可安排婚配"
-    return UI.Panel {
-        gap = 7,
+    local canMarry, marriageReason = Simulation.GetMarriageReason(app.run, member.id)
+    local relation = spouse and ("已婚 · 配偶 " .. spouse.name)
+        or ("未婚 · " .. (canMarry and "可安排婚配" or marriageReason))
+    return UI.Row {
+        gap = 13, alignItems = "center", paddingRight = 24,
         children = {
-            UI.Row {
-                gap = 10, alignItems = "center",
-                children = {
-                    Visual.Portrait(member, {
-                        size = 58, detail = true, deceased = not member.alive,
-                        sick = member.alive and (member.health or 0) < 35,
-                        leader = member.id == app.run.leaderId,
-                    }),
-                    UI.Panel {
-                        flex = 1, minWidth = 0, gap = 2,
-                        children = {
-                            Text(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 22, fontWeight = "bold" }),
-                            Text((currentJob and currentJob.name or "未安排") .. " · " .. (member.alive and "在世" or "生平已封存"), { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }),
-                        },
-                    },
-                },
-            },
+            Visual.Portrait(member, {
+                size = 58, detail = true, deceased = not member.alive,
+                sick = member.alive and (member.health or 0) < 35,
+                leader = member.id == app.run.leaderId,
+            }),
             UI.Panel {
-                paddingHorizontal = 10, paddingVertical = 6, alignSelf = "flex-start",
-                backgroundColor = C.selected, borderRadius = 999, borderWidth = 1, borderColor = C.rule,
-                children = { Text(relation, { fontSize = 13, fontColor = spouse and C.danger or C.secondary }) },
+                flex = 1, minWidth = 0, gap = 5,
+                children = {
+                    Text(member.name .. " · " .. tostring(member.age) .. " 岁", { fontSize = 25, fontWeight = "bold", whiteSpace = "normal" }),
+                    Text(relation, { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 }),
+                },
             },
         },
     }
 end
 
-local function RouteCard(route, selected, onClick)
+local function BuildCurrentArrangement(run, member)
+    local job = Data.Jobs[member.jobId]
+    local active = member.alive and not run.ending
+    local ongoing = active and job ~= nil
+    local detail = ongoing and "推进年份时继续，无须重复安排。"
+        or (active and "选择一项具体安排。" or (run.ending and "本局已落笔，人物经历与关系均可阅读。" or "这位族人的生平已经封存。"))
     return UI.Panel {
-        minHeight = 64, padding = 10, gap = 10, flexDirection = "row", alignItems = "center",
-        backgroundColor = selected and C.selected or C.paperLight,
-        borderWidth = selected and 2 or 1, borderColor = selected and C.primary or C.rule,
-        borderRadius = V7.Tokens.buttonRadius, pointerEvents = "box-only", onClick = onClick,
+        id = "member-current-arrangement", paddingHorizontal = 18, paddingVertical = 15, gap = 7,
+        backgroundColor = C.selected, borderLeftWidth = 3, borderLeftColor = C.primary,
         children = {
-            Visual.Icon(route.icon, 25, selected and "ink" or "muted"),
-            UI.Panel {
-                flex = 1, minWidth = 0, gap = 2,
-                children = {
-                    Text(route.title, { fontSize = 18, fontWeight = "bold" }),
-                    Text(route.detail, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.35 }),
-                },
-            },
-            selected and Text("已选", { fontSize = 12, fontColor = C.primary }) or Visual.Icon("forward", 17, "muted"),
+            UI.Row { alignItems = "center", justifyContent = "space-between", gap = 10, children = {
+                Text(active and "当前安排" or "最后安排", { fontSize = 13, fontColor = C.primary }),
+                Text(ongoing and "· 持续中" or (active and "待安排" or "已封存"), { id = "member-current-status", fontSize = 13, fontColor = C.primary }),
+            } },
+            Text(job and job.name or "尚未安排", { id = "member-current-job", fontSize = 24, whiteSpace = "normal" }),
+            Text(detail, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 }),
         },
     }
 end
 
-local function ActionCard(icon, title, detail, status, available, onClick, selected)
+local function RouteCard(route, availableCount, status, detail, onClick)
+    local available = availableCount > 0
+    local badge = available and UI.Panel {
+        paddingHorizontal = 7, paddingVertical = 3, backgroundColor = C.selected, borderRadius = 3,
+        children = { Text(tostring(availableCount) .. " 项可安排", { id = "member-route-count-" .. route.id, fontSize = 12, fontColor = C.primary }) },
+    } or Text(status, { fontSize = 12, fontColor = C.disabledInk })
+    return UI.Panel {
+        id = "member-route-" .. route.id,
+        minHeight = 96, paddingHorizontal = 14, paddingVertical = 16, gap = 12, flexDirection = "row", alignItems = "center",
+        backgroundColor = available and C.paperLight or { 238, 235, 223, 255 },
+        borderWidth = 1, borderColor = available and C.rule or { 216, 210, 192, 255 },
+        borderRadius = V7.Tokens.buttonRadius, disabled = not available,
+        pointerEvents = available and "box-only" or "none", onClick = available and onClick or nil,
+        children = {
+            Visual.Icon(route.icon, 25, available and "ink" or "muted"),
+            UI.Panel {
+                flex = 1, minWidth = 0, gap = 6,
+                children = {
+                    UI.Row { gap = 8, flexWrap = "wrap", alignItems = "center", children = {
+                        Text(route.title, { fontSize = 20, fontColor = available and C.ink or C.disabledInk }),
+                        badge,
+                    } },
+                    Text(detail, { fontSize = 13, fontColor = available and C.secondary or C.disabledInk, whiteSpace = "normal", lineHeight = 1.6 }),
+                },
+            },
+            Visual.Icon(available and "forward" or "lock", 17, available and "ink" or "muted"),
+        },
+    }
+end
+
+local function ActionOption(icon, title, detail, status, available, onClick, selected)
+    return { icon = icon, title = title, detail = detail, status = status, available = available, onClick = onClick, selected = selected }
+end
+
+local function ActionCard(option)
+    local available = option.available and not option.selected
     local indicator = available and Visual.Icon("forward", 17, "ink")
-        or (selected and Text("当前", { fontSize = 12, fontColor = C.primary }) or Visual.Icon("lock", 17, "muted"))
+        or (option.selected and Text("当前安排", { fontSize = 12, fontColor = C.primary }) or Visual.Icon("lock", 17, "muted"))
     return UI.Panel {
         minHeight = 70, padding = 10, gap = 10, flexDirection = "row", alignItems = "center",
-        backgroundColor = selected and C.selected or C.paperLight,
-        borderWidth = selected and 2 or 1, borderColor = selected and C.primary or C.rule,
-        borderRadius = V7.Tokens.buttonRadius, pointerEvents = "box-only", onClick = onClick,
+        backgroundColor = option.selected and C.selected or C.paperLight,
+        borderWidth = option.selected and 2 or 1, borderColor = option.selected and C.primary or C.rule,
+        borderRadius = V7.Tokens.buttonRadius, disabled = not available,
+        pointerEvents = available and "box-only" or "none", onClick = available and option.onClick or nil,
         children = {
-            Visual.Icon(icon, 24, available and "ink" or "muted"),
+            Visual.Icon(option.icon, 24, available and "ink" or "muted"),
             UI.Panel {
                 flex = 1, minWidth = 0, gap = 2,
                 children = {
-                    Text(title, { fontSize = 17, fontWeight = "bold", whiteSpace = "normal" }),
-                    Text(detail, { fontSize = 12, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.3 }),
-                    Text(status, { fontSize = 12, fontColor = available and C.primary or C.secondary, whiteSpace = "normal" }),
+                    Text(option.title, { fontSize = 17, fontWeight = "bold", whiteSpace = "normal" }),
+                    Text(option.detail, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 }),
+                    Text(option.status, { fontSize = 12, fontColor = available and C.primary or C.secondary, whiteSpace = "normal" }),
                 },
             },
             indicator,
@@ -234,7 +261,7 @@ local function AppendJobActions(app, member, route, drawer, children)
             local available, reason = Simulation.GetJobReason(member, jobId)
             local selected = member.jobId == jobId
             local status = selected and "当前安排" or (available and "当前可安排" or reason)
-            table.insert(children, ActionCard(route.icon, job.name, job.desc, status, available and not selected, function()
+            table.insert(children, ActionOption(route.icon, job.name, job.desc, status, available and not selected, function()
                 if selected then
                     app:Notify("此人已经在做这份安排。", "info")
                 elseif available then
@@ -250,7 +277,7 @@ end
 local function AppendStudyActions(app, member, drawer, children)
     if not State.IsAdult(member) then return end
     local available, reason = Simulation.GetExamReason(app.run, member.id)
-    table.insert(children, ActionCard("info", "应试 · 10 两", "以学识与本局时运决定结果，完整写入经历。", available and "当前可安排" or reason, available, function()
+    table.insert(children, ActionOption("info", "应试 · 10 两", "以学识与本局时运决定结果，完整写入经历。", available and "当前可安排" or reason, available, function()
         if available then
             app:ConfirmRunAction("确认应试 · " .. member.name, "成本：10 两盘缠。结果由本人的学识与本局随机结果共同决定，并完整写入人生经历。", function()
                 return Simulation.TakeExam(app.run, member.id)
@@ -261,16 +288,12 @@ local function AppendStudyActions(app, member, drawer, children)
     end))
 end
 
-local function AppendFamilyActions(app, member, drawer, children)
+local function AppendMarriageAction(app, member, drawer, children)
     local run = app.run
-    if not State.IsAdult(member) then
-        table.insert(children, Text("幼年阶段以随家人生活和休养为主；成年后再开放婚配、收养与托付。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }))
-        return
-    end
     local spouse = member.spouseId and State.FindMember(run.members, member.spouseId)
     local canMarry, marriageReason = Simulation.GetMarriageReason(run, member.id)
     local marriageStatus = spouse and ("已与" .. spouse.name .. "结为配偶") or (canMarry and "当前可安排" or marriageReason)
-    table.insert(children, ActionCard("relationship", "安排婚配 · 12 两", "新配偶加入家谱，关系与事实一并保存。", marriageStatus, canMarry, function()
+    table.insert(children, ActionOption("relationship", "安排婚配 · 12 两", "新配偶加入家谱，关系与事实一并保存。", marriageStatus, canMarry, function()
         if canMarry then
             app:ConfirmRunAction("确认婚配 · " .. member.name, "成本：12 两安置费。结果：新配偶加入家谱，原有族人资料保持不变。", function()
                 return Simulation.Marry(app.run, member.id)
@@ -279,9 +302,17 @@ local function AppendFamilyActions(app, member, drawer, children)
             app:Notify(marriageStatus, "warning")
         end
     end))
+end
 
+local function AppendFamilyActions(app, member, drawer, children)
+    local run = app.run
+    if not State.IsAdult(member) then
+        table.insert(children, { hint = "婚配、收养与托付需满 " .. tostring(Data.AgeRules.adult) .. " 岁；当前可以随家人生活和休养。" })
+        return
+    end
+    AppendMarriageAction(app, member, drawer, children)
     local canAdopt, adoptionReason = Simulation.GetAdoptionReason(run, member.id)
-    table.insert(children, ActionCard("people", "收养孩子 · 8 两", "孩子入谱后拥有成长与继任资格。", canAdopt and "当前可安排" or adoptionReason, canAdopt, function()
+    table.insert(children, ActionOption("people", "收养孩子 · 8 两", "孩子入谱后拥有成长与继任资格。", canAdopt and "当前可安排" or adoptionReason, canAdopt, function()
         if canAdopt then
             app:ConfirmRunAction("确认收养 · " .. member.name, "成本：8 两安置费。结果：孩子加入家谱，拥有与其他族人同等的成长与继任资格。", function()
                 return Simulation.Adopt(app.run, member.id)
@@ -294,7 +325,7 @@ local function AppendFamilyActions(app, member, drawer, children)
     local canPlanBirth, birthReason = State.CanPlanBirth(member, run.members)
     local birthLabel = member.birthPlan == false and "愿意迎接孩子" or "暂缓迎接孩子"
     local birthDetail = member.birthPlan == false and "记录愿意迎接孩子，双方同意后进入年度结算。" or "暂缓计划，其他人物资料保持不变。"
-    table.insert(children, ActionCard("relationship", birthLabel, birthDetail, canPlanBirth and "当前可安排" or birthReason, canPlanBirth, function()
+    table.insert(children, ActionOption("relationship", birthLabel, birthDetail, canPlanBirth and "当前可安排" or birthReason, canPlanBirth, function()
         if canPlanBirth then
             local nextPlan = member.birthPlan == false
             app:ConfirmRunAction("确认添丁计划 · " .. member.name, nextPlan and "结果：记录为愿意迎接孩子；两位配偶都愿意后，才会进入后续年度结算。" or "结果：记录为暂缓计划，当前族人其他资料保持不变。", function()
@@ -311,7 +342,7 @@ local function AppendFamilyActions(app, member, drawer, children)
             local definition = RelicState.IsNew(run) and RelicState.Form(relic) or Data.Relic(relic.definitionId)
             if definition then
                 hasRelic = true
-                table.insert(children, ActionCard("relics", "托付" .. definition.name, "由" .. member.name .. "保管，调查进度保持不变。", "当前可托付", true, function()
+                table.insert(children, ActionOption("relics", "托付" .. definition.name, "由" .. member.name .. "保管，调查进度保持不变。", "当前可托付", true, function()
                     app:ConfirmRunAction("确认更换保管人", "物件：" .. definition.name .. "\n结果：保管人改为" .. member.name .. "，当前调查进度保持不变。", function()
                         return Simulation.TransferRelic(app.run, relic.instanceId, member.id)
                     end, "确认托付", drawer)
@@ -320,17 +351,17 @@ local function AppendFamilyActions(app, member, drawer, children)
         end
     end
     if not hasRelic then
-        table.insert(children, Text("当前没有可托付给此人的信物。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal" }))
+        table.insert(children, { hint = "当前没有可托付给此人的信物。" })
     end
 end
 
 local function AppendLeadershipActions(app, member, drawer, children)
     if not State.IsAdult(member) then
-        table.insert(children, Text("成年后才可承担族务。", { fontSize = 13, fontColor = C.secondary }))
+        table.insert(children, { hint = "需满 " .. tostring(Data.AgeRules.adult) .. " 岁后承担族务。" })
         return
     end
     local available, reason = Simulation.GetLeaderReason(app.run, member.id)
-    table.insert(children, ActionCard("leader", "任命为族长", "开始新的族长任期，现有安排与资产保持原样。", available and "当前可安排" or reason, available, function()
+    table.insert(children, ActionOption("leader", "任命为族长", "开始新的族长任期，现有安排与资产保持原样。", available and "当前可安排" or reason, available, function()
         if available then
             app:ConfirmRunAction("确认交接 · " .. member.name, "结果：开始新的族长任期，现有安排与资产保持原样。", function()
                 return Simulation.AppointLeader(app.run, member.id, "主动交接")
@@ -341,24 +372,61 @@ local function AppendLeadershipActions(app, member, drawer, children)
     end))
 end
 
+local function BuildRouteOptions(app, member, route, drawer)
+    local options = {}
+    if not member.alive or app.run.ending then return options end
+    AppendJobActions(app, member, route, drawer, options)
+    if route.id == "study" then
+        AppendStudyActions(app, member, drawer, options)
+    elseif route.id == "family" then
+        AppendFamilyActions(app, member, drawer, options)
+    elseif route.id == "leadership" then
+        AppendLeadershipActions(app, member, drawer, options)
+    end
+    return options
+end
+
+local function RouteSummary(run, member, route, options)
+    if run.ending then return 0, "已封存", "本局已落笔，人物经历与关系均可阅读。" end
+    if not member.alive then return 0, "已封存", "这位族人的生平已经封存。" end
+    local count, ongoing = 0, false
+    local reasons, seen = {}, {}
+    for _, option in ipairs(options) do
+        if option.selected then
+            ongoing = true
+        elseif option.available then
+            count = count + 1
+        else
+            local reason = option.hint or option.status
+            if reason and reason ~= "" and not seen[reason] then
+                seen[reason] = true
+                table.insert(reasons, reason)
+            end
+        end
+    end
+    if count > 0 then return count, "", route.detail end
+    if ongoing then return 0, "暂无其他选择", "当前" .. Data.Jobs[member.jobId].name .. "，本年安排将继续。" end
+    if #reasons == 0 then
+        local minAge = math.huge
+        for _, jobId in ipairs(route.jobIds) do minAge = math.min(minAge, Data.Jobs[jobId].min) end
+        if member.age < minAge then return 0, "暂不可安排", "需满 " .. tostring(minAge) .. " 岁后开放。" end
+    end
+    return 0, "暂不可安排", #reasons > 0 and table.concat(reasons, " ") or "暂无符合条件的安排。"
+end
+
 local function BuildRouteActions(app, member, route, drawer)
     local children = {
-        Text(route.title, { fontSize = 21, fontWeight = "bold" }),
+        BuildCurrentArrangement(app.run, member),
         Text(route.detail, { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }),
     }
     if not member.alive or app.run.ending then
         table.insert(children, ActionStatus("当前无法调整", app.run.ending and "本局已落笔，人物经历与关系均可阅读。" or "这位族人的生平已经封存。"))
-        return UI.Panel { gap = 9, children = children }
+    else
+        for _, option in ipairs(BuildRouteOptions(app, member, route, drawer)) do
+            table.insert(children, option.hint and Text(option.hint, { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.45 }) or ActionCard(option))
+        end
     end
-    AppendJobActions(app, member, route, drawer, children)
-    if route.id == "study" then
-        AppendStudyActions(app, member, drawer, children)
-    elseif route.id == "family" then
-        AppendFamilyActions(app, member, drawer, children)
-    elseif route.id == "leadership" then
-        AppendLeadershipActions(app, member, drawer, children)
-    end
-    return UI.Panel { gap = 8, children = children }
+    return UI.Panel { gap = 10, children = children }
 end
 
 local function BuildLife(app, member, page, setPage)
@@ -425,21 +493,35 @@ function MemberView.Open(app, memberId)
         local content
         if page == "routes" then
             local routeCards = {}
+            local sections = { BuildCurrentArrangement(app.run, member) }
+            if member.alive and State.IsAdult(member) and not member.spouseId and not app.run.ending then
+                local marriageOptions = {}
+                AppendMarriageAction(app, member, drawer, marriageOptions)
+                table.insert(sections, ActionCard(marriageOptions[1]))
+            end
             for _, route in ipairs(LIFE_ROUTES) do
-                table.insert(routeCards, RouteCard(route, route.id == selectedRoute, function()
+                local options = BuildRouteOptions(app, member, route, drawer)
+                local count, status, detail = RouteSummary(app.run, member, route, options)
+                table.insert(routeCards, RouteCard(route, count, status, detail, function()
                     selectedRoute = route.id
                     page = "actions"
                     render()
                 end))
             end
+            table.insert(sections, UI.Panel { gap = 12, children = {
+                UI.Row { gap = 6, flexWrap = "wrap", justifyContent = "space-between", alignItems = "baseline", children = {
+                    Text("调整安排", { fontSize = 20, fontWeight = "bold" }),
+                    Text("选择一项具体事务", { fontSize = 12, fontColor = C.secondary }),
+                } },
+                UI.Panel { id = "member-arrangement-routes", gap = 10, children = routeCards },
+            } })
             content = UI.Panel {
-                width = "100%", height = "100%", flexDirection = "column", gap = 10,
+                width = "100%", height = "100%", flexDirection = "column", gap = 18,
                 children = {
                     BuildDrawerIdentity(app, member),
-                    Text("这一年，要让她走向哪里？", { fontSize = 21, fontWeight = "bold", whiteSpace = "normal" }),
                     UI.ScrollView {
                         flexGrow = 1, flexBasis = 0, scrollX = false, showScrollbar = false,
-                        children = { UI.Panel { gap = 8, children = routeCards } },
+                        children = { UI.Panel { gap = 22, children = sections } },
                     },
                     UI.Panel {
                         flexShrink = 0, gap = 6,
@@ -459,7 +541,7 @@ function MemberView.Open(app, memberId)
                 children = {
                     BuildDrawerIdentity(app, member),
                     UI.Row { gap = 8, alignItems = "center", children = {
-                        Button("返回方向", function() setPage("routes") end, { height = 36, fontSize = 13, role = "secondary" }),
+                        Button("返回分类", function() setPage("routes") end, { height = 36, fontSize = 13, role = "secondary" }),
                         Text(route.title, { flex = 1, fontSize = 18, fontWeight = "bold", textAlign = "right" }),
                     } },
                     UI.ScrollView {
@@ -507,15 +589,26 @@ function MemberView.Open(app, memberId)
     end
 
     drawer = UI.Drawer {
-        position = "bottom", size = math.floor(UI.GetHeight() * 0.62),
+        id = "member-arrangement-drawer",
+        position = "bottom", size = math.floor(UI.GetHeight() * 0.91),
         showOverlay = true, overlayOpacity = 0.58, animationDuration = 0.22,
         showCloseButton = true, closeIconColor = C.ink,
         backgroundColor = C.paper, backgroundImage = V7.Images.paperTexture,
         backgroundImageOpacity = 1, backgroundFit = "cover",
         borderWidth = 1, borderColor = C.gold, borderRadius = V7.Tokens.sheetTopRadius,
-        contentPadding = { 14, 14 },
+        contentPadding = { 20, 20 },
         onClose = function(selfDrawer) selfDrawer:Destroy() end,
     }
+    local updateDrawer = drawer.Update
+    local function updateContent(widget, dt)
+        if widget.Update then widget:Update(dt) end
+        for _, child in ipairs(widget:GetChildren()) do updateContent(child, dt) end
+    end
+    function drawer:Update(dt)
+        self.size_ = math.floor(UI.GetHeight() * 0.91)
+        updateDrawer(self, dt)
+        for _, child in ipairs(self:GetHitTestChildren()) do updateContent(child, dt) end
+    end
     local root = assert(UI.GetRoot(), "人生安排抽屉缺少游戏根节点。")
     root:AddChild(drawer)
     render()

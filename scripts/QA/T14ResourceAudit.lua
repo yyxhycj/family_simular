@@ -1,4 +1,4 @@
--- T14 资源审计入口；正式 main.lua 不引用。只检查实际解析器返回的运行时资源路径。
+-- T14 资源审计入口；正式 main.lua 不引用。加载实际解析器返回的运行资源。
 ---@diagnostic disable: undefined-global
 local UI = require "urhox-libs/UI"
 local Art = require "Jiaye.Art"
@@ -9,24 +9,23 @@ local missing = {}
 
 local function Check(path, source, resourceType)
     assert(type(path) == "string" and path ~= "", source .. " 返回空资源路径。")
-    table.insert(checked, { path = path, source = source, resourceType = resourceType or "Texture2D" })
-    local info = cache:GetResInfo(path)
-    if not info or info.fsPath ~= path then table.insert(missing, { path = path, source = source }) end
+    table.insert(checked, { path = path, source = source, resourceType = resourceType or "Image" })
+    local resource = cache:GetResource(resourceType or "Image", path)
+    if not resource then table.insert(missing, { path = path, source = source }) end
 end
 
-local function Member(artId, age, version)
-    return { id = artId .. ":audit", artId = artId, artVersion = version, sex = artId:find("_m", 1, true) and "男" or "女", age = age, alive = true }
+local function Member(artId, age)
+    return { id = artId .. ":audit", artId = artId, sex = artId:find("_m", 1, true) and "男" or "女", age = age, alive = true }
 end
 
 local portraitIds = { "portrait_m01", "portrait_m02", "portrait_f01", "portrait_f02" }
 local stages = { { "infant", 2 }, { "child", 9 }, { "young", 20 }, { "adult", 35 }, { "elder", 65 } }
-local versions = { "1.0.0", "ink_v2_review", "ink_v3_formal" }
 local eventTypes = {
     "medical_find", "notes_choice", "plan_work", "community_request", "school", "roof",
     "jade_search", "leader", "migration", "invite_branch", "legacy_pending",
 }
 local relicIds = { "book", "newbook", "ruler", "letter", "plan", "jade", "notes" }
-local reviewRelicIds = {
+local relicFormIds = {
     "genealogy.1", "genealogy.2", "genealogy.3", "ruler.1", "ruler.2", "ruler.3",
     "letter.1", "letter.2", "letter.3", "plan.1", "plan.2", "plan.3",
     "jade.1", "jade.2", "jade.3.heirloom", "jade.3.alliance", "notes.1", "notes.2",
@@ -34,39 +33,35 @@ local reviewRelicIds = {
 }
 
 local function AuditArtPaths()
-    for _, version in ipairs(versions) do
-        for _, portraitId in ipairs(portraitIds) do
-            for _, stage in ipairs(stages) do
-                local member = Member(portraitId, stage[2], version)
-                Check(Art.Portrait(member, "normal"), version .. " 人物普通头像/" .. portraitId .. "/" .. stage[1])
-                Check(Art.Portrait(member, "detail"), version .. " 人物详情头像/" .. portraitId .. "/" .. stage[1])
-                member.health = 20
-                Check(Art.Portrait(member, "normal", "sick"), version .. " 人物病弱头像/" .. portraitId .. "/" .. stage[1])
-                member.alive = false
-                member.ageAtDeath = stage[2]
-                Check(Art.Portrait(member, "normal"), version .. " 人物已故头像/" .. portraitId .. "/" .. stage[1])
-            end
+    for _, portraitId in ipairs(portraitIds) do
+        for _, stage in ipairs(stages) do
+            local member = Member(portraitId, stage[2])
+            local path = Art.Portrait(member)
+            Check(path, "人物头像/" .. portraitId .. "/" .. stage[1])
+            member.alive, member.ageAtDeath, member.age = false, member.age, 92
+            assert(Art.Portrait(member) == path, "已故人物头像年龄改变。")
         end
+    end
 
-        for _, homeId in ipairs({ "rented", "simple", "courtyard", "estate" }) do
-            for _, state in ipairs({ "normal", "damaged", "upgraded", "relocated" }) do
-                Check(Art.House(homeId, state, version), version .. " 家宅/" .. homeId .. "/" .. state)
-            end
+    for _, homeId in ipairs({ "rented", "simple", "courtyard", "estate" }) do
+        for _, state in ipairs({ "normal", "damaged", "upgraded", "relocated" }) do
+            Check(Art.House(homeId, state), "家宅/" .. homeId .. "/" .. state)
         end
+    end
 
-        for _, eventType in ipairs(eventTypes) do
-            Check(Art.Event({ type = eventType }, nil, version), version .. " 事件/" .. eventType)
-        end
-        Check(Art.Event({ type = "growth", jobId = "doctor" }, nil, version), version .. " 事件/growth-doctor")
-        Check(Art.Event({ type = "growth", jobId = "craft" }, nil, version), version .. " 事件/growth-craft")
-        Check(Art.Event({ type = "growth", jobId = "farm" }, nil, version), version .. " 事件/growth-study")
-        for _, relicId in ipairs(version ~= "1.0.0" and reviewRelicIds or relicIds) do
-            Check(Art.Relic(relicId, version), version .. " 信物/" .. relicId)
-        end
+    for _, eventType in ipairs(eventTypes) do
+        Check(Art.Event({ type = eventType }), "事件/" .. eventType)
+    end
+    Check(Art.Event({ type = "growth", jobId = "doctor" }), "事件/growth-doctor")
+    Check(Art.Event({ type = "growth", jobId = "craft" }), "事件/growth-craft")
+    Check(Art.Event({ type = "growth", jobId = "farm" }), "事件/growth-study")
+    for _, relicId in ipairs(relicIds) do Check(Art.Relic(relicId), "信物/" .. relicId) end
+    for _, relicId in ipairs(relicFormIds) do
+        Check(Art.Relic(relicId), "信物/" .. relicId)
     end
 end
 
-local function AuditLegacyUiPaths()
+local function AuditUiPaths()
     for _, role in ipairs({ "primary", "secondary", "danger" }) do
         for _, state in ipairs({ "default", "pressed", "selected", "disabled", "focus", "confirm", "busy" }) do
             Check(Art.Button(role, state), "按钮/" .. role .. "/" .. state)
@@ -115,7 +110,7 @@ end
 function Audit.Start()
     UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
     AuditArtPaths()
-    AuditLegacyUiPaths()
+    AuditUiPaths()
     AuditFonts()
     Finish()
 end

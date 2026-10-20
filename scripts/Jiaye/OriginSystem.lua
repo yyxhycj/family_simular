@@ -1,5 +1,6 @@
 local Data = require "Jiaye.Data"
 local State = require "Jiaye.State"
+local Economy = require "Jiaye.Economy"
 local OriginState = require "Jiaye.OriginState"
 local RelicState = require "Jiaye.RelicState"
 local RelicSystem = require "Jiaye.RelicSystem"
@@ -336,7 +337,7 @@ function O.Tick(run, yearStart, ledger)
     for _, entry in ipairs(run.originTransactions) do if entry.yearIndex == run.yearIndex then table.insert(ledger.originTransactions, State.Copy(entry)) end end
     ledger.money, ledger.grain = run.money, run.grain
     ledger.netMoney, ledger.netGrain = run.money - ledger.beforeMoney, run.grain - ledger.beforeGrain
-    ledger.resourcesExhausted = run.money == 0 and run.grain == 0
+    ledger.resourcesExhausted = Economy.IsFamilyCollapsed(run, ledger)
     o.lastProcessedYear = run.yearIndex
 end
 

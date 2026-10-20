@@ -4,6 +4,7 @@ local State = require "Jiaye.State"
 local Simulation = require "Jiaye.Simulation"
 local Opening = require "Jiaye.Opening"
 local OpeningView = require "Jiaye.OpeningView"
+local CoverView = require "Jiaye.CoverView"
 local OpeningEditor = require "Jiaye.OpeningEditor"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
@@ -17,6 +18,8 @@ local RelicV12View = require "Jiaye.RelicV12View"
 local RelicState = require "Jiaye.RelicState"
 local OriginView = require "Jiaye.OriginView"
 local ModalLayout = require "Jiaye.ModalLayout"
+local CloudSave = require "Jiaye.CloudSave"
+local CloudSaveView = require "Jiaye.CloudSaveView"
 
 local App = {}
 App.__index = App
@@ -139,7 +142,7 @@ function App:Init()
     self.draft = State.NewDraft()
     self.run = nil
     self.screen = "cover"
-    self.coverView = "home"
+    self.coverWorldId = "mortal"
     self.openingPage = "world"
     self.openingView = "summary"
     self.gameTab = "family"
@@ -176,18 +179,100 @@ function App:Notify(message, variant)
     UI.Toast.Show(message, { variant = variant or "info", duration = 2.2, showClose = false })
 end
 
-function App:Save()
+function App:EnableCloudSave(key)
+    local legacy = key == nil and State.Load() or nil
+    self.cloud = CloudSave.New(legacy, function(payload) self:ApplyCloudSave(payload) end, function() self:CloudChanged() end, key)
+    self.cloud.legacyInvalid = key == nil and self.storageBlocked
+    self.cloudWasBlocked = true
+    self.cloudConflictRevision = ""
+    self.autoSaveElapsed = 0
+    self.autoSaveSnapshot = nil
+end
+
+function App:ApplyCloudSave(payload)
+    if payload then
+        self.profile, self.draft, self.run = payload.profile, payload.draft, payload.run
+    else
+        self.profile = State.NewProfile()
+        self.draft = assert(Opening.Generate(self.profile, Opening.FreshSeed(), "mortal"))
+        self.run = nil
+    end
+    self.screen = self.screen == "game" and self.run and "game" or "cover"
+    self.gameTab = "family"
+    self.previousDraft = nil
+    self.openingEditDraft = nil
+    self.memberEditing = nil
+    self.startConfirmationOpen = false
+    self.openingGenerationFailed = false
+    self.openingFeedback = ""
+    self.openingView = "summary"
+    self.undo, self.peopleSelected, self.memberLifePages, self.historyPages = {}, {}, {}, {}
+    self.familyGeneration, self.historyPage = 0, 1
+    self.historySection = "annals"
+    self.storageBlocked, self.unsaved, self.saveMessage = false, false, ""
+    self.autoSaveSnapshot = payload and State.Copy({ profile = self.profile, draft = self.draft, run = self.run }) or nil
+    self:Render()
+end
+
+function App:CloudChanged()
+    if not self.cloud then return end
+    local conflictRevision = self.cloud.conflict and (self.cloud.remote and self.cloud.remote.revision or "missing") or ""
+    if self.cloudWasBlocked ~= self.cloud.blocked or self.cloudConflictRevision ~= conflictRevision then
+        self.cloudWasBlocked, self.cloudConflictRevision = self.cloud.blocked, conflictRevision
+        self:Render()
+    else
+        CloudSaveView.Refresh(self)
+    end
+end
+
+function App:Persist(profile, draft, run)
+    if self.cloud and self.cloud.blocked then return false, self.cloud.message end
+    local metadata = self.cloud and { cloudSync = self.cloud:NextMetadata() } or nil
+    local ok, message, payload = State.Save(profile, draft, run, metadata)
+    if ok then
+        self.autoSaveSnapshot = State.Copy({ profile = profile, draft = draft, run = run })
+        if self.cloud then self.cloud:Queue(assert(payload)) end
+    end
+    return ok, message
+end
+
+function App:Save(silent)
+    if self.cloud and self.cloud.blocked then
+        if not silent then self:Notify(self.cloud.message, "warning") end
+        return false
+    end
     if self.storageBlocked then self:Notify(self.saveMessage, "error"); return false end
     -- 试配新家庭期间，手动存档仍保存旧局的草案；取消不会把候选写进旧局。
-    local ok, message = State.Save(self.profile, self.previousDraft or self.draft, self.run)
+    local ok, message = self:Persist(self.profile, self.previousDraft or self.draft, self.run)
     self.unsaved = not ok; self.saveMessage = ok and "" or message
-    self:Render()
-    self:Notify(message, ok and "success" or "error")
+    if not silent or not ok then self:Render(); self:Notify(message, ok and "success" or "error") end
     return ok
 end
 
+function App:AutoSave()
+    if not self.cloud or self.cloud.blocked or self.unsaved or self.storageBlocked or self.openingGenerationFailed then return end
+    if self.openingEditDraft or self.memberEditing or (not self.run and self.screen ~= "opening") then return end
+    local current = { profile = self.profile, draft = self.previousDraft or self.draft, run = self.run }
+    if not Opening.Equal(current, self.autoSaveSnapshot) and #State.ValidateDraft(current.draft, current.profile, true) == 0 then self:Save(true) end
+end
+
+function App:UpdateCloud(dt)
+    if not self.cloud then return end
+    self.autoSaveElapsed = self.autoSaveElapsed + dt
+    if self.autoSaveElapsed >= 2 then self.autoSaveElapsed = 0; self:AutoSave() end
+    self.cloud:Update(dt, self.screen == "cover")
+end
+
+function App:FlushCloud()
+    if not self.cloud then return end
+    self:AutoSave()
+    self.cloud:Retry()
+    self.cloud:Update(0, true)
+end
+
 function App:Load()
-    if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存或导出，避免丢失。", "warning"); return end
+    if self.cloud and self.cloud.blocked then self:Notify(self.cloud.message, "warning"); return end
+    if self.unsaved then self:Notify("当前安排尚未保存，请先重试保存，避免丢失。", "warning"); return end
     local value, message, status = State.Load()
     if not value then self:Notify(message, "warning"); return end
     self.profile, self.draft, self.run = value.profile, value.draft, value.run
@@ -199,62 +284,29 @@ function App:Load()
     self:Render(); self:Notify(message, status == "recovered" and "warning" or "success")
 end
 
-function App:Export()
-    local raw, message = State.Export(self.profile, self.previousDraft or self.draft, self.run)
-    if not raw then self:Notify(message, "error"); return end
-    self:Notify(message, "success")
-    local externalPath = State.ExternalExportPath()
-    local backupField = UI.TextField {
-        value = raw, maxLength = math.max(#raw, 1), height = 180, fontSize = 12,
-        placeholder = "家谱备份 JSON",
-    }
-    local modal = ModalLayout.New("保存家谱备份", { sheet = "full", closeOnOverlay = true })
-    local body = UI.Panel { gap = 10 }
-    body:AddChild(Label(message, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
-    body:AddChild(Label("备份共 " .. tostring(#raw) .. " 字节。跨应用、跨设备传递以用户文档中的 JSON 文件为准：可打开文件后用系统文件应用复制、发送或保存。页面复制只作便捷尝试，游戏内回读不能证明外部应用已收到。", { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }))
-    body:AddChild(externalPath and Label("文件位置：" .. externalPath, { fontSize = 13, fontColor = C.muted, whiteSpace = "normal" }) or Label("当前环境没有用户文档目录，请使用下方可见备份内容完成传递。", { fontSize = 13, fontColor = C.warning, whiteSpace = "normal" }))
-    body:AddChild(Label("备份内容（可长按或点入后全选）：", { fontSize = 14, fontWeight = "bold" }))
-    body:AddChild(backupField)
-    body:AddChild(Button("打开用户文档备份", function()
-            local opened, _, openMessage = State.OpenExternalExport()
-            self:Notify(openMessage, opened and "success" or "warning")
-        end, { width = "100%", role = "secondary" }))
-    body:AddChild(Button("尝试系统复制", function()
-            ui:SetUseSystemClipboard(true)
-            ui:SetClipboardText(raw)
-            if ui:GetClipboardText() ~= raw then self:Notify("系统复制未能在游戏内回读，请打开用户文档备份。", "warning"); return end
-            self:Notify("游戏内部已回读复制内容；外部读取请以用户文档文件为准。", "info")
-        end, { width = "100%", role = "secondary" }))
-    modal:AddContent(ModalLayout.Scroll(body))
-    modal:Open()
-    backupField:SelectAll()
-end
-
 function App:OpenMenu()
     local modal = ModalLayout.New("家谱事务", { sheet = "menu", closeOnOverlay = true })
     modal:AddContent(ModalLayout.Scroll(UI.Panel { gap = 8, children = {
         Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
-        Button("导出备份", function() modal:Close(); self:Export() end, { width = "100%", role = "secondary" }),
         Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
     } }))
     modal:Open()
 end
 
 function App:PrepareNewRun()
+    if self.cloud and self.cloud.blocked then self:Notify(self.cloud.message, "warning"); return end
+    local world = assert(Data.Find(Data.Worlds, self.coverWorldId), "主页世界未登记。")
+    if not world.available then self:Notify("敬请期待", "info"); return end
     if self.storageBlocked or self.unsaved then self:Notify("请先恢复或保存当前进度，再立新家谱。", "warning"); return end
-    if self.openingGenerationFailed then
-        -- 仅首次自动生成失败的封面可明确重试，不能把任意未开局草案当作可重掷对象。
-        local candidate, issue = Opening.Generate(self.profile, Opening.FreshSeed(), "mortal")
+    if self.openingGenerationFailed or self.draft.worldId ~= self.coverWorldId or (self.run and not self.previousDraft) then
+        local candidate, issue = Opening.Generate(self.profile, Opening.FreshSeed(), self.coverWorldId)
         if not candidate then
             self.openingFeedback = issue or "暂未生成合法家庭，请重试。"
             self.screen = "cover"; self:Render()
             return
         end
+        if self.run and not self.previousDraft then self.previousDraft = self.draft end
         self.draft = candidate; self.openingGenerationFailed = false
-    elseif self.run and not self.previousDraft then
-        local candidate, issue = Opening.Generate(self.profile, Opening.FreshSeed(), "mortal")
-        if not candidate then self.openingFeedback = issue; self:Notify(issue, "error"); return end
-        self.previousDraft = self.draft; self.draft = candidate
     end
     self.editBackup = nil; self.houseUndo = nil; self.undo = {}
     self.openingEditDraft = nil; self.memberEditing = nil
@@ -268,7 +320,22 @@ function App:CancelNewRun()
     self.screen = "game"; self:Render()
 end
 
+function App:ReturnToCover()
+    self:AutoSave()
+    self.screen = "cover"
+    self:Render()
+end
+
+function App:SelectCoverWorld(worldId)
+    assert(Data.Find(Data.Worlds, worldId), "主页世界未登记：" .. tostring(worldId))
+    if self.coverWorldId == worldId then return end
+    self.coverWorldId = worldId
+    self.screen = "cover"
+    self:Render()
+end
+
 function App:StartRun()
+    if self.cloud and self.cloud.blocked then self:Notify(self.cloud.message, "warning"); return end
     if self.storageBlocked or self.unsaved then self:Notify("请先恢复或保存当前进度，再立新家谱。", "warning"); return end
     if self.startConfirmationOpen or self.screen == "game" then return end
     local issues = State.ValidateDraft(self.draft, self.profile, false)
@@ -288,7 +355,7 @@ function App:StartRun()
             return
         end
         -- 先验证写入，再切换当前局；失败时旧 run、收藏和正在展示的草案都在。
-        local written, ok, message = pcall(State.Save, self.profile, submittedDraft, candidate)
+        local written, ok, message = pcall(self.Persist, self, self.profile, submittedDraft, candidate)
         if not written or not ok then
             submitted = false
             self.saveMessage = "新局未开始。" .. tostring(written and message or ok)
@@ -310,7 +377,7 @@ function App:StartRun()
             self.startConfirmationOpen = false; selfModal:Destroy()
         end,
     })
-    modal:AddContent(Label("当前家谱将由眼前这份新草案替换。已解锁收藏与终章档案保留；如需长期留存旧局，请先导出。", { whiteSpace = "normal", fontSize = 16 }))
+    modal:AddContent(Label("当前家谱将由眼前这份新草案替换，旧局进度会被覆盖。已解锁收藏与终章档案保留。", { whiteSpace = "normal", fontSize = 16 }))
     modal:SetFooter(UI.Row { gap = 8, children = {
         Button("取消", function() modal:Close() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
         Button("确认开始", function() modal:Close(); commit() end, { flex = 1 }),
@@ -319,6 +386,7 @@ function App:StartRun()
 end
 
 function App:RunAction(fn)
+    if self.cloud and self.cloud.blocked then self:Notify(self.cloud.message, "warning"); return false end
     if self.run and self.run.ending then self:Notify("本局已落笔，只能回顾家史。", "warning"); return false end
     if self.storageBlocked then self:Notify("请先恢复可读取的存档，再继续安排。", "warning"); return false end
     if self.unsaved then self:Notify("上一项安排尚未保存，请重试保存；无需重复安排。", "warning"); return false end
@@ -463,109 +531,8 @@ function App:BuildRunStatusBar()
     }
 end
 
-local function OpeningAction(title, description, action, role)
-    return UI.Panel {
-        width = "100%", gap = 4,
-        children = {
-            Button(title, action, { width = "100%", height = 52, role = role or "primary", fontSize = 17 }),
-            Label(description, { fontSize = 12, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 }),
-        },
-    }
-end
-
-local function WorldCard(artName, title, action)
-    return UI.Panel {
-        width = "100%", maxWidth = 250, alignSelf = "center", aspectRatio = 280 / 810, padding = 0,
-        overflow = "hidden", onClick = action, pointerEvents = "box-only",
-        borderWidth = 2, borderColor = C.gold,
-        borderRadius = 5, boxShadow = { { x = 0, y = 3, blur = 7, color = { 20, 43, 33, 48 } } },
-        children = {
-            Visual.OpeningArt(artName, {
-                position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
-                backgroundFit = "contain",
-            }),
-            UI.Panel {
-                position = "absolute", left = 5, right = 5, bottom = 6, height = 40,
-                justifyContent = "center", alignItems = "center", gap = 1, pointerEvents = "none",
-                backgroundColor = { 53, 92, 73, 232 }, borderRadius = 2,
-                children = {
-                    Label(title, { fontSize = 12, fontFamily = "serif", fontColor = C.paperLight }),
-                    Label("当前可游", { fontSize = 10, fontColor = C.paperLight }),
-                },
-            },
-        },
-    }
-end
-
-function App:BuildWorldSelection()
-    local openWorld = function()
-        self.coverView = "home"
-        self:PrepareNewRun()
-    end
-    return UI.Panel {
-        width = "100%", height = "100%", backgroundColor = C.paper,
-        backgroundImage = V7.Images.paperTexture, backgroundFit = "cover",
-        children = {
-            UI.SafeAreaView { width = "100%", height = "100%", edges = "all", children = {
-                UI.Panel { width = "100%", height = "100%", padding = 16, gap = 12, overflow = "scroll", children = {
-                    UI.Row { alignItems = "center", gap = 8, children = {
-                        Button("返回", function() self.coverView = "home"; self:Render() end, { width = 72, height = 44, role = "secondary" }),
-                        UI.Panel { flex = 1, minWidth = 0, children = {
-                            Label("选择一个世界", { fontSize = 23, fontFamily = "serif", fontWeight = "bold" }),
-                            Label("一姓一世界，一家一春秋", { fontSize = 13, fontColor = C.muted }),
-                        } },
-                    } },
-                    Label("山河岁月现已开放，家谱将从凡世王朝的一户人家开始。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
-                    WorldCard("worldMountains", "山河岁月", openWorld),
-                    UI.Panel { gap = 6, padding = 12, backgroundColor = C.card, borderWidth = 1, borderColor = C.gold, borderRadius = 6, children = {
-                        Label("山河岁月 · 当前可游", { fontSize = 18, fontFamily = "serif", fontColor = C.ink }),
-                        Label("以凡世王朝为舞台，生成一户家人，写下属于这一家的开篇。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.5 }),
-                    } },
-                    Button("从山河岁月开始", openWorld, { width = "100%", height = 52 }),
-                } },
-            } },
-        },
-    }
-end
-
 function App:BuildCover()
-    if self.coverView == "worlds" then return self:BuildWorldSelection() end
-    local actions = {
-        OpeningAction("立一部家谱", "选择世界，生成一户家人，从这一年的安排开始写。", function() self.coverView = "worlds"; self:Render() end),
-    }
-    if self.run then table.insert(actions, OpeningAction("续写当前家谱", "读取已保存的家人、账本与家史。", function() self:Load() end, "secondary")) end
-    if self.openingGenerationFailed then
-        table.insert(actions, 1, Label(self.openingFeedback, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal", lineHeight = 1.5 }))
-    end
-    return UI.Panel { width = "100%", height = "100%", overflow = "hidden", children = {
-        Visual.OpeningArt("landscape", { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundFit = "cover" }),
-        UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundGradient = {
-            type = "linear", direction = "to-bottom", from = { 247, 240, 223, 14 }, to = { 247, 240, 223, 128 },
-        }, pointerEvents = "none" },
-        Visual.OpeningArt("tableau", { position = "absolute", right = -80, bottom = -90, width = 360, height = 430, backgroundFit = "contain", opacity = 0.17 }),
-        UI.SafeAreaView { width = "100%", height = "100%", edges = "all", children = {
-            UI.Panel { width = "100%", height = "100%", padding = 18, justifyContent = "space-between", pointerEvents = "box-none", children = {
-                UI.Row { width = "100%", alignItems = "flex-start", justifyContent = "space-between", pointerEvents = "box-none", children = {
-                    UI.Panel { flex = 1, gap = 4, pointerEvents = "none", children = {
-                    UI.Row { gap = 7, alignItems = "center", children = {
-                        Visual.Decor("seal_square", { width = 24, height = 24 }),
-                        Label("世界 · " .. Data.WORLD_NAME, { fontSize = 13, fontColor = C.green }),
-                    } },
-                    Label("千家纪", { fontSize = 48, fontWeight = "bold", fontFamily = "serif", letterSpacing = 8, textShadow = { offsetX = 1, offsetY = 2, blur = 2, color = { 255, 249, 235, 180 } } }),
-                    Label("一姓起笔，百年成卷", { fontSize = 18, fontColor = C.green, fontFamily = "serif", letterSpacing = 2 }),
-                    } },
-                    Button("世界一览", function() self.coverView = "worlds"; self:Render() end, { width = 92, height = 38, role = "secondary", fontSize = 13 }),
-                } },
-                UI.Panel { width = "100%", gap = 10, pointerEvents = "box-none", children = {
-                    UI.Panel { gap = 4, pointerEvents = "none", children = {
-                        Label("一部由选择写成的家史", { fontSize = 24, fontFamily = "serif", fontColor = C.ink }),
-                        Label("从一户人家开始，安排人生，守住家业，把每一次交托写进家谱。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.55 }),
-                    } },
-                    UI.Panel { width = "100%", gap = 8, pointerEvents = "box-none", children = actions },
-                } },
-            } },
-        } },
-    } }
+    return CoverView.Build(self)
 end
 
 function App:BuildOpening()
@@ -1100,17 +1067,19 @@ function App:BuildGame()
 end
 
 function App:Render()
-    local source = self.screen == "opening" and (self.openingEditDraft or self.draft) or self.run or self.draft
-    Visual.SetArtVersion(source and source.artVersion)
+    self.cloudStatusLabel, self.cloudGateLabel, self.cloudRetryButton = nil, nil, nil
+    if self.cloud and self.cloud.blocked then
+        self.root = CloudSaveView.Gate(self)
+        UI.SetRoot(self.root, true)
+        return
+    end
     local page = self.screen == "cover" and self:BuildCover() or (self.screen == "opening" and self:BuildOpening() or self:BuildGame())
     local children = {}
+    if self.cloud then table.insert(children, CloudSaveView.Status(self)) end
     if self.saveMessage ~= "" then
         table.insert(children, UI.Panel { padding = 8, gap = 6, backgroundColor = C.paper, children = {
             Label(self.saveMessage, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal" }),
-            UI.Row { gap = 8, children = {
-                Button(self.storageBlocked and "重新读取" or "重试保存", function() if self.storageBlocked then self:Load() else self:Save() end end, { flex = 1 }),
-                Button("导出当前进度", function() self:Export() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
-            } },
+            Button(self.storageBlocked and "重新读取" or "重试保存", function() if self.storageBlocked then self:Load() else self:Save() end end, { width = "100%" }),
         } })
     end
     table.insert(children, UI.Panel { flexGrow = 1, flexBasis = 0, minHeight = 0, children = { page } })
@@ -1125,10 +1094,11 @@ function App:Render()
         flexDirection = "column",
         children = children,
     }
-    self.root = UI.SafeAreaView {
+    local Root = self.screen == "cover" and UI.Panel or UI.SafeAreaView
+    self.root = Root {
         width = "100%",
         height = "100%",
-        edges = "vertical",
+        edges = "all",
         nativeMenuInset = true,
         backgroundColor = C.dark,
         alignItems = "center",

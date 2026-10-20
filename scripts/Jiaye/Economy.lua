@@ -6,6 +6,10 @@ local OriginEffects = require "Jiaye.OriginEffects"
 
 local Economy = {}
 
+function Economy.IsFamilyCollapsed(run, ledger)
+    return run.money <= 0 or run.grain <= 0 or (ledger ~= nil and ledger.foodSatisfied == false)
+end
+
 local function IsV12(run)
     return type(run) == "table" and run.relicRulesVersion == "1.2"
 end
@@ -363,7 +367,7 @@ local function SettleLegacy(run)
     ledger.grain = run.grain
     ledger.netMoney = run.money - beforeMoney
     ledger.netGrain = run.grain - beforeGrain
-    ledger.resourcesExhausted = run.money == 0 and run.grain == 0
+    ledger.resourcesExhausted = Economy.IsFamilyCollapsed(run, ledger)
     return ledger
 end
 
@@ -433,7 +437,7 @@ local function SettleV12(run)
     ledger.grain = run.grain
     ledger.netMoney = run.money - beforeMoney
     ledger.netGrain = run.grain - beforeGrain
-    ledger.resourcesExhausted = run.money == 0 and run.grain == 0
+    ledger.resourcesExhausted = Economy.IsFamilyCollapsed(run, ledger)
     return ledger
 end
 

@@ -42,7 +42,11 @@ function ModalLayout.New(title, props)
         self.destroyed = true
         local drawer = self.drawer
         self.drawer = nil
-        if drawer then drawer:Destroy() end
+        if drawer then
+            local children = drawer:GetHitTestChildren()
+            drawer:Destroy()
+            for _, child in ipairs(children) do child:Destroy() end
+        end
     end
 
     function sheet:Close()
@@ -69,9 +73,18 @@ function ModalLayout.New(title, props)
         drawerProps.borderColor = self.props.borderColor or C.gold
         drawerProps.borderRadius = self.props.borderRadius or V7.Tokens.sheetTopRadius
         drawerProps.contentPadding = self.props.contentPadding or { 12, 14 }
-        drawerProps.footerPadding = self.props.footerPadding or { 8, 14 }
-        local content = self.content
+        drawerProps.footerPadding = self.props.footerPadding or { 4, 14 }
+        local content = UI.Panel {
+            width = "100%", height = "100%", minHeight = 0, overflow = "hidden",
+            children = self.content and { self.content } or {},
+        }
         local footer = self.footer
+        if footer and type(footer) ~= "string" and type(footer) ~= "function" then
+            footer = UI.Panel {
+                width = "100%", height = "100%", padding = drawerProps.footerPadding,
+                justifyContent = "center", children = { footer },
+            }
+        end
         drawerProps.content = content
         if type(footer) == "string" or type(footer) == "function" then
             drawerProps.footer = footer
@@ -91,6 +104,20 @@ function ModalLayout.New(title, props)
         end
 
         local drawer = UI.Drawer(drawerProps)
+        local updateDrawer = drawer.Update
+        -- 自绘内容逐帧更新滚动范围、惯性和控件状态。
+        local function updateContent(widget, dt)
+            if widget.Update then widget:Update(dt) end
+            for _, child in ipairs(widget.children or {}) do updateContent(child, dt) end
+        end
+        function drawer:Update(dt)
+            self.size_ = sheetHeight(self.props.sheet or "detail")
+            updateDrawer(self, dt)
+            updateContent(content, dt)
+            if footer and type(footer) ~= "function" and type(footer) ~= "string" then
+                updateContent(footer, dt)
+            end
+        end
         local closeOnOverlay = self.props.closeOnOverlay ~= false
         function drawer:GetHitTestChildren()
             local children = {}

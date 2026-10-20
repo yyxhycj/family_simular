@@ -281,11 +281,6 @@ function View.Summary(app)
         text("›", 22, C.muted),
     } })
     table.insert(children, row({ text("首年预计 · 不含突发", 14, C.muted), button(ledger and (signed(ledger.netMoney) .. " 两  " .. signed(ledger.netGrain) .. " 石  ›") or "请先修正草案", function() app:OpenOpeningDetail("ledger") end, true, { id = "opening-ledger-detail", flex = 1, height = 44, fontSize = 14 }) }))
-    table.insert(children, choose({ { value = "ink_v3_formal", label = "正式水墨 · v3" }, { value = "ink_v2_review", label = "水墨画面 · v2" }, { value = "1.0.0", label = "原有画面 · v1" } }, draft.artVersion or "1.0.0", function(version)
-        draft.artVersion = version
-        for _, member in ipairs(draft.members) do member.artVersion = version end
-        app:Render()
-    end))
     return UI.Panel { gap = 3, padding = 0, children = children }
 end
 
@@ -450,7 +445,7 @@ local function memberView(app)
         member[key] = value
         if key == "sex" then
             member.artId = nil
-            V7.Art.Assign(member, draft.rngSeed, draft.artVersion)
+            V7.Art.Assign(member, draft.rngSeed)
         end
         app.memberIssue = ""; app:Render()
     end
@@ -551,8 +546,8 @@ function View.Build(app)
         backgroundImage = V7.Images.paperTexture, backgroundImageOpacity = 1,
         backgroundFit = "cover", flexDirection = "column", padding = 0,
         children = {
-            UI.Panel { height = 52, padding = 12, flexShrink = 0, borderBottomWidth = 1, borderBottomColor = C.line, children = {
-                row({ Visual.Decor("seal_square", { width = 28, height = 28 }), text("千家纪", 20), text(view == "summary" and ("凡世王朝 · " .. Data.WORLD_NAME) or "开局草案", 12, C.muted) }, { alignItems = "center" }),
+            view == "summary" and Visual.PageHeader("开局草案", "凡世王朝 · " .. Data.WORLD_NAME, function() app:ReturnToCover() end, "opening-home") or UI.Panel { height = 52, paddingHorizontal = 12, paddingVertical = 8, flexShrink = 0, borderBottomWidth = 1, borderBottomColor = C.line, justifyContent = "center", children = {
+                row({ Visual.Decor("seal_square", { width = 28, height = 28 }), text("千家纪", 20), text("开局草案", 12, C.muted) }, { alignItems = "center" }),
             } },
             UI.ScrollView { width = "100%", flexGrow = 1, flexBasis = 0, minHeight = 0, padding = 12, children = { contentPanel } },
             UI.Panel { padding = 6, gap = 6, backgroundColor = C.card, flexShrink = 0, borderTopWidth = 1, borderTopColor = C.line, children = footer },

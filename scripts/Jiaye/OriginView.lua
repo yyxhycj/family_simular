@@ -26,10 +26,6 @@ local function card(children, props)
     return Visual.Card(children, props or { padding = 12, gap = 8 })
 end
 
-local function scrollHeight()
-    return 270
-end
-
 local function livingMembers(run)
     local members = {}
     for _, member in ipairs(run.members or {}) do
@@ -134,6 +130,7 @@ local function candidateRow(member, quote, selected, onClick)
             } },
         } },
     }, {
+        id = "origin-candidate-" .. tostring(member.id),
         padding = 8, gap = 5, backgroundColor = available and (selected and C.selected or C.paperLight) or C.disabledSurface,
         borderColor = available and (selected and C.primary or C.rule) or C.rule,
         onClick = available and onClick or nil,
@@ -166,9 +163,11 @@ function View.OpenAction(app, actionId, parentModal)
     if parentModal then parentModal:Close() end
 
     local input = initialInput()
+    local onlyExecutable = true
     local selectedMemberId = nil
     local selectedAttachments = {}
-    local candidatePanel = UI.Panel { gap = 7 }
+    local candidateFilters = UI.Row { id = "origin-candidate-filters", gap = 7 }
+    local candidatePanel = UI.Panel { id = "origin-candidates", gap = 7 }
     local attachmentPanel = UI.Panel { gap = 6 }
     local quoteLabel = text("正在核对门槛…", { fontSize = 14, whiteSpace = "normal", lineHeight = 1.45 })
     local reasonLabel = text("", { fontSize = 14, fontColor = C.danger, whiteSpace = "normal", lineHeight = 1.45 })
@@ -212,30 +211,49 @@ function View.OpenAction(app, actionId, parentModal)
     end
 
     local function rebuildCandidates()
+        candidateFilters:ClearChildren()
         candidatePanel:ClearChildren()
         if not actionNeedsMember(action) then return end
         local candidates = livingMembers(app.run)
         local quotes = {}
+        local allowedCount = 0
         local firstAllowed
         for _, member in ipairs(candidates) do
             local candidateInput = { memberId = member.id, attachedInstanceIds = {} }
             for id, enabled in pairs(selectedAttachments) do if enabled then table.insert(candidateInput.attachedInstanceIds, id) end end
             quotes[member.id] = OriginSystem.Quote(app.run, action.id, candidateInput)
-            if quotes[member.id].allowed and not firstAllowed then firstAllowed = member.id end
+            if quotes[member.id].allowed then
+                allowedCount = allowedCount + 1
+                if not firstAllowed then firstAllowed = member.id end
+            end
         end
         local selectedQuote = selectedMemberId and quotes[selectedMemberId] or nil
         if not selectedQuote or not selectedQuote.allowed then selectedMemberId = firstAllowed end
+        candidateFilters:AddChild(button("可执行 " .. tostring(allowedCount), function()
+            onlyExecutable = true
+            rebuildCandidates()
+        end, { flex = 1, role = onlyExecutable and "primary" or "secondary" }))
+        candidateFilters:AddChild(button("全部 " .. tostring(#candidates), function()
+            onlyExecutable = false
+            rebuildCandidates()
+        end, { flex = 1, role = onlyExecutable and "secondary" or "primary" }))
         for _, member in ipairs(candidates) do
             local candidate = member
             local quote = quotes[member.id]
             local selected = selectedMemberId == member.id
-            candidatePanel:AddChild(candidateRow(candidate, quote, selected, function()
-                selectedMemberId = candidate.id
-                rebuildCandidates()
-                refreshQuoteAndButton()
-            end))
+            if not onlyExecutable or quote.allowed then
+                candidatePanel:AddChild(candidateRow(candidate, quote, selected, function()
+                    selectedMemberId = candidate.id
+                    rebuildCandidates()
+                    refreshQuoteAndButton()
+                end))
+            end
         end
-        if #candidates == 0 then candidatePanel:AddChild(text("当前没有在世族人可供选择。", { fontSize = 14, fontColor = C.danger })) end
+        if #candidates == 0 then
+            candidatePanel:AddChild(text("当前没有在世族人可供选择。", { fontSize = 14, fontColor = C.danger, whiteSpace = "normal" }))
+        elseif onlyExecutable and allowedCount == 0 then
+            candidatePanel:AddChild(text("暂无可执行人选，可切换“全部”查看未满足的条件。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 }))
+        end
     end
 
     local function rebuildAttachments()
@@ -297,13 +315,14 @@ function View.OpenAction(app, actionId, parentModal)
         text("当前公库 · 银 " .. tostring(app.run.money or 0) .. " 两 · 粮 " .. tostring(app.run.grain or 0) .. " 石", { fontSize = 14, fontColor = C.primary, whiteSpace = "normal" }),
         text("选择前显示人物门槛和实际结果；确认后写入同一份家谱记录。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.4 }),
         actionNeedsMember(action) and text("人选", { fontSize = 16, fontWeight = "bold", marginTop = 4 }) or UI.Panel { height = 0 },
+        candidateFilters,
         candidatePanel,
         attachmentPanel,
         text("报价", { fontSize = 16, fontWeight = "bold", marginTop = 4 }),
         quoteLabel,
         reasonLabel,
     }, { padding = 14, gap = 9 }))
-    modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
+    modal:AddContent(ModalLayout.Scroll(body))
     modal:SetFooter(UI.Row { gap = 8, children = {
         button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
         confirmButton,
@@ -344,7 +363,7 @@ function View.Open(app)
     else
         for _, action in ipairs(actions) do body:AddChild(actionCard(app, modal, action)) end
     end
-    modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
+    modal:AddContent(ModalLayout.Scroll(body))
     modal:SetFooter(button("关闭", function() modal:Close() end, { width = "100%", role = "secondary" }))
     modal:Open()
     return modal

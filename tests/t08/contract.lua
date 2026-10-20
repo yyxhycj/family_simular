@@ -99,11 +99,11 @@ end
 local function checkResourceBoundary()
     local run, profile = fresh()
     forceOrdinaryYear(run)
-    run.money, run.grain = 0, 40
-    assert(not Simulation.IsFamilyCollapsed(run), "存粮尚在时被判定为家道散尽。")
-    assert(Simulation.AdvanceYear(run, profile), "钱粮仍有一项时无法推进年度。")
-    assert(run.grain > 0 and run.ending == nil and not run.lastLedger.resourcesExhausted,
-        "钱粮仍有一项时错误写入家道终局。")
+    run.money, run.grain = 1, 40
+    assert(not Simulation.IsFamilyCollapsed(run), "钱粮均有余时被判定为家道散尽。")
+    assert(Simulation.AdvanceYear(run, profile), "正常钱粮年度无法推进。")
+    assert(run.money > 0 and run.grain > 0 and run.ending == nil and not run.lastLedger.resourcesExhausted,
+        "兑换后钱粮均有余时错误写入家道终局。")
 end
 
 local function checkBatchJobArrangement()
@@ -218,12 +218,12 @@ local function checkCollapseAndReadOnly()
     forceOrdinaryYear(run)
     run.money, run.grain = 0, 0
     assert(Simulation.AdvanceYear(run, profile), "钱粮归零年度无法结算。")
-    local record = assert(run.ending, "钱粮同归零后没有写入终局。")
+    local record = assert(run.ending, "钱粮耗尽后没有写入终局。")
     local archived = assert(profile.endingRecords[1], "终局没有写入 Profile 档案。")
     local fact = assert(factById(run, record.factId), "终局没有写入可回顾事实。")
     assert(record.id == "collapse" and record.automatic and record.automaticTrigger == "resources_exhausted"
         and archived.automaticTrigger == "resources_exhausted" and fact.automaticTrigger == "resources_exhausted"
-        and run.lastLedger.resourcesExhausted and #record.evidence == 2 and record.evidence[1].current == 0 and record.evidence[2].current == 0,
+        and run.lastLedger.resourcesExhausted and #record.evidence == 3 and record.evidence[1].current == 0 and record.evidence[2].current == 0,
         "家道散尽的状态、条件快照与终章事实不一致。")
     local member = run.members[1]
     local relic = run.relicInstances[1]
@@ -261,7 +261,7 @@ local function checkCollapseAndReadOnly()
     local app = App.New()
     app.profile, app.draft, app.run, app.screen, app.gameTab = profile, draft, run, "game", "family"
     app:Render()
-    assert(contains(UI.root, "本局已落笔 · 家道散尽") and contains(UI.root, "年度结算后公库与存粮同时归零时自动写入"),
+    assert(contains(UI.root, "本局已落笔 · 家道散尽") and contains(UI.root, Data.Ending("collapse").automaticHint),
         "家族页没有绑定家道终局状态。")
     app.gameTab, app.historySection = "history", "endings"
     app:Render()
@@ -280,7 +280,7 @@ local function run()
     local batchArrangement = checkBatchJobArrangement()
     local natural = checkNaturalEnding()
     local collapse = checkCollapseAndReadOnly()
-    return { development = development, developmentProgress = developmentProgress, batchArrangement = batchArrangement, natural = natural, collapse = collapse, moneyOrGrainRemains = true, uiHistory = true }
+    return { development = development, developmentProgress = developmentProgress, batchArrangement = batchArrangement, natural = natural, collapse = collapse, moneyAndGrainRemain = true, uiHistory = true }
 end
 
 local function restart()

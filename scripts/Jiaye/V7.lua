@@ -53,7 +53,7 @@ function V7.HouseState(run)
 end
 
 function V7.AvatarId(member)
-    return Art.Portrait(member, "normal")
+    return Art.Portrait(member)
 end
 
 function V7.EventImage(event, relicId)

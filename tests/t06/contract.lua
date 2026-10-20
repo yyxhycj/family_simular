@@ -86,14 +86,14 @@ local function run()
     assert(hungry.metrics.stable == 0 and hungry.metrics.foodYears == 0 and hungry.lastLedger.foodSatisfied == false and survivor.health == 48
         and hungry.lastLedger.resourcesExhausted and hungry.ending and hungry.ending.id == "collapse" and hungry.ending.automatic
         and hungry.ending.evidence[1].current == 0 and hungry.ending.evidence[2].current == 0 and #hungryProfile.endingRecords == 1 and survivor.alive,
-        "钱粮同时耗尽后没有写入可回看的家道终局")
+        "钱粮耗尽后没有写入可回看的家道终局")
     local closedHungry = State.Copy(hungry)
     assert(not Simulation.SetJob(hungry, survivor.id, "farm") and same(hungry, closedHungry), "家道终局后仍可改写运行家谱")
     local collapseApp = App.New(); collapseApp.profile, collapseApp.draft, collapseApp.run, collapseApp.screen, collapseApp.gameTab = hungryProfile, hungryDraft, hungry, "game", "family"
     collapseApp:Render()
-    assert(contains(UI.root, "本局已落笔 · 家道散尽") and contains(UI.root, "年度结算后公库与存粮同时归零时自动写入"), "家道终局没有在家族页显示准确状态")
+    assert(contains(UI.root, "本局已落笔 · 家道散尽") and contains(UI.root, Data.Ending("collapse").automaticHint), "家道终局没有在家族页显示准确状态")
     collapseApp.gameTab, collapseApp.historySection = "history", "annals"; collapseApp:Render()
-    assert(contains(UI.root, "公库与存粮同时耗尽，家人离散，家谱在此落笔。"), "家道终局没有在年鉴显示钱粮归零")
+    assert(contains(UI.root, Data.Ending("collapse").automaticFact), "家道终局没有在年鉴显示破产事实")
 
     local lineage, lineageProfile = fresh()
     lineage.money = 200

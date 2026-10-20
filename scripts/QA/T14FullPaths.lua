@@ -42,7 +42,6 @@ local function makeDraft(options)
     }
     base.family = "T14验收"
     base.originId = options.originId or "artisan"
-    base.artVersion = "ink_v2_review"
     base.rulesVersion = 2
     base.relicRulesVersion = RelicDefinitions.VERSION
     base.originRulesVersion = options.withOrigin and OriginState.VERSION or nil
@@ -181,7 +180,7 @@ local function checkFileRoundTrip(caseId, profile, draft, run)
     check(caseId, "File.ReadString", roundTrip == raw, "导出文件回读内容与写入内容不一致")
     local candidate, message = State.PreflightImport(roundTrip)
     check(caseId, "State.PreflightImport", candidate ~= nil, message or "导出内容预检失败")
-    check(caseId, "State.PreflightImport.artVersion", candidate.run.artVersion == "ink_v2_review", "导出预检丢失水墨版本")
+    check(caseId, "State.PreflightImport.member", candidate.run.members[1].id == run.members[1].id and candidate.run.members[1].name == run.members[1].name, "导出预检改变了人物身份")
 end
 
 local function testOriginPlain()

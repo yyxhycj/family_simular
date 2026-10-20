@@ -196,7 +196,7 @@ function Simulation.PendingEvents(run)
 end
 
 function Simulation.IsFamilyCollapsed(run)
-    return run.money == 0 and run.grain == 0
+    return Economy.IsFamilyCollapsed(run, run.lastLedger)
 end
 
 local function QueueDueRelicEvents(run)
@@ -380,7 +380,8 @@ function Simulation.GetMarriageReason(run, memberId)
     local closed, message = IsClosed(run)
     if closed then return false, message end
     local member = State.FindMember(run.members, memberId)
-    if not member or not member.alive or not State.IsAdult(member) then return false, "需要一位在世成年族人。" end
+    if not member or not member.alive then return false, "只有在世族人可以安排婚配。" end
+    if not State.IsAdult(member) then return false, "婚配需满 " .. tostring(Data.AgeRules.adult) .. " 岁。" end
     if member.spouseId then return false, "此人已有配偶。" end
     if run.money < 12 then return false, "婚配需要 12 两安置费用。" end
     return true, ""
@@ -418,7 +419,7 @@ function Simulation.Marry(run, memberId)
     local spouseId = NextMemberId(run)
     local spouseSex = State.Random(run, 0, 1) == 0 and "女" or "男"
     local spouse = { id = spouseId, name = GeneratedMemberName(run, spouseSex == "男" and "沈" or "顾", spouseSex), sex = spouseSex, age = math.max(Data.AgeRules.adult, member.age - State.Random(run, 0, 5)), parents = {}, spouseId = member.id, talent = 2, focus = "general", experienceId = "basic", trait = "安稳", jobId = "home", alive = true, health = 72, stats = State.Copy(Data.Experience("basic").values), jobYears = {}, biography = { "因婚配加入“" .. run.openingSnapshot.family .. "”家。" }, fertility = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false }
-    Art.Assign(spouse, run.runId, run.artVersion)
+    Art.Assign(spouse, run.runId)
     member.spouseId = spouseId; member.fertility = true; member.birthPlan = true; run.money = run.money - 12
     table.insert(run.members, spouse)
     State.NormalizeGenerations(run.members)
@@ -442,7 +443,7 @@ function Simulation.Adopt(run, guardianId)
     local childId = NextMemberId(run)
     local sex = State.Random(run, 0, 1) == 0 and "女" or "男"
     local child = { id = childId, name = GeneratedMemberName(run, run.openingSnapshot.family, sex), sex = sex, age = 6, parents = { guardian.id }, spouseId = nil, talent = 2, focus = "general", experienceId = "none", trait = "敏锐", jobId = "study", alive = true, health = 70, stats = State.Copy(Data.Experience("none").values), jobYears = {}, biography = { "大晟历 " .. tostring(run.calendar) .. " 年被收养，监护人为" .. guardian.name .. "。" }, adopted = true, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false }
-    Art.Assign(child, run.runId, run.artVersion)
+    Art.Assign(child, run.runId)
     run.money = run.money - 8; table.insert(run.members, child); State.NormalizeGenerations(run.members)
     State.AddFact(run, "adoption", guardian.name .. "收养了" .. child.name .. "，孩子获得与其他族人同等的成长和继任资格。", { guardian.id, child.id })
     return true, "收养已完成。"
@@ -573,7 +574,7 @@ function Simulation.InviteBranch(run, instanceId)
         hadHomeAfterGuard = false, generationFloor = leader and State.Generation(run.members, leader.id) or 1,
         biography = { "因补完的族谱寻回旁支，于大晟历 " .. tostring(run.calendar) .. " 年归家。" }, branch = true,
     }
-    Art.Assign(member, run.runId, run.artVersion)
+    Art.Assign(member, run.runId)
     run.money = run.money - 12; run.flags.branchInvited = true; table.insert(run.members, member); State.NormalizeGenerations(run.members)
     State.AddFact(run, "relic", executor.name .. "依照补完的族谱寻回" .. member.name .. "，旁支正式归家。", { executor.id, member.id }, { action = "invite_branch", relicInstanceId = relic.instanceId })
     State.AddLog(run, member.name .. "作为成年旁支归家，名字被正式写回族谱。")
@@ -917,7 +918,7 @@ local function TryBirths(run)
                     jobYears = {}, birthPlan = true, lastBirthYear = -5, hadHomeAfterGuard = false,
                     biography = { "大晟历 " .. tostring(run.calendar) .. " 年出生，亲长是" .. parent.name .. "与" .. spouse.name .. "。" },
                 }
-                Art.Assign(child, run.runId, run.artVersion)
+                Art.Assign(child, run.runId)
                 parent.lastBirthYear = run.yearIndex; spouse.lastBirthYear = run.yearIndex
                 table.insert(run.members, child); State.NormalizeGenerations(run.members)
                 State.AddFact(run, "birth", child.name .. "出生，家谱添了一页新名字。", { parent.id, spouse.id, child.id })
@@ -1034,6 +1035,7 @@ function Simulation.AdvanceYear(run, profile)
         local settled, settleMessage = RelicSystem.Tick(run, profile, yearStart, run.lastLedger)
         if not settled then error(settleMessage) end
         OriginSystem.Tick(run, yearStart, run.lastLedger)
+        run.lastLedger.resourcesExhausted = Simulation.IsFamilyCollapsed(run)
         State.RecordAnnualLedger(run, run.lastLedger, yearStart)
     end
     UpdateHabitFormation(run, run.lastLedger)
@@ -1146,8 +1148,9 @@ function Simulation.EndingProgress(run, endingId)
         reunion = { Progress("重修族谱", run.flags.bookRestored and 1 or 0, 1, "历史", { source = "信物经历", factIds = FactIds(run, "relic") }), Progress("实际经营", run.yearIndex, 6, "累计", { source = "年度账本", factIds = ledgers }), Progress("真实交接", EffectiveHandovers(run), 1, "历史", { source = "族长任期", factIds = leadership }) },
         last = { Progress("在世族人归零", #living, 0, "当前", { source = "家谱人物", memberIds = MemberIds(living) }, "at_most") },
         collapse = {
-            Progress("公库归零", run.money, 0, "当前", { source = "公库" }, "equal"),
-            Progress("存粮归零", run.grain, 0, "当前", { source = "公库" }, "equal"),
+            Progress("公库耗尽", run.money, 0, "当前", { source = "公库" }, "at_most"),
+            Progress("存粮耗尽", run.grain, 0, "当前", { source = "公库" }, "at_most"),
+            Progress("口粮未补足", run.lastLedger and run.lastLedger.foodSatisfied == false and 1 or 0, 1, "本年", { source = "年度账本", factIds = ledgers }),
         },
     }
     return progress[endingId] or {}
@@ -1164,6 +1167,7 @@ end
 function Simulation.IsEndingReady(run, endingId)
     local ending = Data.Ending(endingId)
     if not ending then return false end
+    if endingId == "collapse" then return Simulation.IsFamilyCollapsed(run) end
     for _, item in ipairs(Simulation.EndingProgress(run, endingId)) do
         if not Simulation.IsProgressMet(item) then return false end
     end

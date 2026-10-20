@@ -234,7 +234,7 @@ local function randomPage(candidate, page, profile, roll, pick)
     elseif page == "people" then
         buildMembers(candidate, candidate.family, roll, pick)
         State.NormalizeGenerations(candidate.members)
-        for _, member in ipairs(candidate.members) do Art.Assign(member, candidate.rngSeed, candidate.artVersion) end
+        for _, member in ipairs(candidate.members) do Art.Assign(member, candidate.rngSeed) end
     elseif page == "estate" then
         candidate.money = roll(0, 12) * Data.OpeningCosts.moneyUnit
         candidate.grain = roll(0, 10) * Data.OpeningCosts.grainUnit; candidate.land = roll(0, 3)
@@ -283,7 +283,6 @@ function Opening.Generate(profile, seed, worldId)
         draft.rulesVersion = Data.RULES_VERSION
         draft.relicRulesVersion = RelicDefinitions.VERSION
         draft.originRulesVersion = OriginState.VERSION
-        draft.artVersion = "ink_v3_formal"
         draft.selectedRelicFormIds = {}
         draft.relicUsers = {}
         draft.selectedRelicIds = nil
@@ -296,7 +295,7 @@ function Opening.Generate(profile, seed, worldId)
         local background = backgroundForOrigin(draft.originId)
         draft.backgroundId = background and background.id or nil
         draft.rngSeed = source.rngState
-        for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed, draft.artVersion) end
+        for _, member in ipairs(draft.members) do Art.Assign(member, draft.rngSeed) end
         Opening.AssignRelicUserDefaults(draft)
         if #State.ValidateDraft(draft, profile, false) == 0 then
             draft.rngSeed = source.rngState
