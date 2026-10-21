@@ -2,6 +2,7 @@ local UI = require "urhox-libs/UI"
 local Theme = require "urhox-libs/UI/Core/Theme"
 local V7 = require "Jiaye.V7"
 local Art = require "Jiaye.Art"
+local Skin = require "Jiaye.QianjiajiSkin"
 
 local Visual = {}
 
@@ -29,34 +30,25 @@ local function requireAsset(path, message)
     return path
 end
 
-local function buttonState(props)
-    if props.busy then return "busy" end
-    if props.disabled then return "disabled" end
-    if props.confirm then return "confirm" end
-    if props.selected then return "selected" end
-    if props.focus then return "focus" end
-    return props.state or "default"
-end
-
-local function buttonImage(role, state)
-    return requireAsset(V7.ButtonImage(role, state), "V7 按钮角色或状态未登记：" .. tostring(role) .. "/" .. tostring(state))
-end
-
 function Visual.Theme()
     local c = V7.Colors
     return Theme.ExtendTheme(Theme.defaultTheme, {
         fonts = {
             { family = "sans", weights = {
-                normal = "Fonts/NotoSansSC-Regular.ttf",
-                bold = "Fonts/NotoSansSC-Bold.ttf",
+                normal = "Fonts/Qianjiaji/QianjiajiSong-Regular.ttf",
+                bold = "Fonts/Qianjiaji/QianjiajiSong-Semibold.ttf",
             }},
             { family = "serif", weights = {
-                normal = "Fonts/SourceHanSerifCN-Regular.otf",
-                bold = "Fonts/SourceHanSerifCN-SemiBold.otf",
+                normal = "Fonts/Qianjiaji/QianjiajiSong-Regular.ttf",
+                bold = "Fonts/Qianjiaji/QianjiajiSong-Semibold.ttf",
+            }},
+            { family = Skin.FontFamily, weights = {
+                normal = "Fonts/Qianjiaji/QianjiajiSong-Regular.ttf",
+                bold = "Fonts/Qianjiaji/QianjiajiSong-Semibold.ttf",
             }},
         },
         typography = {
-            fontFamily = "sans",
+            fontFamily = Skin.FontFamily,
         },
         colors = {
             primary = c.primary, primaryHover = c.primary, primaryPressed = c.pressed,
@@ -145,32 +137,7 @@ function Visual.Text(text, props)
 end
 
 function Visual.Button(text, onClick, props)
-    local result = copyProps(props)
-    local role = rawget(result, "role") or rawget(result, "variant") or "primary"
-    if role ~= "primary" and role ~= "secondary" and role ~= "danger" then
-        error("V7 按钮角色无效：" .. tostring(role), 2)
-    end
-    local state = buttonState(result)
-    assert(state == "default" or state == "pressed" or state == "disabled" or state == "focus"
-        or state == "selected" or state == "confirm" or state == "busy", "V7 按钮状态无效：" .. tostring(state))
-    result.text = text or ""
-    result.onClick = onClick
-    result.variant = role
-    result.height = result.height or Tokens.primaryHeight
-    result.minHeight = result.minHeight or Tokens.touchMin
-    result.fontSize = V7.Font(result.fontSize or Tokens.control)
-    result.borderRadius = result.borderRadius or Tokens.buttonRadius
-    result.backgroundImage = result.backgroundImage or buttonImage(role, state)
-    result.pressedBackgroundImage = result.pressedBackgroundImage or buttonImage(role, "pressed")
-    result.hoverBackgroundImage = result.hoverBackgroundImage or buttonImage(role, "focus")
-    result.disabledBackgroundImage = result.disabledBackgroundImage or buttonImage(role, "disabled")
-    result.backgroundFit = "fill"
-    result.backgroundSlice = result.backgroundSlice or Tokens.buttonSlice or { 36, 36, 36, 36 }
-    result.disabled = result.disabled or state == "disabled" or state == "busy"
-    result.textColor = result.textColor or (role == "secondary" and V7.Colors.ink or V7.Colors.paperLight)
-    result.disabledTextColor = result.disabledTextColor or V7.Colors.disabledInk
-    result.borderWidth = result.borderWidth or 0
-    return UI.Button(result)
+    return Skin.Button(text, onClick, props)
 end
 
 function Visual.PageHeader(title, subtitle, onBack, backId)

@@ -4,6 +4,7 @@ local Art = {}
 local UI_ROOT = "Jiaye/V7/"
 local SCENE_ROOT = "Jiaye/InkV2/"
 local PORTRAIT_ROOT = "image/"
+local ASSET_ROOT = "Textures/Qianjiaji/"
 
 local pools = {
     ["男"] = { "portrait_m01", "portrait_m02" },
@@ -14,32 +15,32 @@ local knownPortraits = {
 }
 local portraits = {
     portrait_m01 = {
-        infant = "portrait_m01_infant_formal_20260921084907.png",
-        child = "portrait_m01_child_formal_20260921084907.png",
-        young = "portrait_m01_young_formal_20260921084907.png",
-        adult = "portrait_m01_formal_20260921084407.png",
-        elder = "portrait_m01_elder_formal_20260921084907.png",
+        infant = PORTRAIT_ROOT .. "portrait_m01_infant_formal_20260921084907.png",
+        child = ASSET_ROOT .. "Characters/shen_he.png",
+        young = PORTRAIT_ROOT .. "portrait_m01_young_formal_20260921084907.png",
+        adult = PORTRAIT_ROOT .. "portrait_m01_formal_20260921084407.png",
+        elder = PORTRAIT_ROOT .. "portrait_m01_elder_formal_20260921084907.png",
     },
     portrait_m02 = {
-        infant = "portrait_m02_infant_formal_20260921084907.png",
-        child = "portrait_m02_child_formal_20260921084907.png",
-        young = "portrait_m02_young_formal_20260921084907.png",
-        adult = "portrait_m02_formal_20260921084407.png",
-        elder = "portrait_m02_elder_formal_20260921084907.png",
+        infant = PORTRAIT_ROOT .. "portrait_m02_infant_formal_20260921084907.png",
+        child = PORTRAIT_ROOT .. "portrait_m02_child_formal_20260921084907.png",
+        young = PORTRAIT_ROOT .. "portrait_m02_young_formal_20260921084907.png",
+        adult = PORTRAIT_ROOT .. "portrait_m02_formal_20260921084407.png",
+        elder = PORTRAIT_ROOT .. "portrait_m02_elder_formal_20260921084907.png",
     },
     portrait_f01 = {
-        infant = "portrait_f01_infant_formal_20260921084907.png",
-        child = "portrait_f01_child_formal_20260921084907.png",
-        young = "portrait_f01_young_formal_202609210851.png",
-        adult = "portrait_f01_formal_20260921084407.png",
-        elder = "portrait_f01_elder_formal_202609210852.png",
+        infant = ASSET_ROOT .. "Characters/shen_ning.png",
+        child = ASSET_ROOT .. "Characters/shen_tang.png",
+        young = ASSET_ROOT .. "Characters/shen_qing.png",
+        adult = ASSET_ROOT .. "Characters/shen_qing.png",
+        elder = ASSET_ROOT .. "Characters/shen_qi.png",
     },
     portrait_f02 = {
-        infant = "portrait_f02_infant_formal_202609210854.png",
-        child = "portrait_f02_child_formal_202609210856.png",
-        young = "portrait_f02_young_formal_202609210858.png",
-        adult = "portrait_f02_formal_20260921084407.png",
-        elder = "portrait_f02_elder_formal_202609210859.png",
+        infant = PORTRAIT_ROOT .. "portrait_f02_infant_formal_202609210854.png",
+        child = PORTRAIT_ROOT .. "portrait_f02_child_formal_202609210856.png",
+        young = ASSET_ROOT .. "Characters/xu_yun.png",
+        adult = ASSET_ROOT .. "Characters/xu_yun.png",
+        elder = PORTRAIT_ROOT .. "portrait_f02_elder_formal_202609210859.png",
     },
 }
 
@@ -82,7 +83,7 @@ function Art.Portrait(member)
     local age = member.alive == false and (member.ageAtDeath or member.age) or member.age
     if type(age) ~= "number" or age < 0 then error("人物年龄无效，无法选择头像：" .. tostring(member.id), 2) end
     local stage = member.artStageAtDeath or Art.Stage(age)
-    return PORTRAIT_ROOT .. requireKnown(portraits[member.artId][stage], "人物年龄阶段未登记：" .. tostring(stage))
+    return requireKnown(portraits[member.artId][stage], "人物年龄阶段未登记：" .. tostring(stage))
 end
 
 function Art.SelectedOverlay() return UI_ROOT .. "ui/portrait_selected.png" end
@@ -94,13 +95,15 @@ function Art.Button(role, state)
     local states = { default = true, pressed = true, selected = true, disabled = true, focus = true, confirm = true, busy = true }
     requireKnown(roles[role], "未知按钮角色：" .. tostring(role))
     requireKnown(states[state], "未知按钮状态：" .. tostring(state))
-    return UI_ROOT .. "ui/buttons/" .. role .. "_" .. state .. "@2x.png"
+    local imageStates = {default = "normal", pressed = "pressed", selected = "pressed", disabled = "disabled", focus = "hover", confirm = "normal", busy = "disabled"}
+    return ASSET_ROOT .. "UI/button_" .. (role == "primary" and "primary" or "secondary") .. "_" .. imageStates[state] .. ".png"
 end
 
 function Art.House(homeId, state)
     local states = { normal = true, damaged = true, upgraded = true, relocated = true }
     requireKnown(states[state], "未知家宅状态：" .. tostring(state))
     requireKnown(homeId == "rented" or homeId == "simple" or homeId == "courtyard" or homeId == "estate", "未知家宅等级：" .. tostring(homeId))
+    if homeId == "rented" and state == "normal" then return ASSET_ROOT .. "Buildings/rented_courtyard.png" end
     return SCENE_ROOT .. "houses/" .. homeId .. "_" .. state .. "_1200x560.png"
 end
 
@@ -140,6 +143,8 @@ function Art.Relic(relicId)
     requireKnown(relicId, "缺少信物 id")
     local formId = relicAliases[relicId] or relicId
     local file = requireKnown(relicFiles[formId], "未知信物形态：" .. tostring(relicId))
+    if formId == "genealogy.1" then return ASSET_ROOT .. "Heirlooms/genealogy_book.png" end
+    if formId == "letter.1" then return ASSET_ROOT .. "Heirlooms/unsent_letter.png" end
     return SCENE_ROOT .. "relics/" .. file .. "_512.png"
 end
 
@@ -194,23 +199,6 @@ local worldArt = { mortal = true, wuxia = true, cultivation = true, modern = tru
 function Art.WorldScene(worldId)
     requireKnown(worldArt[worldId], "世界场景未登记：" .. tostring(worldId))
     return "Jiaye/WorldEntry/scenes/" .. worldId .. ".png"
-end
-
-function Art.WorldIcon(worldId)
-    requireKnown(worldArt[worldId], "世界图标未登记：" .. tostring(worldId))
-    return "Jiaye/WorldEntry/icons/world_" .. worldId .. "_ink.png"
-end
-
-function Art.WorldEntry(name)
-    local files = {
-        paper = "textures/paper_tile", panel = "ui/panel_paper",
-        frameDefault = "ui/card_frame_default", frameSelected = "ui/card_frame_selected",
-        framePressed = "ui/card_frame_pressed", frameFocus = "ui/card_frame_focus",
-        primary = "ui/button_primary_default", primaryPressed = "ui/button_primary_pressed",
-        primaryFocus = "ui/button_primary_focus", secondary = "ui/button_secondary_default",
-        secondaryPressed = "ui/button_secondary_pressed", secondaryFocus = "ui/button_secondary_focus",
-    }
-    return "Jiaye/WorldEntry/" .. requireKnown(files[name], "世界入口资源未登记：" .. tostring(name)) .. ".png"
 end
 
 return Art

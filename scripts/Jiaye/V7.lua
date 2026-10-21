@@ -1,4 +1,5 @@
 local Art = require "Jiaye.Art"
+local Skin = require "Jiaye.QianjiajiSkin"
 local V7 = { Art = Art }
 
 -- 设计稿字号为逻辑 px，UrhoX 组件接收 pt；不改变布局尺寸与热区。
@@ -15,27 +16,27 @@ V7.Tokens = {
     panelRadius = 10, paperRadius = 10, sheetTopRadius = 12,
     primaryHeight = 48, buttonHeight = 48, touchMin = 44,
     pageInset = 17, sectionGap = 14, cardPadding = 12, paperPadding = 16,
-    buttonSlice = { 36, 36, 36, 36 }, panelSlice = { 20, 20, 20, 20 },
+    buttonSlice = { 12, 12, 12, 12 }, panelSlice = { 24, 24, 24, 24 },
     eventImage = 132, houseImage = 118,
 }
 
 V7.Colors = {
-    paper = {247, 240, 223, 255},
-    paperLight = {255, 249, 235, 255},
-    ink = {41, 63, 55, 255},
-    secondary = {115, 116, 102, 255},
-    primary = {53, 92, 73, 255},
-    selected = {226, 232, 216, 255},
+    paper = Skin.Colors.paper,
+    paperLight = Skin.Colors.paperLight,
+    ink = Skin.Colors.ink,
+    secondary = Skin.Colors.muted,
+    primary = Skin.Colors.ink,
+    selected = Skin.Colors.selected,
     gold = {164, 139, 88, 255},
-    rule = {213, 199, 167, 255},
-    danger = {162, 83, 59, 255},
+    rule = Skin.Colors.rule,
+    danger = Skin.Colors.red,
     pressed = {38, 71, 56, 255},
     disabledSurface = {223, 221, 207, 255},
     disabledInk = {119, 121, 109, 255},
 }
 
 V7.Images = {
-    paperTexture = Art.Texture("paper_subtle_512"),
+    paperTexture = Skin.Root .. "UI/paper_tile.png",
     paperFiber = Art.Texture("paper_fiber_alpha_512"),
     seal = Art.Decor("seal_square"),
 }

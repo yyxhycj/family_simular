@@ -14,6 +14,10 @@ local V7 = require "Jiaye.V7"
 ---@field openingPage string
 ---@field openingFeedback string
 ---@field openingReturn string|nil
+---@field openingDetailHistory table
+---@field openingEditReturn table|nil
+---@field openingPersonId number|nil
+---@field openingRelicId string|nil
 ---@field undo table
 ---@field houseUndo table|nil
 ---@field editBackup table|nil
@@ -69,6 +73,7 @@ function OpeningEditor.Init(app)
     app.openingPage = app.openingPage or "world"
     app.openingView = app.openingView or "summary"
     app.openingFeedback = app.openingFeedback or ""
+    app.openingDetailHistory = {}
     app.undo = app.undo or {}
     app.openingEditDraft = nil
     app.editBackup = nil
@@ -201,6 +206,7 @@ end
 ---@param self OpeningEditorController
 function OpeningEditor.BeginOpeningEdit(self, page)
     if not self.openingEditDraft then
+        self.openingEditReturn = { view = self.openingView, page = self.openingPage, personId = self.openingPersonId, relicId = self.openingRelicId }
         self.openingEditDraft = State.Copy(self.draft)
         self.editBackup = State.Copy(self.draft)
         self.editUndo = State.Copy(self.undo)
@@ -215,8 +221,12 @@ function OpeningEditor.BeginOpeningEdit(self, page)
 end
 
 ---@param self OpeningEditorController
-function OpeningEditor.OpenOpeningDetail(self, view)
+function OpeningEditor.OpenOpeningDetail(self, view, id)
+    self.openingDetailHistory = self.openingDetailHistory or {}
+    table.insert(self.openingDetailHistory, { view = self.openingView, page = self.openingPage, personId = self.openingPersonId, relicId = self.openingRelicId })
     self.openingReturn = self.openingView or "summary"
+    if view == "person" then self.openingPersonId = id end
+    if view == "heirloom" then self.openingRelicId = id end
     self.openingView = view
     self.openingFeedback = ""
     render(self)
@@ -224,7 +234,9 @@ end
 
 ---@param self OpeningEditorController
 function OpeningEditor.ReturnOpeningDetail(self)
-    self.openingView = self.openingReturn or "summary"
+    local target = table.remove(self.openingDetailHistory or {}) or { view = "summary" }
+    self.openingView, self.openingPage = target.view, target.page or self.openingPage
+    self.openingPersonId, self.openingRelicId = target.personId, target.relicId
     self.openingReturn = nil
     self.openingFeedback = ""
     render(self)
@@ -251,7 +263,10 @@ function OpeningEditor.FinishOpeningEdit(self, save)
     self.editUndo = nil
     self.editHouseUndo = nil
     if save then self.houseUndo = nil end
-    self.openingView = "summary"
+    local target = self.openingEditReturn or { view = "summary" }
+    self.openingEditReturn = nil
+    self.openingView, self.openingPage = target.view, target.page or self.openingPage
+    self.openingPersonId, self.openingRelicId = target.personId, target.relicId
     self.openingFeedback = ""
     render(self)
     return true

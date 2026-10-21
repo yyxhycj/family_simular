@@ -90,8 +90,7 @@ end
 
 local function AuditFonts()
     for _, path in ipairs({
-        "Fonts/NotoSansSC-Regular.ttf", "Fonts/NotoSansSC-Bold.ttf",
-        "Fonts/SourceHanSerifCN-Regular.otf", "Fonts/SourceHanSerifCN-SemiBold.otf",
+        "Fonts/Qianjiaji/QianjiajiSong-Regular.ttf", "Fonts/Qianjiaji/QianjiajiSong-Semibold.ttf",
     }) do
         Check(path, "字体/" .. path, "Font")
     end
