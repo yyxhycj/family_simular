@@ -8,8 +8,9 @@ local C = V7.Colors
 function View.Build(app)
     local desktop = GetPlatform() == "macOS" or GetPlatform() == "Windows" or GetPlatform() == "Linux"
     local path = desktop and "image/taptap/login-pc.png" or "image/taptap/login-mobile.png"
-    local texture = assert(cache:GetResource("Texture2D", path), "TapTap 登录按钮资源缺失。")
-    local width = math.min(desktop and 370 or 270, UI.GetWidth() - 80)
+    assert(cache:GetResource("Texture2D", path), "TapTap 登录按钮资源缺失。")
+    local buttonWidth = desktop and 370 or 270
+    local buttonRatio = desktop and 1110 / 210 or 810 / 150
     return UI.Panel {
         id = "login-screen", width = "100%", height = "100%", backgroundColor = C.paper,
         children = {
@@ -22,9 +23,9 @@ function View.Build(app)
                                 Visual.Text("千家纪", { width = "100%", fontSize = 42, fontFamily = "serif", textAlign = "center" }),
                                 Visual.Text("选择登录方式", { width = "100%", fontSize = 20, textAlign = "center" }),
                                 UI.Panel {
-                                    id = "login-taptap", width = width, height = width * texture.height / texture.width,
+                                    id = "login-taptap", width = "100%", maxWidth = buttonWidth, aspectRatio = buttonRatio,
                                     padding = 0, borderWidth = 0, borderRadius = 0,
-                                    backgroundImage = path, backgroundFit = "contain", pointerEvents = "auto",
+                                    backgroundImage = path, backgroundFit = "fill", pointerEvents = "auto",
                                     onClick = function() app:LoginTapTap() end,
                                 },
                                 Visual.Button("游客登录", function() app:LoginGuest() end, { id = "login-guest", width = "100%", height = 50, role = "secondary" }),
