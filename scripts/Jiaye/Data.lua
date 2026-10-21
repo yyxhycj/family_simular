@@ -4,6 +4,7 @@ Data.LIMIT = 100
 Data.OpeningCosts = { moneyUnit = 10, grainUnit = 4, land = 4, workshop = 14, shop = 20 }
 -- 运行中置办保留既有价格；界面与结算动作只读取这里，开局点数不复用这组银两。
 Data.RuntimeAssetCosts = { land = 30, workshop = 80, shop = 120 }
+Data.RuntimeHomeValues = { rented = 0, simple = 60, courtyard = 140, estate = 280 }
 Data.FocusNames = { general = "均衡", learn = "学识", skill = "手艺", medicine = "医术", trade = "经营", martial = "武艺" }
 Data.JobOrder = { "play", "study", "farm", "apprentice", "craft", "trade", "teach", "medical", "doctor", "train", "guard", "official", "home", "rest" }
 Data.AgeRules = {

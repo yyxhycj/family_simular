@@ -586,7 +586,13 @@ end
 local function AddTaskFact(run, task, text)
     State.AddFact(run, "relic", text, ValidMemberIds(run, task.participantIds), {
         outcome = task.actionId, actionId = task.actionId, taskId = task.id, relicInstanceId = task.instanceId,
-        attachedInstanceIds = Copy(task.attachedInstanceIds), runYear = task.acceptedYear,
+        attachedInstanceIds = Copy(task.attachedInstanceIds), runYear = task.acceptedYear, taskStatus = task.status,
+    })
+end
+
+local function RecordDecision(run, action)
+    State.AddFact(run, "story_decision", "信物故事作出决定：“" .. action.name .. "”。", {}, {
+        storyId = "relic." .. action.familyId, storyNodeId = action.id, isDecision = true, recordLog = false,
     })
 end
 
@@ -633,6 +639,7 @@ function RelicSystem.Start(run, profile, actionId, input)
         sourceTask.remainingWorkYears = 0
         ReleaseTaskInstances(run, sourceTask)
         AddTaskFact(run, sourceTask, message)
+        RecordDecision(run, action)
         return true, message
     end
     if quote.cost.money > 0 then run.money = Number(run.money) - quote.cost.money end
@@ -647,6 +654,7 @@ function RelicSystem.Start(run, profile, actionId, input)
         if action.claimKey and action.cooldownYears == 0 and action.id ~= "ruler.copy_plan" and action.id ~= "plan.buy_old_drawing" and action.id ~= "notes.accept_old_cases" then ConsumeClaim(run, action.claimKey, input.instanceId) end
         if action.cooldownYears and action.cooldownYears > 0 then SetCooldown(run, action.id, action.cooldownYears) end
         if quote.cost.money > 0 or quote.cost.grain > 0 then Transaction(run, "relic_action_cost", -quote.cost.money, -quote.cost.grain, { actionId = actionId, instanceId = input.instanceId, label = action.name .. "费用" }) end
+        RecordDecision(run, action)
         return true, message
     end
     local taskId = NextTaskId(run)
@@ -659,7 +667,12 @@ function RelicSystem.Start(run, profile, actionId, input)
         totalWorkYears = math.tointeger(quote.workYears), completedWorkYears = 0, remainingWorkYears = math.tointeger(quote.workYears),
         sealsRelic = quote.sealsRelic, route = quote.route, branch = quote.branch, status = "active", acceptedYear = run.yearIndex,
         settledYear = nil, workFacts = {}, learnerId = input.learnerId,
+        acceptedMigrationCount = (run.metrics or {}).migrations or 0, acceptedPlaceId = run.placeId,
     }
+    if actionId == "plan.small_repair" or actionId == "plan.bridge" then
+        task.buyerId = task.id .. ":client"
+        task.receivable = actionId == "plan.small_repair" and 18 or 40
+    end
     if actionId == "plan.small_repair" or actionId == "plan.bridge" then
         if not HasId(task.attachedInstanceIds, task.instanceId) then table.insert(task.attachedInstanceIds, task.instanceId) end
     end
@@ -675,6 +688,7 @@ function RelicSystem.Start(run, profile, actionId, input)
         if attached then attached.taskId = task.id; if quote.sealsRelic then attached.availability = "sealed"; attached.sealed = true end end
     end
     AddTaskFact(run, task, "信物行动已受理：" .. tostring(action.name) .. "。")
+    RecordDecision(run, action)
     return true, "已受理“" .. tostring(action.name) .. "”，预计需要 " .. tostring(task.totalWorkYears) .. " 个经营年度。"
 end
 
@@ -708,6 +722,11 @@ function RelicSystem.Resume(run, taskId, input)
         end
     end
     if #reasons > 0 then return false, table.concat(reasons, "；") end
+    if task.executorId ~= candidate.executorId then
+        task.handoverHistory = task.handoverHistory or {}
+        table.insert(task.handoverHistory, { fromMemberId = task.executorId, toMemberId = candidate.executorId,
+            completedWorkYears = task.completedWorkYears, yearIndex = run.yearIndex, paid = Copy(task.paid) })
+    end
     task.executorId, task.learnerId = candidate.executorId, candidate.learnerId
     task.participantIds = ValidMemberIds(run, { task.executorId, task.learnerId })
     task.status = "active"
@@ -870,7 +889,7 @@ local function WorkAllowed(run, yearStart, ledger, task)
 end
 
 local function WorkFact(yearStart, task, rows, runYear)
-    local work = { runYear = runYear, yearIndex = runYear, memberIds = Copy(task.participantIds), attachedInstanceIds = Copy(task.attachedInstanceIds), jobIds = {}, boundUsers = {}, qualifiedUsers = {}, executed = true }
+    local work = { runYear = runYear, yearIndex = runYear, executorId = task.executorId, memberIds = Copy(task.participantIds), attachedInstanceIds = Copy(task.attachedInstanceIds), jobIds = {}, boundUsers = {}, qualifiedUsers = {}, executed = true }
     for _, memberId in ipairs(task.participantIds or {}) do work.jobIds[tostring(memberId)] = rows[memberId] and rows[memberId].jobId end
     for _, instanceId in ipairs(task.attachedInstanceIds or {}) do
         local instance = RelicState.Find(yearStart, instanceId)

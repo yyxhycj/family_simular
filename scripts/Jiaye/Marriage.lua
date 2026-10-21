@@ -236,7 +236,7 @@ function Marriage.Marry(run, memberId, input)
     end
     table.insert(run.marriage.contracts, contract)
     State.NormalizeGenerations(run.members)
-    State.AddFact(run, "marriage", member.name .. "与" .. spouse.name .. "结亲，约定“" .. M.Find(M.Forms, quote.form).name .. "”。花费" .. quote.moneyCost .. "两、" .. quote.grainCost .. "石，亲家相赠" .. quote.giftMoney .. "两、" .. quote.giftGrain .. "石。", { member.id, spouse.id }, { contractId = contract.id, marriageQuote = State.Copy(quote) })
+    State.AddFact(run, "marriage", member.name .. "与" .. spouse.name .. "结亲，约定“" .. M.Find(M.Forms, quote.form).name .. "”。花费" .. quote.moneyCost .. "两、" .. quote.grainCost .. "石，亲家相赠" .. quote.giftMoney .. "两、" .. quote.giftGrain .. "石。", { member.id, spouse.id }, { contractId = contract.id, marriageQuote = State.Copy(quote), joinedMemberId = residence == "home" and spouse.id or nil })
     return true, "婚约、居所与亲家往来已入谱。"
 end
 
@@ -802,6 +802,7 @@ function Marriage.ResolveStory(run, storyId, accept, targetId)
             local trader = false; for _, person in ipairs(run.members) do if Home(person) and person.jobId == "trade" and State.CanUseJob(person, "trade") then trader = true end end
             if not trader then return false, "需有符合条件的族人实际行商。" end
             run.money = run.money - 80; run.shop = true; family.assets.money = family.assets.money - 40; family.claimed.shop = true
+            State.AddFact(run, "asset_purchase", "按亲家约定实际接下铺面，本家支付80两。", { contract.memberId, contract.spouseId }, { assetId = "shop", price = 80, contractId = contract.id })
         else
             local count = 0
             for _, id in ipairs({ contract.memberId, contract.spouseId }) do local person = Find(run, id); if not person.alive then return false, "夫妻已有一人离世。" end; if not State.IsResident(person) then count = count + 1 end end

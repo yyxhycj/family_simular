@@ -261,6 +261,7 @@ function HistoryView.Build(app)
             Text("家史", { fontSize = 21, fontWeight = "bold" }),
             Text("年鉴、任期、账本、事实和终章按类别保留，长记录可分页阅读。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal" }),
             Button("新立家谱", function() app:PrepareNewRun() end, { width = "100%" }),
+            Button("成就", function() app:OpenAchievements() end, { id = "history-achievements", width = "100%", role = "secondary" }),
         }),
         UI.Row { gap = 6, children = { tab("annals", "年鉴"), tab("terms", "历任"), tab("ledgers", "账本") } },
         UI.Row { gap = 6, children = { tab("facts", "事实"), tab("endings", "终章") } },

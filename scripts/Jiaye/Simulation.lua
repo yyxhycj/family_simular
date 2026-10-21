@@ -531,6 +531,30 @@ function Simulation.BuyAsset(run, assetId)
     return true, "置办完成。"
 end
 
+function Simulation.HomeUpgradeQuote(run)
+    for index, home in ipairs(Data.Homes) do
+        if home.id == run.homeId then
+            local target = Data.Homes[index + 1]
+            if not target then return nil, "家宅已经是深院。" end
+            return { fromHomeId = home.id, toHomeId = target.id, name = target.name,
+                price = Data.RuntimeHomeValues[target.id] - Data.RuntimeHomeValues[home.id] }
+        end
+    end
+    error("当前家宅等级未登记。")
+end
+
+function Simulation.UpgradeHome(run)
+    local closed, message = IsClosed(run)
+    if closed then return false, message end
+    local quote, reason = Simulation.HomeUpgradeQuote(run)
+    if not quote then return false, reason end
+    if run.money < quote.price then return false, "家宅升等需要 " .. quote.price .. " 两。" end
+    run.money = run.money - quote.price
+    run.homeId, run.homeState = quote.toHomeId, "upgraded"
+    State.AddFact(run, "home_upgrade", "家宅升为“" .. quote.name .. "”，花费 " .. quote.price .. " 两。", {}, quote)
+    return true, "家宅已升等。"
+end
+
 function Simulation.GrainPurchaseQuote(run, amount)
     local closed, message = IsClosed(run)
     if closed then return nil, message end
@@ -1056,15 +1080,11 @@ function Simulation.AdvanceYear(run, profile)
     local living = Living(run)
     if #living == 0 then return false, "家谱已经落笔。" end
     local place = CurrentPlace(run)
-    local yearStart = { money = run.money, grain = run.grain, land = run.land, members = {} }
-    for _, member in ipairs(living) do table.insert(yearStart.members, { id = member.id, age = member.age, jobId = member.jobId }) end
-    local newRelics = RelicState.IsNew(run)
-    if newRelics then
-        yearStart = {}
-        for _, key in ipairs({ "money", "grain", "land", "yearIndex", "calendar", "eraId", "relicRulesVersion", "members", "leaderId", "relicInstances", "primaryRelics", "relicTasks", "habitFormations", "habitId", "originRulesVersion", "originOpportunity" }) do
-            yearStart[key] = State.Copy(run[key])
-        end
+    local yearStart = {}
+    for _, key in ipairs({ "money", "grain", "land", "placeId", "homeId", "workshop", "shop", "yearIndex", "calendar", "eraId", "relicRulesVersion", "members", "leaderId", "relicInstances", "primaryRelics", "relicTasks", "habitFormations", "habitId", "originRulesVersion", "originOpportunity" }) do
+        yearStart[key] = State.Copy(run[key])
     end
+    local newRelics = RelicState.IsNew(run)
     EnsureHabitTracking(run)
     run.lastLedger = Economy.Settle(run)
     if not newRelics then State.RecordAnnualLedger(run, run.lastLedger, yearStart) end
@@ -1253,7 +1273,7 @@ function Simulation.FinalizeEnding(run, ending, profile)
     local record = {
         id = ending.id, title = ending.title, type = ending.type, automatic = ending.automatic == true,
         automaticTrigger = ending.automaticTrigger,
-        year = run.calendar, summary = ending.desc, yearIndex = run.yearIndex, leaderId = run.leaderId,
+        year = run.calendar, summary = ending.desc, yearIndex = run.yearIndex, leaderId = run.leaderId, runId = run.runId, family = run.openingSnapshot.family,
         evidence = Simulation.EndingEvidence(run, ending.id), qualifiedEndingIds = QualifiedEndingIds(run),
         closingEventIds = closingEventIds, originOpportunity = State.Copy(run.originOpportunity),
     }

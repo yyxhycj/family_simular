@@ -20,21 +20,50 @@ end
 local function Project(run, o) return o.projectId and (run.relicExternalProjects or {})[o.projectId] end
 local function Working(o) return o.status == "active" and o.sourceOriginId ~= "scholar" end
 
-local function Fact(run, outcome, text, memberId)
+local function Fact(run, outcome, text, memberId, detail)
     local o = assert(O.Get(run))
-    return State.AddFact(run, "origin", text, memberId and { memberId } or {}, {
+    local fields = {
         opportunityId = o.id, instanceId = o.instanceId, stageId = o.stage,
         outcome = outcome, yearIndex = run.yearIndex,
+    }
+    for key, value in pairs(detail or {}) do fields[key] = value end
+    return State.AddFact(run, "origin", text, memberId and { memberId } or {}, fields)
+end
+
+local function Identity(run, o)
+    if o.contactId then return end
+    local contact = assert(run.backgroundDefinition.contacts[1], "背景机会缺少联系人。")
+    o.contactId, o.sourcePlaceId = contact.id, run.openingSnapshot.placeId
+end
+
+local function ContactExchange(run, o)
+    State.AddFact(run, "contact_exchange", "与旧联系人完成本次往来。", {}, { contactId = o.contactId,
+        sourcePlaceId = o.sourcePlaceId, placeId = run.placeId, migrationCount = run.metrics.migrations, opportunityId = o.id, recordLog = false })
+end
+
+local function SettleOrder(run, o, choice)
+    if not o.order then return end
+    local order = o.order
+    local expected = assert(order.receivableOptions[choice], "委托约定的结算路线缺失。")
+    local received = 0
+    for _, entry in ipairs(run.originTransactions) do if entry.orderId == order.id and entry.money > 0 then received = received + entry.money end end
+    assert(received == expected, "委托实际回款与约定不一致。")
+    order.received, order.settled = received, true
+    State.AddFact(run, "commission_settled", "背景委托已完成交付，约定款项到账。", { o.actorId }, {
+        orderId = order.id, buyerId = o.contactId, acceptedBuyerId = order.buyerId, accepted = true,
+        receivable = expected, received = received, acceptedPlaceId = order.placeId, placeId = run.placeId,
+        acceptedMigrationCount = order.migrationCount, migrationCount = run.metrics.migrations,
     })
 end
 
 local function Flow(run, category, money, grain, description, claimKey)
     local o = assert(O.Get(run))
+    Identity(run, o)
     run.money = run.money + money; run.grain = run.grain + grain
     assert(run.money >= 0 and run.grain >= 0, "背景机会支出超过现有钱粮。")
     local entry = { category = category, money = money, grain = grain, description = description,
         opportunityId = o.id, instanceId = o.instanceId, stageId = o.stage, claimKey = claimKey,
-        memberId = o.actorId or o.readerId, year = run.calendar, yearIndex = run.yearIndex }
+        memberId = o.actorId or o.readerId, year = run.calendar, yearIndex = run.yearIndex, orderId = o.order and o.order.id }
     table.insert(run.originTransactions, entry)
     return entry
 end
@@ -200,6 +229,7 @@ function O.Execute(run, actionId, input)
     local q = O.Quote(run, actionId, input)
     if not q.allowed then return false, table.concat(q.reasons, "；") end
     local o = assert(O.Get(run))
+    Identity(run, o)
     local origin, wasAvailable = o.sourceOriginId, o.status == "available"
     local work = actionId == "start" or actionId == "renew" or actionId == "safe" or actionId == "rush"
     if work then
@@ -208,6 +238,10 @@ function O.Execute(run, actionId, input)
         if not ok then return false, message end
         o.projectId = id; o.actorId = input.memberId; o.attachedRelicIds = State.Copy(input.attachedInstanceIds or {})
         o.status = "active"; o.stage = actionId; o.startedAfterYear = run.yearIndex
+        if origin == "artisan" or origin == "merchant" or origin == "military" then
+            local options = origin == "artisan" and { take_cash = 22, take_discount = 14 } or (origin == "merchant" and { complete = 30 } or { safe = 18, rush = 32 })
+            o.order = { id = id, buyerId = o.contactId, placeId = run.placeId, migrationCount = run.metrics.migrations, receivableOptions = options }
+        end
     end
     if wasAvailable then o.starts = 1; o.claims.open = true; o.stage = actionId end
     if actionId ~= "pause" and actionId ~= "resume" and actionId ~= "assign_reader" then o.claims[actionId] = true end
@@ -239,9 +273,16 @@ function O.Execute(run, actionId, input)
         o.status = "active"; o.stage = "loan"; o.borrowedAfterYear = run.yearIndex; o.dueAfterYear = run.yearIndex + 3
         o.deposit = 6; o.latePenalty = 0; o.depositRefunded = 0
         Benefit(run, "scroll", 3, 2, input.memberId, 3)
+        o.borrowedItemId, o.loanRecipientId, o.effectiveLoanYears = o.instanceId .. ":scroll", o.contactId, 0
     elseif actionId == "return" then
         Flow(run, "deposit_return", o.deposit, 0, "归还旧卷退押金", "return.deposit")
         o.depositRefunded = o.deposit; o.deposit = 0; o.status = "returned"; o.benefits.scroll.active = false; o.benefits.scroll.spentReason = "已归还旧卷"
+        if o.borrowedItemId and o.loanRecipientId then
+            State.AddFact(run, "loan_returned", "旧卷已归还给原约定接收人，借阅与押金结清。", { o.readerId }, {
+                itemId = o.borrowedItemId, returnedItemId = o.borrowedItemId, recipientId = o.contactId, agreedRecipientId = o.loanRecipientId,
+                approved = true, closed = true, effectiveYears = o.effectiveLoanYears, depositSettled = o.latePenalty + o.depositRefunded == 6,
+            })
+        end
     elseif actionId == "assign_reader" then o.readerId = input.memberId; o.benefits.scroll.memberId = input.memberId
     elseif actionId == "safe" or actionId == "rush" then o.route = actionId; if actionId == "rush" then o.riskDraw = State.Random(run) end
     elseif actionId == "keep_seed" then Benefit(run, "seed", 2, 3); o.status = "settled"
@@ -251,10 +292,14 @@ function O.Execute(run, actionId, input)
         Flow(run, "trade_capital_return", 8, 0, "修缮工料返还", "repair.materials")
         Flow(run, "event_wage", actionId == "take_cash" and 14 or 6, 0, "修缮报酬", "repair.wage")
         if actionId == "take_discount" then Benefit(run, "workshop_discount", 16, 1) end
+        SettleOrder(run, o, actionId)
         o.status = "settled"
     elseif actionId == "study_referral" then Benefit(run, "study_referral", 2, 3, input.memberId, 6); o.status = "settled"; o.relationshipStatus = "referred_to_study"
     elseif actionId == "work_referral" then Benefit(run, "work_referral", 6, 2, input.memberId, 4); o.status = "settled"; o.relationshipStatus = "referred_to_work" end
-    Fact(run, o.relationshipStatus or actionId, q.label .. "。" .. q.description, input.memberId or o.actorId or o.readerId)
+    local decision = actionId ~= "pause" and actionId ~= "resume" and actionId ~= "assign_reader" and actionId ~= "abandon"
+    Fact(run, o.relationshipStatus or actionId, q.label .. "。" .. q.description, input.memberId or o.actorId or o.readerId,
+        { actionId = actionId, storyId = o.id, storyNodeId = actionId, isDecision = decision })
+    if decision then ContactExchange(run, o) end
     return true, q.label .. "，已记入家史。"
 end
 
@@ -287,6 +332,7 @@ local function FinishWork(run, yearStart, ledger, o)
         Flow(run, "old_debt_recovery", 12, 0, "续单带回旧欠", "renew.debt")
         Flow(run, "trade_profit", 6, 0, "续单利润", "renew.profit")
         o.growth = Growth(current, "trade", 3); o.status = "settled"; o.relationshipStatus = "business_reconnected"
+        SettleOrder(run, o, "complete")
     elseif origin == "military" then
         o.successChance = RushChance(yearStart, actor)
         success = o.route == "safe" or o.riskDraw < o.successChance
@@ -296,11 +342,13 @@ local function FinishWork(run, yearStart, ledger, o)
         else current.health = math.max(0, current.health - 8) end
         o.growth = Growth(current, "martial", success and (o.route == "safe" and 2 or 3) or 1)
         o.status = success and "settled" or "settled_failure"
+        if success then SettleOrder(run, o, o.route) end
     elseif origin == "gentry" then run.reputation = run.reputation + 8; o.relationshipStatus = "guest_received" end
     local ok, message = RelicSystem.AdvanceExternalProject(run, o.projectId, run.yearIndex, { o.actorId }, o.attachedRelicIds, success and "success" or "failed")
     assert(ok, message)
     o.claims.work = true
     Fact(run, o.relationshipStatus or (success and "work_completed" or "escort_failed"), OriginState.Definitions[origin].name .. (success and "完成了约定的工作年度。" or "急件护送未成功，已按约退回未用盘缠。"), o.actorId)
+    if success and o.contactId then ContactExchange(run, o) end
 end
 
 function O.Tick(run, yearStart, ledger)
@@ -316,6 +364,11 @@ function O.Tick(run, yearStart, ledger)
         used[source.benefitId] = true
         if benefit.remainingUses == 0 then benefit.active = false; benefit.spentReason = "次数已用完" end
         Fact(run, "benefit_applied", "背景机会权益生效：" .. tostring(source.learn or 0) .. "学识、" .. tostring(source.money or 0) .. "两、" .. tostring(source.grain or 0) .. "石。", memberId)
+        if source.kind == "scroll" and (source.actualLearn or 0) > 0 then o.effectiveLoanYears = (o.effectiveLoanYears or 0) + 1 end
+        if (source.kind == "study_referral" or source.kind == "work_referral") and ((source.actualLearn or 0) > 0 or (source.actualMoney or 0) > 0) then
+            Fact(run, "referral_applied", "引荐对象实际获得了本年度帮助。", memberId,
+                { actualLearn = source.actualLearn or 0, actualMoney = source.actualMoney or 0, benefitId = source.benefitId })
+        end
     end
     for _, row in ipairs(ledger.members or {}) do for _, source in ipairs(row.originSources or {}) do Consume(source, row.memberId) end end
     for _, source in ipairs(ledger.originGrainSources or {}) do Consume(source) end

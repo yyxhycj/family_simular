@@ -5,11 +5,12 @@ local RelicState = require "Jiaye.RelicState"
 local RelicValidation = require "Jiaye.RelicValidation"
 local OriginState = require "Jiaye.OriginState"
 local MarriageState = require "Jiaye.MarriageState"
+local Achievements = require "Jiaye.Achievements"
 ---@diagnostic disable: undefined-global -- UrhoX runtime injects File/fileSystem/cjson.
 
 local State = {}
 
-State.SAVE_SCHEMA_VERSION = 2
+State.SAVE_SCHEMA_VERSION = 3
 
 local function UsesLegacyOpeningRules(draft)
     if type(draft) ~= "table" then return true end
@@ -38,6 +39,7 @@ end
 function State.NewProfile()
     local profile = { schemaVersion = 1, unlockedRelicIds = { book = true, ruler = true, letter = true }, endingRecords = {} }
     RelicState.EnsureProfile(profile)
+    Achievements.EnsureProfile(profile)
     return profile
 end
 
@@ -416,7 +418,8 @@ local function CreateRun(draft, profile, allowOverBudget)
     if not KNOWN_RULES_VERSIONS[rulesVersion] then return nil, { "开局规则版本未知，不能开始。" } end
     local background = State.BackgroundDefinition(draft)
     if newRules and not background then return nil, { "当前开局缺少有效背景定义，不能开始。" } end
-    local runId = "run-" .. tostring(os.time())
+    local runId = "preview-" .. tostring(draft.rngSeed)
+    if not allowOverBudget then runId = "run-" .. tostring(os.time()) .. "-" .. tostring(math.random(1, 2147483647)) .. "-" .. tostring(math.random(1, 2147483647)) end
     local openingSnapshot = State.Copy(draft)
     State.NormalizeGenerations(openingSnapshot.members)
     openingSnapshot.rulesVersion = rulesVersion
@@ -474,7 +477,9 @@ local function CreateRun(draft, profile, allowOverBudget)
 end
 
 function State.NewRun(draft, profile)
-    return CreateRun(draft, profile, false)
+    local run, issues = CreateRun(draft, profile, false)
+    if run then Achievements.EnsureRun(run) end
+    return run, issues
 end
 
 function State.PreviewRun(draft, profile)
@@ -501,7 +506,7 @@ end
 function State.AddFact(run, kind, text, memberIds, detail)
     run.facts = run.facts or {}
     run.nextFactId = run.nextFactId or (#run.facts + 1)
-    local fact = { id = "fact-" .. tostring(run.nextFactId), year = run.calendar, kind = kind, text = text, memberIds = State.Copy(memberIds or {}) }
+    local fact = { id = "fact-" .. tostring(run.nextFactId), year = run.calendar, yearIndex = run.yearIndex, kind = kind, text = text, memberIds = State.Copy(memberIds or {}) }
     run.nextFactId = run.nextFactId + 1
     for key, value in pairs(type(detail) == "table" and detail or {}) do fact[key] = State.Copy(value) end
     table.insert(run.facts, 1, fact)
@@ -531,7 +536,7 @@ function State.RecordAnnualLedger(run, ledger, yearStart)
     return record
 end
 
-local KNOWN_SAVE_VERSIONS = { [1] = true, [2] = true }
+local KNOWN_SAVE_VERSIONS = { [1] = true, [2] = true, [3] = true }
 
 ---@return integer?, string?
 local function ResolveCurrentSaveVersion(value)
@@ -560,6 +565,8 @@ end
 ---@class JiayeSavePayload
 ---@field saveSchemaVersion integer
 ---@field profile table
+---@field migratedFromSaveSchemaVersion integer?
+---@field migratedFrom string?
 ---@field draft table
 ---@field run table?
 ---@field saveRevision integer?
@@ -776,6 +783,8 @@ local function ValidateProfile(profile)
     for _, record in ipairs(profile.endingRecords) do if type(record) ~= "table" or not Data.Ending(record.id) then return false, "终章记录包含未知引用。" end end
     local relicOk, relicMessage = RelicValidation.Profile(profile)
     if not relicOk then return false, relicMessage end
+    local achievementOk, achievementMessage = Achievements.Validate(profile)
+    if not achievementOk then return false, achievementMessage end
     return true
 end
 
@@ -846,6 +855,8 @@ local function ValidateSavePayloadInternal(value)
         local runOk, runMessage = ValidateRun(run)
         if not runOk then return false, runMessage end
     end
+    local achievementOk, achievementMessage = Achievements.Validate(profile, run)
+    if not achievementOk then return false, achievementMessage end
     return true
 end
 
@@ -868,6 +879,7 @@ local function NormalizeCurrentPayload(value, sourceVersion)
     candidate.profile.endingRecords = candidate.profile.endingRecords or {}
     if candidate.profile.unlockedRelicForms ~= nil and type(candidate.profile.unlockedRelicForms) ~= "table" then return nil, "信物形态收藏结构无效。" end
     RelicState.EnsureProfile(candidate.profile)
+    Achievements.EnsureProfile(candidate.profile)
     local identity = candidate.run and candidate.run.runId or (candidate.draft and candidate.draft.rngSeed) or "draft"
     if candidate.draft then
         if type(candidate.draft) ~= "table" then return nil, "开局草案结构无效。" end
@@ -944,9 +956,12 @@ local function NormalizeCurrentPayload(value, sourceVersion)
             member.jobYears = member.jobYears or {}
         end
         MarriageState.Ensure(run)
+        local backfill = sourceVersion < State.SAVE_SCHEMA_VERSION or candidate.migratedFrom == "v5-schema-3" and run.achievementState == nil
+        Achievements.EnsureRun(run)
+        if backfill then run.achievementState.legacyBackfill = true end
     end
     candidate.saveSchemaVersion = State.SAVE_SCHEMA_VERSION
-    if sourceVersion == 1 then candidate.migratedFromSaveSchemaVersion = 1 end
+    if sourceVersion < State.SAVE_SCHEMA_VERSION then candidate.migratedFromSaveSchemaVersion = sourceVersion end
     return candidate
 end
 
@@ -959,7 +974,7 @@ local externalExportName = "jiaye-backup.json"
 local failedSavePath = nil
 
 function State.UseVerificationStorage(suite)
-    assert(suite == nil or suite == "origin" or suite == "t14" or suite == "cloud" or suite == "marriage", "未知验收存档范围。")
+    assert(suite == nil or suite == "origin" or suite == "t14" or suite == "cloud" or suite == "marriage" or suite == "achievements", "未知验收存档范围。")
     local prefix = suite and ("jiaye_" .. suite .. "_verification") or "jiaye_v12_verification"
     SAVE_PATHS = { prefix .. ".json", prefix .. ".backup.json" }
     exportPath = prefix .. ".export.json"
@@ -1198,6 +1213,8 @@ function State.CommitImport(candidate)
     if latest and latest.importReceipt and latest.importReceipt == candidate.importReceipt then
         return true, "这份备份已经导入，当前进度保持不变。", "duplicate"
     end
+    if latest then Achievements.Merge(candidate.profile, latest.profile) end
+    Achievements.Update(candidate.profile, candidate.run)
     local ok, message = State.Save(candidate.profile, candidate.draft, candidate.run, { importReceipt = candidate.importReceipt, allowRecoveryOverwrite = true })
     if not ok then return false, message, "failed" end
     return true, "备份已原子写入并回读核对。", "committed"

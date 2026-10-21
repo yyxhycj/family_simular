@@ -20,6 +20,9 @@ local OriginView = require "Jiaye.OriginView"
 local ModalLayout = require "Jiaye.ModalLayout"
 local CloudSave = require "Jiaye.CloudSave"
 local CloudSaveView = require "Jiaye.CloudSaveView"
+local Achievements = require "Jiaye.Achievements"
+local AchievementDefinitions = require "Jiaye.AchievementDefinitions"
+local AchievementsView = require "Jiaye.AchievementsView"
 
 local App = {}
 App.__index = App
@@ -157,10 +160,13 @@ function App:Init()
     self.historyPage = 1
     self.unsaved = false
     self.saveMessage = ""
+    ---@type JiayeSavePayload?
     local saved, message, status = State.Load()
     if saved then self.profile, self.draft, self.run = saved.profile, saved.draft, saved.run end
     self.autoSaveElapsed = 0
     self.autoSaveSnapshot = saved and State.Copy({ profile = self.profile, draft = self.draft, run = self.run }) or nil
+    if saved and saved.migratedFromSaveSchemaVersion then self.autoSaveSnapshot = nil end
+    self.newAchievementIds = {}
     self.storageBlocked = status == "invalid"
     if status == "invalid" or status == "recovered" then self.saveMessage = message end
     if not saved and not self.storageBlocked then
@@ -229,13 +235,30 @@ end
 
 function App:Persist(profile, draft, run)
     if self.cloud and self.cloud.blocked then return false, self.cloud.message end
+    local candidateProfile, candidateRun = State.Copy(profile), State.Copy(run)
+    local added = Achievements.Update(candidateProfile, candidateRun)
     local metadata = self.cloud and { cloudSync = self.cloud:NextMetadata() } or nil
-    local ok, message, payload = State.Save(profile, draft, run, metadata)
+    local ok, message, payload = State.Save(candidateProfile, draft, candidateRun, metadata)
     if ok then
-        self.autoSaveSnapshot = State.Copy({ profile = profile, draft = draft, run = run })
+        if profile == self.profile then self.profile = payload.profile end
+        if run == self.run then self.run = payload.run end
+        if draft == self.draft then self.draft = payload.draft elseif draft == self.previousDraft then self.previousDraft = payload.draft end
+        self.newAchievementIds = added
+        self.autoSaveSnapshot = State.Copy({ profile = payload.profile, draft = payload.draft, run = payload.run })
         if self.cloud then self.cloud:Queue(assert(payload)) end
     end
     return ok, message
+end
+
+function App:AchievementMessage(message)
+    local names = {}
+    for _, id in ipairs(self.newAchievementIds) do table.insert(names, AchievementDefinitions.ById[id].name) end
+    self.newAchievementIds = {}
+    return #names > 0 and (message .. "\n成就入册 · " .. table.concat(names, "、")) or message
+end
+
+function App:OpenAchievements()
+    AchievementsView.Open(self)
 end
 
 function App:Save(silent)
@@ -247,7 +270,7 @@ function App:Save(silent)
     -- 试配新家庭期间，手动存档仍保存旧局的草案；取消不会把候选写进旧局。
     local ok, message = self:Persist(self.profile, self.previousDraft or self.draft, self.run)
     self.unsaved = not ok; self.saveMessage = ok and "" or message
-    if not silent or not ok then self:Render(); self:Notify(message, ok and "success" or "error") end
+    if not silent or not ok then self:Render(); self:Notify(ok and self:AchievementMessage(message) or message, ok and "success" or "error") end
     return ok
 end
 
@@ -290,6 +313,7 @@ function App:OpenMenu()
     modal:AddContent(ModalLayout.Scroll(UI.Panel { gap = 8, children = {
         Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
         Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
+        Button("成就", function() modal:Close(); self:OpenAchievements() end, { width = "100%", role = "secondary" }),
     } }))
     modal:Open()
 end
@@ -408,12 +432,12 @@ function App:RunAction(fn)
         else self:Notify(message, "warning") end
         return false
     end
-    local saved, result = pcall(function() return self:Save() end)
+    local saved, result = pcall(function() return self:Save(true) end)
     if not saved then
         self.unsaved = true
         self.saveMessage = "当前安排已在内存中保留，存档未完成：" .. tostring(result)
         self:Render(); self:Notify(self.saveMessage, "error")
-    elseif result then self:Notify(message, "success") end
+    elseif result then self:Render(); self:Notify(self:AchievementMessage(message), "success") end
     return true
 end
 
@@ -654,6 +678,7 @@ function App:ConfirmRunJob(memberId, jobId, parentModal)
     if member then ok, reason = Simulation.GetJobReason(member, jobId) end
     if not ok or not job then self:Notify(reason, "warning"); return end
     if member.jobId == jobId then self:Notify("此人已经在做这份安排。", "info"); return end
+    ---@type table?
     local quote, issue = Economy.JobQuote(self.run, memberId, jobId)
     if not quote then self:Notify(issue, "error"); return end
     local function signed(value) return (value >= 0 and "+" or "") .. tostring(value) end
@@ -1001,6 +1026,17 @@ function App:BuildEstateTab()
             }))
         end
         table.insert(estateChildren, Label("置办家业", { fontSize = 17, fontWeight = "bold", marginTop = 5 }))
+        local homeQuote = Simulation.HomeUpgradeQuote(self.run)
+        if homeQuote then
+            table.insert(estateChildren, EstateActionCard({
+                title = "家宅升等 · " .. homeQuote.name, costText = homeQuote.price .. " 两",
+                outcome = "住宅等级提升，并保留入住后的年度经历。", timing = "确认后入住新住宅",
+                available = self.run.money >= homeQuote.price,
+                status = self.run.money >= homeQuote.price and "可升等" or "尚差 " .. (homeQuote.price - self.run.money) .. " 两",
+                onClick = function() self:ConfirmRunAction("确认家宅升等", "花费" .. homeQuote.price .. "两，入住“" .. homeQuote.name .. "”。",
+                    function() return Simulation.UpgradeHome(self.run) end, "确认升等") end,
+            }))
+        end
         table.insert(estateChildren, #assetActions > 0 and UI.Panel { gap = 7, children = assetActions }
             or Label("田地、作坊和商铺均已置办，可继续安排经营人。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
         local aid = Data.EventChoice("community_request", "aid")

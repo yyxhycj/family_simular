@@ -83,6 +83,15 @@ local function transaction(ctx, run, category, money, grain, details)
     return ctx.transaction(run, category, money or 0, grain or 0, details or {})
 end
 
+local function commissionSettled(ctx, run, task, received)
+    if not task.buyerId or not task.receivable then return end
+    addFact(ctx, run, "commission_settled", "委托已验收，约定款项全部到账。", task.participantIds, {
+        orderId = task.id, accepted = true, buyerId = task.buyerId, acceptedBuyerId = task.buyerId,
+        receivable = task.receivable, received = received, acceptedPlaceId = task.acceptedPlaceId, placeId = run.placeId,
+        acceptedMigrationCount = task.acceptedMigrationCount, migrationCount = run.metrics.migrations,
+    })
+end
+
 function Outcomes.ApplyInstant(ctx, run, profile, actionId, input)
     local instance = input.instanceId and ctx.instance(run, input.instanceId) or nil
     local executor = input.executorId and livingAdult(run, input.executorId) or nil
@@ -341,6 +350,7 @@ function Outcomes.Complete(ctx, run, profile, task)
         transaction(ctx, run, "project_profit", 10, 0, { actionId = actionId, relicInstanceId = task.instanceId, netProfit = 10 })
         ctx.setCooldown(run, "plan.small_repair", 3)
         addFact(ctx, run, "relic_task_settled", "旧图活计完成，到账 18 两，办理人手艺 +" .. tostring(skillGain) .. "。", task.participantIds, { actionId = actionId, money = 18, principalReturn = 8, netProfit = 10, skillGain = skillGain })
+        commissionSettled(ctx, run, task, 18)
         finishTask(task, run)
         return "settled", "修缮活完成，到账 18 两，净报酬 10 两。"
     end
@@ -368,6 +378,7 @@ function Outcomes.Complete(ctx, run, profile, task)
         transaction(ctx, run, "project_profit", 16, 0, { actionId = actionId, relicInstanceId = task.instanceId, netProfit = 16 })
         ctx.consumeClaim(run, "plan.bridge", task.instanceId)
         addFact(ctx, run, "relic_task_settled", "修桥留名完成，到账 40 两，声望 +10。", task.participantIds, { actionId = actionId, money = 40, principalReturn = 24, netProfit = 16, reputation = 10, skillGain = skillGain })
+        commissionSettled(ctx, run, task, 40)
         finishTask(task, run)
         return "settled", "修桥留名完成，到账 40 两，声望 +10。"
     end

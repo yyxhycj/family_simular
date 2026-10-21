@@ -148,13 +148,14 @@ local function RelicSourceRows(effects)
 end
 
 local function NewMemberRow(run, snapshot, period, place, incomeCollected)
+    ---@type table?
     local job = Data.Jobs[snapshot.jobId]
     local row = {
         memberId = snapshot.id, name = snapshot.name, jobId = snapshot.jobId,
         job = job and job.name or tostring(snapshot.jobId), money = 0, grain = 0,
         executed = false, paid = 0, growth = { stat = job and job.stat, amount = 0, health = 0, gain = 0, focusGrowth = 0 },
         baseGrowth = 0, focusGrowth = 0, relicGrowth = 0, habitGrowth = 0, relicIncome = 0, relicSources = {}, reason = nil,
-        originGrowth = 0, originIncome = 0, originSources = {},
+        originGrowth = 0, originIncome = 0, originSources = {}, requiredPayment = 0,
     }
     if not job then row.reason = "岗位定义不存在，年度安排未执行。"; return row end
     local eligible, eligibilityReason = State.CanUseJob(snapshot, snapshot.jobId)
@@ -163,6 +164,7 @@ local function NewMemberRow(run, snapshot, period, place, incomeCollected)
     row.relicSources = RelicSourceRows(effects)
     local effectiveMoney = EffectiveJobMoney(run, snapshot, job, period, place)
     local payment = math.max(0, -effectiveMoney)
+    row.requiredPayment = payment
     if payment > 0 and run.money < payment then
         row.reason = "现银不足，无法支付本年度 " .. tostring(payment) .. " 两培养费；未扣款、未计训练。"
         return row
@@ -192,6 +194,13 @@ local function NewMemberRow(run, snapshot, period, place, incomeCollected)
     row.relicGrowth = row.growth.relicGrowth or 0
     row.habitGrowth = row.growth.habitGrowth or 0
     row.originGrowth = row.growth.originGrowth or 0
+    local actualOriginGrowth = math.min(origin.learn or 0, math.max(0, row.growth.amount - math.max(0,
+        row.growth.baseGrowth + row.growth.focusGrowth + row.growth.relicGrowth + row.growth.habitGrowth)))
+    for _, source in ipairs(row.originSources) do
+        source.actualLearn = math.min(source.learn or 0, actualOriginGrowth)
+        source.actualMoney = source.money or 0
+        actualOriginGrowth = actualOriginGrowth - source.actualLearn
+    end
     member.jobYears = member.jobYears or {}
     member.jobYears[snapshot.jobId] = (member.jobYears[snapshot.jobId] or 0) + 1
     return row
@@ -331,12 +340,13 @@ local function SettleLegacy(run)
     local beforeMoney, beforeGrain, rows = run.money, run.grain, {}
     local income, training = 0, 0
     for _, member in ipairs(living) do
+        ---@type table
         local job = Data.Jobs[member.jobId]
         local money, grain = run.money, run.grain
-        ApplyLegacyIncome(run, member, job, period, place)
+        local outcome = ApplyLegacyIncome(run, member, job, period, place)
         local delta = run.money - money
         income = income + math.max(0, delta); training = training + math.max(0, -delta)
-        table.insert(rows, { memberId = member.id, name = member.name, jobId = member.jobId, job = job.name, money = delta, grain = run.grain - grain, executed = true, paid = math.max(0, -delta), growth = State.Copy(member.stats), relicSources = {} })
+        table.insert(rows, { memberId = member.id, name = member.name, jobId = member.jobId, job = job.name, money = delta, grain = run.grain - grain, executed = true, paid = math.max(0, -delta), growth = outcome.growth, relicSources = {} })
         member.jobYears[member.jobId] = (member.jobYears[member.jobId] or 0) + 1
         if member.jobId == "official" then run.reputation = run.reputation + 1 end
     end
@@ -364,6 +374,14 @@ local function SettleLegacy(run)
     ledger.income = income
     ledger.training = training
     ledger.industryIncome = industryIncome
+    ledger.normalIncome = income
+    ledger.trainingRequired = training
+    ledger.workshopOperated, ledger.shopOperated = false, false
+    for _, row in ipairs(rows) do
+        if row.jobId == "craft" and run.workshop then ledger.workshopOperated = true end
+        if row.jobId == "trade" and run.shop then ledger.shopOperated = true end
+    end
+    ledger.normalIncome = ledger.normalIncome + (ledger.workshopOperated and 8 or 0) + (ledger.shopOperated and 10 or 0)
     ledger.landGrain = run.land * 4
     ledger.beforeMoney = beforeMoney
     ledger.beforeGrain = beforeGrain
@@ -423,6 +441,14 @@ local function SettleV12(run)
     ledger.income = income
     ledger.training = training
     ledger.industryIncome = industryIncome
+    ledger.normalIncome = income + industryIncome
+    ledger.trainingRequired = 0
+    ledger.workshopOperated, ledger.shopOperated = false, false
+    for _, row in ipairs(rows) do
+        ledger.trainingRequired = ledger.trainingRequired + row.requiredPayment
+        if row.executed and row.jobId == "craft" and run.workshop then ledger.workshopOperated = true end
+        if row.executed and row.jobId == "trade" and run.shop then ledger.shopOperated = true end
+    end
     ledger.landGrain = run.land * 4
     ledger.relicIncome = relicPassiveIncome
     ledger.relicPassiveIncome = relicPassiveIncome
@@ -447,9 +473,11 @@ local function SettleV12(run)
     return ledger
 end
 
+---@return table?, string?
 function Economy.JobQuote(run, memberId, jobId)
     if type(run) ~= "table" or type(run.members) ~= "table" then return nil, "当前家族数据无效。" end
     local sourceMember = State.FindMember(run.members, memberId)
+    ---@type table?
     local job = Data.Jobs[jobId]
     if not sourceMember then return nil, "族人不存在。" end
     if not sourceMember.alive then return nil, "已故族人不能报价。" end
