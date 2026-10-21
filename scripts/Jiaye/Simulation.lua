@@ -186,7 +186,10 @@ local function AddEvent(run, event)
     event.status = "pending"
     if Data.EventChoices[event.type] then event.choiceSchema = State.Copy(Data.EventChoices[event.type]) end
     table.insert(run.events, event)
-    State.AddLog(run, event.title .. "：需要你的决定。")
+    State.AddLog(run, event.title .. "：需要你的决定。", {
+        kind = event.type == "growth" and (event.growthId == "promotion" and "breakthrough" or "growth") or "event",
+        eventId = event.instanceId, memberIds = event.memberId and { event.memberId } or {},
+    })
     return event
 end
 
@@ -335,7 +338,7 @@ function Simulation.SetBirthPlan(run, memberId, enabled)
     local ok, reason = State.CanPlanBirth(member, run.members)
     if not ok then return false, reason end
     member.birthPlan = enabled
-    State.AddLog(run, member.name .. (enabled and "愿意迎接孩子。" or "决定暂缓迎接孩子。"))
+    State.AddLog(run, member.name .. (enabled and "愿意迎接孩子。" or "决定暂缓迎接孩子。"), { memberIds = { member.id } })
     return true, enabled and "已记录添丁计划。" or "已记录暂缓计划。"
 end
 
@@ -1003,7 +1006,8 @@ local function QueueGrowthEvents(run)
             local ready = State.CanUseJob(member, targetJobId)
             if ready then
                 run.flags.growthNotices["promotion-" .. tostring(member.id) .. "-" .. targetJobId] = true
-                AddEvent(run, { type = "growth", growthId = "promotion", memberId = member.id, jobId = targetJobId, title = member.name .. "可以出师" , blocking = false })
+                AddEvent(run, { type = "growth", growthId = "promotion", memberId = member.id, jobId = targetJobId,
+                    title = member.name .. "本领突破，已具备“" .. Data.Jobs[targetJobId].name .. "”资格", blocking = false })
             end
         end
     end
@@ -1122,8 +1126,6 @@ function Simulation.AdvanceYear(run, profile)
         local ending = Data.Ending("last")
         if not ending then return false, "自然终章定义缺失。" end
         Simulation.FinalizeEnding(run, ending, profile)
-    elseif not run.ending then
-        State.AddLog(run, "大晟历 " .. tostring(run.calendar) .. " 年结算完成。")
     end
     run.revision = run.revision + 1
     return true, "一年过去了。"

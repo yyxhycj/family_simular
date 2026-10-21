@@ -171,6 +171,12 @@ local function BuildFacts(app)
         migration = "迁居", asset_purchase = "置办家业", grain_purchase = "公市购粮", community_aid = "乡里接济",
         relic = "信物故事", growth = "成长节点", annual_ledger = "年度结算", ending = "终章", habit = "家风经历", opening = "家谱开篇",
         relic_upgrade = "信物进阶", relic_project = "信物项目", relic_use = "信物使用", relic_task = "信物办理", relic_acquired = "信物入藏",
+        origin = "背景机缘", contact_exchange = "旧交往来", commission_settled = "委托结算", loan_returned = "旧卷归还",
+        home_upgrade = "家宅升级", death = "族人离世", story_decision = "故事抉择", family_chronicle_compiled = "家史编成",
+        relic_handover = "信物交接", relic_primary = "信物配置", relic_account = "信物收支", relic_branch_joined = "旁支归家",
+        relic_plan_acquired = "营造图入藏", relic_jade_reunited = "玉佩重续", relic_notes_acquired = "医案入藏",
+        relic_apprenticeship = "师徒传艺", relic_promise_kept = "旧约兑现", relic_aid = "故人援助",
+        relic_task_settled = "信物活计结算", relic_case = "医案补记", relic_clinic = "公开义诊",
     }
     return PagedCards(app, "facts", app.run.facts or {}, 5, "事实记录", "尚无带参与人的事实记录。年度推进、人生安排和家业动作会从这里开始保留。", function(fact)
         local participants = {}
@@ -180,7 +186,7 @@ local function BuildFacts(app)
         end
         if #participants == 0 then table.insert(participants, Text("全家记录", { fontSize = 13, fontColor = C.secondary })) end
         return Card({
-            Text("大晟历 " .. tostring(fact.year) .. " 年 · " .. (names[fact.kind] or tostring(fact.kind)), { fontSize = 14, fontWeight = "bold", fontColor = C.primary }),
+            Text("大晟历 " .. tostring(fact.year) .. " 年 · " .. assert(names[fact.kind], "家史记录缺少中文类型名称：" .. tostring(fact.kind)), { fontSize = 14, fontWeight = "bold", fontColor = C.primary }),
             Text(fact.text, { fontSize = 15, whiteSpace = "normal", lineHeight = 1.5 }),
             Text("参与人", { fontSize = 13, fontColor = C.secondary }),
             UI.SimpleGrid { columns = 2, gap = 5, children = participants },

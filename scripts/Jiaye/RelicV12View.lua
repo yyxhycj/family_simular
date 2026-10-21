@@ -589,7 +589,7 @@ local function detailContent(app, instance, tab, openTab)
         }))
     elseif tab == "growth" then
         table.insert(children, card({
-            text("成长状态", { fontSize = 18, fontWeight = "bold" }),
+            text(task and assert(actionFor(task.actionId)).name or "成长状态", { fontSize = 18, fontWeight = "bold" }),
             text(taskText(task), { fontSize = 15, whiteSpace = "normal" }),
             text(form and form.description or "形态说明待补充。", { fontSize = 14, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 }),
             text("升级、使用、冷却和领取均以当前本局事实核对；暂停会保留已写入进度。", { fontSize = 13, fontColor = C.secondary, whiteSpace = "normal", lineHeight = 1.5 }),
@@ -621,11 +621,12 @@ local function detailContent(app, instance, tab, openTab)
     return children
 end
 
-function View.Open(app, instanceId)
+function View.Open(app, instanceId, tab)
     local instance = findInstance(app.run, instanceId)
     if not instance then app:Notify("这件信物已不在当前家谱中。", "warning"); return end
     closeDetail(app)
     local modal = ModalLayout.New("藏阁 · " .. instanceTitle(instance), {
+        id = "relic-detail-" .. instanceId,
         sheet = "detail",
         backgroundColor = C.paperLight,
         borderColor = C.rule, titleTextColor = C.ink, closeIconColor = C.secondary,
@@ -635,7 +636,7 @@ function View.Open(app, instanceId)
         end,
     })
     app.relicDetailModal = modal
-    local activeTab = "effect"
+    local activeTab = tab or "effect"
     local body = UI.Panel { gap = 10 }
     local currentInstance = instance
     local function render()

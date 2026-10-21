@@ -87,7 +87,6 @@ local function RecordBinding(run, instance, action, previousId, currentId, detai
         fromMemberId = previousId,
         toMemberId = currentId,
     })
-    State.AddLog(run, detail)
 end
 
 local function RecordPrimaryBinding(run, instance, previousId)
@@ -99,7 +98,6 @@ local function RecordPrimaryBinding(run, instance, previousId)
         relicInstanceId = instance.instanceId,
         previousRelicInstanceId = previousId,
     })
-    State.AddLog(run, detail)
 end
 
 local function IsActiveTask(task)
@@ -920,12 +918,19 @@ function RelicSystem.Tick(run, profile, yearStart, ledger)
                 task.pauseReason = rowsOrReason
                 ReleaseAttachments(run, task)
                 table.insert(messages, task.id .. " 已暂停：" .. rowsOrReason)
+                State.AddLog(run, "“" .. Definitions.Action(task.actionId).name .. "”暂时停下：" .. rowsOrReason, {
+                    kind = "task_progress", year = yearStart.calendar, memberIds = ValidMemberIds(run, task.participantIds), taskId = task.id,
+                })
             else
                 task.completedWorkYears = math.tointeger(task.completedWorkYears) or 0
                 task.totalWorkYears = math.tointeger(task.totalWorkYears) or 0
                 task.completedWorkYears = math.min(task.totalWorkYears, task.completedWorkYears + 1)
                 task.remainingWorkYears = task.totalWorkYears - task.completedWorkYears
                 table.insert(task.workFacts, WorkFact(yearStart, task, rowsOrReason, run.yearIndex))
+                State.AddLog(run, "“" .. Definitions.Action(task.actionId).name .. "”已完成 " .. tostring(task.completedWorkYears)
+                    .. "/" .. tostring(task.totalWorkYears) .. " 年，" .. (task.remainingWorkYears > 0 and "还需 " .. tostring(task.remainingWorkYears) .. " 年。" or "本年的办理已完成。"), {
+                    kind = "task_progress", year = yearStart.calendar, memberIds = ValidMemberIds(run, task.participantIds), taskId = task.id,
+                })
                 if task.remainingWorkYears <= 0 then
                     local result, message = Outcomes.Complete(context, run, checkedProfile, task)
                     if result == "ready" then

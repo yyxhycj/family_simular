@@ -162,7 +162,7 @@ function FamilyTree.Build(app)
     local children = {
         UI.Row { justifyContent = "space-between", alignItems = "center", children = {
             Visual.Text((app.run.openingSnapshot.family or "") .. "氏家谱", { fontSize = 20, flex = 1, whiteSpace = "normal" }),
-            Visual.Button(tostring(#app.run.members) .. " 人  ›", function() app.gameTab = "people"; app:Render() end, { role = "secondary", fontSize = 14, width = 74 }),
+            Visual.Text(tostring(#app.run.members) .. " 人", { fontSize = 14, fontColor = V7.Colors.secondary }),
         } },
         UI.Panel { gap = 2, children = relationChildren },
     }

@@ -12,6 +12,7 @@ local Economy = require "Jiaye.Economy"
 local FamilyTree = require "Jiaye.FamilyTree"
 local MemberView = require "Jiaye.MemberView"
 local HistoryView = require "Jiaye.HistoryView"
+local LedgerView = require "Jiaye.LedgerView"
 local EventView = require "Jiaye.EventView"
 local RelicsView = require "Jiaye.RelicsView"
 local RelicV12View = require "Jiaye.RelicV12View"
@@ -27,6 +28,7 @@ local AchievementsView = require "Jiaye.AchievementsView"
 local TapAchievements = require "Jiaye.TapAchievements"
 local Skin = require "Jiaye.QianjiajiSkin"
 local EndingView = require "Jiaye.EndingView"
+local ActivityView = require "Jiaye.ActivityView"
 
 local App = {}
 App.__index = App
@@ -362,6 +364,13 @@ function App:Persist(profile, draft, run)
     if self.cloud and self.cloud.blocked then return false, self.cloud.message end
     local candidateProfile, candidateRun = State.Copy(profile), State.Copy(run)
     local added = Achievements.Update(candidateProfile, candidateRun)
+    if candidateRun then
+        for _, id in ipairs(added) do
+            if not candidateProfile.achievements[id].legacyBackfill then
+                State.AddLog(candidateRun, "达成成就“" .. AchievementDefinitions.ById[id].name .. "”。", { kind = "achievement", achievementId = id })
+            end
+        end
+    end
     local metadata = self.cloud and { cloudSync = self.cloud:NextMetadata() } or nil
     local ok, message, payload = State.Save(candidateProfile, draft, candidateRun, metadata)
     if ok then
@@ -487,6 +496,7 @@ function App:PrepareNewRun()
     end
     self.editBackup = nil; self.houseUndo = nil; self.undo = {}
     self.openingEditDraft = nil; self.memberEditing = nil
+    self.openingTab, self.openingTabScroll = "overview", {}
     self.screen = "opening"; self.openingView = "summary"; self.openingFeedback = ""; self:Render()
 end
 
@@ -679,7 +689,7 @@ function App:BuildRunStatusBar()
         end
     end
     return UI.Panel {
-        height = 58, flexShrink = 0,
+        height = 77, flexShrink = 0,
         borderBottomWidth = 1, borderBottomColor = C.line,
         children = {
             UI.Row {
@@ -691,17 +701,22 @@ function App:BuildRunStatusBar()
                     Label(Data.WORLD_NAME .. "历 " .. tostring(self.run.calendar) .. " 年", { fontSize = 12, fontColor = C.muted }),
                 },
             },
-            UI.Row {
-                height = 25, paddingHorizontal = 14, gap = 5, alignItems = "center", backgroundColor = C.card,
+            UI.Button {
+                id = "annual-forecast", height = 44, paddingHorizontal = 14, paddingVertical = 0,
+                flexDirection = "row", gap = 5, alignItems = "center", backgroundColor = C.card,
+                hoverBackgroundColor = C.pale, pressedBackgroundColor = C.pale,
+                borderWidth = 0, borderRadius = 0, boxShadow = false, hoverBoxShadow = false, pressedBoxShadow = false,
                 borderTopWidth = 1, borderTopColor = C.line,
+                onClick = function() LedgerView.OpenForecast(self) end,
                 children = {
                     Label("下年预计", { fontSize = 12, fontColor = C.muted }),
                     Visual.Icon("money", 13, "muted"),
                     Label("−" .. tostring(forecast.livingExpense) .. " 两", { fontSize = 13, fontColor = C.muted }),
                     Visual.Icon("grain", 13, "muted"),
                     Label("−" .. tostring(forecast.foodNeed) .. " 石", { fontSize = 13, fontColor = C.muted }),
-                    UI.Panel { flex = 1 },
+                    UI.Panel { flex = 1, pointerEvents = "none" },
                     Label(forecastStatusText, { fontSize = 12, fontColor = forecastColor }),
+                    Label("›", { fontSize = 17, fontColor = C.muted }),
                 },
             },
         },
@@ -739,8 +754,8 @@ function App:BuildFamilyMap()
     return FamilyTree.Build(self)
 end
 
-function App:OpenRelic(instanceId)
-    if RelicState.IsNew(self.run) then return RelicV12View.Open(self, instanceId) end
+function App:OpenRelic(instanceId, tab)
+    if RelicState.IsNew(self.run) then return RelicV12View.Open(self, instanceId, tab) end
     for _, instance in ipairs(self.run.relicInstances) do
         if instance.instanceId == instanceId then return EventView.OpenRelic(self, instance) end
     end
@@ -776,7 +791,7 @@ function App:BuildFamilyTab()
                 break
             end
         end
-        local guidance = self.run.grain < foodNeed and "存粮偏少，可安排耕作或在家业中购粮。" or "本年安排会持续；点家人头像即可调整。"
+        local guidance = self.run.grain < foodNeed and "存粮偏少，可安排耕作或在家业中购粮。" or "本年安排会持续；可在族人页调整。"
         table.insert(children, Label(guidance, { fontSize = 14, fontColor = C.muted, whiteSpace = "normal" }))
     end
     for _, task in ipairs(self.run.relicTasks or {}) do
@@ -790,7 +805,6 @@ function App:BuildFamilyTab()
     end
     local originCard = OriginView.Card(self)
     if originCard then table.insert(children, originCard) end
-    table.insert(children, self:BuildFamilyMap())
     for _, habit in pairs(self.run.habitFormations or {}) do
         local status = ({ active = "已形成", paused = "暂歇", inactive = "失效" })[habit.status] or habit.status
         local effect = RelicState.IsNew(self.run) and " · 有效读书年度学识 +1" or "（原型，无额外属性）"
@@ -979,7 +993,7 @@ function App:BuildPeopleTab()
         if member.alive then table.insert(living, member) else deceased = deceased + 1 end
     end
     local selected = self:SelectedLivingMembers()
-    local cards = { Card({
+    local cards = { self:BuildFamilyMap(), Card({
         Label("本年安排", { fontSize = 21, fontWeight = "bold" }),
         Label("勾选在世族人后，可一次安排同一种去向；每个人的经历、亲缘与资格仍会分别保留。", { fontSize = 14, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.45 }),
         Label("在世 " .. tostring(#living) .. " 人 · 已选 " .. tostring(#selected) .. " 人", { fontSize = 15, fontColor = C.green, fontWeight = "bold" }),
@@ -1240,6 +1254,7 @@ function App:BuildGame()
         UI.ScrollView { flexGrow = 1, flexBasis = 0, padding = 12, backgroundColor = { 0, 0, 0, 0 }, children = { builders[self.gameTab]() } },
     }
     local annualFooter = self:BuildAnnualFooter()
+    table.insert(children, ActivityView.Bar(self))
     if annualFooter then table.insert(children, annualFooter) end
     table.insert(children, self:BuildGameNav())
     return UI.Panel { width = "100%", height = "100%", backgroundColor = C.paper, backgroundImage = V7.Images.paperTexture, backgroundImageOpacity = 1, backgroundFit = "cover", flexDirection = "column", children = children }

@@ -510,7 +510,7 @@ function State.AddFact(run, kind, text, memberIds, detail)
     run.nextFactId = run.nextFactId + 1
     for key, value in pairs(type(detail) == "table" and detail or {}) do fact[key] = State.Copy(value) end
     table.insert(run.facts, 1, fact)
-    if fact.recordLog ~= false then State.AddLog(run, text, { factId = fact.id, memberIds = fact.memberIds }) end
+    if fact.recordLog ~= false then State.AddLog(run, text, { factId = fact.id, kind = kind, memberIds = fact.memberIds }) end
     for _, memberId in ipairs(fact.memberIds) do
         local member = State.FindMember(run.members, memberId)
         if member then
@@ -531,8 +531,34 @@ function State.RecordAnnualLedger(run, ledger, yearStart)
     record.yearStart = State.Copy(yearStart)
     run.nextLedgerId = run.nextLedgerId + 1
     table.insert(run.annualLedgers, 1, record)
-    local fact = State.AddFact(run, "annual_ledger", "大晟历 " .. tostring(record.year) .. " 年账本已结算：银 " .. tostring(record.netMoney) .. " 两，粮 " .. tostring(record.netGrain) .. " 石。", {}, { ledgerId = record.id, recordLog = false })
+    local function signed(value)
+        return (value >= 0 and "+" or "") .. tostring(value)
+    end
+    for _, row in ipairs(record.members) do
+        local member = assert(State.FindMember(run.members, row.memberId), "年度动态缺少族人。")
+        local text = row.name .. " · " .. row.job .. "："
+        if row.executed then
+            local results = {}
+            if row.money ~= 0 then table.insert(results, "银 " .. signed(row.money) .. " 两") end
+            if row.grain ~= 0 then table.insert(results, "粮 " .. signed(row.grain) .. " 石") end
+            local growth = row.growth
+            if growth.stat then
+                local amount = growth.stat == "health" and growth.health or growth.amount
+                local name = growth.stat == "health" and "体魄" or assert(Data.FocusNames[growth.stat])
+                local current = growth.stat == "health" and member.health or member.stats[growth.stat]
+                table.insert(results, name .. " " .. signed(amount) .. "（现 " .. tostring(current) .. "）")
+            end
+            table.insert(results, "累计 " .. tostring(member.jobYears[row.jobId]) .. " 年")
+            text = text .. table.concat(results, "，") .. "。"
+        else
+            text = text .. "本年未执行。" .. assert(row.reason)
+        end
+        State.AddLog(run, text, { kind = "annual_progress", year = record.year, yearIndex = record.yearIndex,
+            memberIds = { row.memberId }, ledgerId = record.id, jobId = row.jobId, executed = row.executed })
+    end
+    local fact = State.AddFact(run, "annual_ledger", "大晟历 " .. tostring(record.year) .. " 年账本已结算：银 " .. signed(record.netMoney) .. " 两，粮 " .. signed(record.netGrain) .. " 石。", {}, { ledgerId = record.id, year = record.year, recordLog = false })
     record.factId = fact.id
+    State.AddLog(run, fact.text, { kind = fact.kind, factId = fact.id, ledgerId = record.id, year = record.year })
     return record
 end
 

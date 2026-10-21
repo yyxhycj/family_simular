@@ -529,6 +529,22 @@ end
 
 function Marriage.Settle(run, rows)
     local year, result = run.yearIndex + 1, { money = 0, grain = 0, thrift = 0, growth = 0, sources = {} }
+    local tracked = {}
+    local function track(record, name, memberIds, required, destination)
+        if record.status == "active" then
+            table.insert(tracked, { record = record, name = name, memberIds = memberIds, required = required, progress = record.progress, destination = destination })
+        end
+    end
+    for _, contract in ipairs(run.marriage.contracts) do
+        for _, duty in ipairs(contract.duties) do track(duty, duty.name, { contract.memberId, contract.spouseId }, duty.required, { contractId = contract.id }) end
+    end
+    for _, project in ipairs(run.marriage.projects) do
+        local definition = M.Projects[project.kind]
+        track(project, definition.name, { project.actorId }, definition.charges or definition.work, { projectId = project.id })
+    end
+    for _, lesson in ipairs(run.marriage.lessons) do
+        track(lesson, M.Traits[lesson.kind].name, { lesson.mentorId, lesson.studentId }, lesson.kind == "farming" and 3 or 2, { lessonId = lesson.id })
+    end
     local gains, moneyBuff = {}, {}
     local function Buff(targetId, stat, amount, source, consume)
         local member = Find(run, targetId)
@@ -695,6 +711,14 @@ function Marriage.Settle(run, rows)
             end
         end
     end
+    for _, item in ipairs(tracked) do
+        local record = item.record
+        local changed = record.progress > item.progress
+        local metadata = item.destination
+        metadata.kind, metadata.memberIds = "task_progress", item.memberIds
+        State.AddLog(run, "“" .. item.name .. "”" .. (changed and "本年有所进展" or "本年进度未增加")
+            .. "，已完成 " .. tostring(record.progress) .. "/" .. tostring(item.required) .. " 年。", metadata)
+    end
     return result
 end
 
@@ -707,6 +731,7 @@ local function AddStory(run, contract, kind, title, detail, payload)
     local id = contract.id .. ":" .. kind
     if M.Find(run.marriage.stories, id) then return end
     table.insert(run.marriage.stories, { id = id, contractId = contract.id, kind = kind, title = title, detail = detail, payload = payload, status = "pending", year = run.yearIndex })
+    State.AddLog(run, title .. "：" .. detail, { kind = "event", storyId = id, memberIds = { contract.memberId, contract.spouseId } })
 end
 
 function Marriage.AfterYear(run)

@@ -8,6 +8,21 @@ local Definitions = require "Jiaye.AchievementDefinitions"
 local View = {}
 local C = V7.Colors
 
+function View.OpenDetail(app, achievementId)
+    local definition = assert(Definitions.ById[achievementId])
+    local record = assert(app.profile.achievements[achievementId])
+    local detail = ModalLayout.New(definition.name, { id = "achievement-detail-" .. achievementId, sheet = "detail" })
+    local evidence = record.evidence
+    local lines = { definition.condition, record.family .. "家 · 经营第" .. record.yearIndex .. "年" .. (record.legacyBackfill and " · 旧档补记" or "") }
+    if evidence.memberNames and #evidence.memberNames > 0 then lines[#lines + 1] = "参与族人：" .. table.concat(evidence.memberNames, "、") end
+    if evidence.nodes then lines[#lines + 1] = "已完成实际决策节点：" .. #evidence.nodes end
+    for _, text in ipairs(evidence.descriptions or {}) do lines[#lines + 1] = text end
+    if evidence.values and evidence.values.current then lines[#lines + 1] = "达成时记录：" .. evidence.values.current .. " / " .. evidence.values.target end
+    if evidence.values and evidence.values.branch then lines[#lines + 1] = "实际去向：" .. (evidence.values.branch == "public" and "刊行" or evidence.values.branch == "private" and "家传" or evidence.values.branch == "heirloom" and "合璧" or "各执") end
+    detail:AddContent(ModalLayout.Scroll(Visual.Text(table.concat(lines, "\n\n"), { fontSize = 15, whiteSpace = "normal", lineHeight = 1.6 })))
+    detail:Open()
+end
+
 function View.Open(app)
     if app.unsaved then app:Notify("请先保存当前安排，再查看成就。", "warning"); return end
     local visible = Achievements.Visible(app.profile)
@@ -82,16 +97,7 @@ function View.Open(app)
                 local recorded = record.family .. "家 · 经营第" .. record.yearIndex .. "年" .. (record.legacyBackfill and " · 旧档补记" or "")
                 children[#children + 1] = Visual.Text(recorded, { fontSize = 12, fontColor = C.primary, whiteSpace = "normal" })
                 children[#children + 1] = Visual.Button("查看达成依据", function()
-                    local detail = ModalLayout.New(definition.name, { sheet = "detail" })
-                    local evidence = record.evidence
-                    local lines = { definition.condition, recorded }
-                    if evidence.memberNames and #evidence.memberNames > 0 then lines[#lines + 1] = "参与族人：" .. table.concat(evidence.memberNames, "、") end
-                    if evidence.nodes then lines[#lines + 1] = "已完成实际决策节点：" .. #evidence.nodes end
-                    for _, text in ipairs(evidence.descriptions or {}) do lines[#lines + 1] = text end
-                    if evidence.values and evidence.values.current then lines[#lines + 1] = "达成时记录：" .. evidence.values.current .. " / " .. evidence.values.target end
-                    if evidence.values and evidence.values.branch then lines[#lines + 1] = "实际去向：" .. (evidence.values.branch == "public" and "刊行" or evidence.values.branch == "private" and "家传" or evidence.values.branch == "heirloom" and "合璧" or "各执") end
-                    detail:AddContent(ModalLayout.Scroll(Visual.Text(table.concat(lines, "\n\n"), { fontSize = 15, whiteSpace = "normal", lineHeight = 1.6 })))
-                    detail:Open()
+                    View.OpenDetail(app, definition.id)
                 end, { height = 36, role = "secondary", width = "100%" })
             end
             cards[#cards + 1] = Visual.Card(children, { id = "achievement-" .. definition.id, gap = 8, padding = 12, borderColor = record and C.gold or C.rule })

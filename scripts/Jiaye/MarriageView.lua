@@ -40,10 +40,10 @@ local function DutyText(duty)
     return "指定受惠人4年内在此地实际“" .. Data.Jobs[duty.job].name .. "”2年，减免聘资" .. duty.rebate .. "两；主动迁出或逾期返还减免、声望-2。"
 end
 
-function MarriageView.Open(app, memberId)
+function MarriageView.Open(app, memberId, initialPage)
     local member = Person(app.run, memberId)
     if not member then return end
-    local page = member.marriageId and "family" or "candidates"
+    local page = initialPage or (member.marriageId and "family" or "candidates")
     local input = { weddingId = "simple", childHome = "home" }
     local sheet, render, chooser
     local function Go(nextPage) page = nextPage; render() end
