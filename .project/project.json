@@ -13,11 +13,21 @@
     "screen_orientation": "portrait",
     "collection_type": "sce",
     "trial_note": "",
-    "app_platforms": "1,2"
+    "app_platforms": "1,2",
+    "app_id": 944724,
+    "developer_id": 466361,
+    "miniapp_id": "tapmc4frc8cvhr0ksf"
   },
   "assets": {
     "icon": "assets/image/qianjiaji_publish_icon.png",
     "screenshots": [],
     "promotional_image": "assets/image/qianjiaji_publish_promo_16x9_1920x1080.jpg"
+  },
+  "test_qrcode": {
+    "url": "https://tapcode-sce.spark.xd.com/qrcode/m_i1o3_1792571507229.png",
+    "generated_at": "2026-10-21T08:31:47.366Z"
+  },
+  "metadata": {
+    "updated_at": "2026-10-21T08:31:47.366Z"
   }
 }
