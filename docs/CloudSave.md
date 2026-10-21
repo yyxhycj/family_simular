@@ -10,7 +10,7 @@
 
 登录及项目绑定由引擎负责。初始化云存档要求 `clientCloud.userId` 为有效账号，且 `clientCloud.mapName` 为非空项目标识；条件不满足时立即报错并停止初始化。每次发送请求和处理回调均核对账号及项目，运行期间项目变化会停止同步。页面中的“重试同步”重新发起云变量请求。
 
-官方本地单机预览使用 `-skip_login`，按本地开发模式运行。2026-10-21 在官方 macOS Runtime 上使用真实登录会话，并传入工程现有项目标识 `m_i1o3`，账号和项目校验通过；随后 `clientCloud:Get` 仍返回 `1146 TableNotFound`。本地账号云存档尚未通过读写和重启恢复验收。Maker Web 预览及移动端的云存档验收结果单独记录。
+官方本地单机预览使用 `-skip_login`，按本地开发模式运行。2026-10-21 在官方 macOS Runtime 上使用真实登录会话，并传入工程现有项目标识 `m_i1o3`，账号和项目校验通过；独立脚本直接调用 `clientCloud:Get`、`clientCloud:Set` 均返回 `1146 TableNotFound`，使用官方本地联网流程中的 `debug` 标记后仍然失败。当前可用原生会话连接 master 服务，现有 Maker production 入口的扫码登录返回 `USER_LOGIN_CHECK_TOKEN_ERR`。具体缺失的数据表尚无服务端证据。本地账号云存档尚未通过读写和重启恢复验收。Maker Web 预览及移动端的云存档验收结果单独记录。
 
 ## 保存与续玩
 
