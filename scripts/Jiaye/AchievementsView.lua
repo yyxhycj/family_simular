@@ -40,7 +40,7 @@ function View.Open(app)
         app.tapAchievementStatusLabel = platformStatus
         body:AddChild(platformStatus)
         body:AddChild(UI.Row { width = "100%", gap = 8, children = {
-            Visual.Button("TapTap 成就", function()
+            Visual.Button("成就记录", function()
                 if not app.tapAchievements or not app.tapAchievements:Show() then app:Notify(app:TapAchievementStatus(), "warning") end
             end, { id = "achievements-platform-open", flex = 1, minWidth = 0, height = 36, role = "secondary" }),
             Visual.Button("重试同步", function()

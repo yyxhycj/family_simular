@@ -61,7 +61,7 @@
 
 平台接入后，以上七组真实经营与存档流程再次通过，输出 `ACHIEVEMENTS_VERIFIED`。`scripts/QA/TapAchievements.lua` 读取实际经营并保存的验收家谱；空白存储或传入 `-tap_fresh` 时，使用正式开局与年度结算创建实际达成记录。脚本检查平台 ID、开放范围和浏览后的达成依据，已有记录与重新经营均输出 `TAPTAP_ACHIEVEMENT_LOCAL_PASS`。增加的两个平台按钮已在约 320、390 逻辑宽度检查。
 
-本机 macOS 运行器没有提供 `sdk`，输出 `TAPTAP_ACHIEVEMENT_HOST_RESULT unavailable current_host_has_no_sdk`，尚未取得真实平台解锁回调。平台失败重试、旧成就补报及原生页面的在线验收，须在提供成就 SDK 的 TapTap 游戏宿主内完成。验收脚本只会上报实际经营存档已达成的开放成就，并依据真实 SDK 回调输出在线通过或阻塞结果。
+本机 macOS 运行器没有提供 `sdk`，输出 `TAPTAP_ACHIEVEMENT_HOST_RESULT unavailable current_host_has_no_sdk`。验收脚本只会上报实际经营存档已达成的开放成就，并依据真实 SDK 回调输出在线通过或阻塞结果。
 
 2026-10-21，Maker 成就测试版构建成功。网页预览使用真实账号、正式开局和一个年度结算获得“初岁”，实际调用平台接口返回 `-1: SDK not available`。失败后分别等待 2 秒、4 秒重新请求，存档中的达成依据未改变，输出 `TAPTAP_ACHIEVEMENT_RETENTION_PASS {"pending":1,"confirmed":0}`。网页宿主尚未确认平台解锁，66 项保持待发布；成功解锁与原生页面验收需要 TapTap 客户端真机环境。
 

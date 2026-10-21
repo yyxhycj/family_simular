@@ -69,8 +69,8 @@ end
 
 function Tap:Refresh()
     local pending, confirmed = self:Counts()
-    self:Status(pending > 0 and ("有 " .. pending .. " 项成就等待同步到 TapTap。")
-        or confirmed > 0 and "已达成成就已同步到 TapTap。" or "尚无待同步的成就。")
+    self:Status(pending > 0 and ("有 " .. pending .. " 项成就等待同步。")
+        or confirmed > 0 and "成就记录已同步。" or "尚无待同步的成就。")
 end
 
 function Tap:Success(result)
@@ -90,7 +90,7 @@ function Tap:Failure(code, reason)
     if not self:Current() then return end
     if reason.achievementId == "" then
         print("TAPTAP_ACHIEVEMENT_PAGE_ERROR " .. tostring(code) .. " " .. reason.message)
-        self:Status("暂时无法打开 TapTap 成就页，请稍后重试。")
+        self:Status("暂时无法打开成就记录，请稍后重试。")
         return
     end
     local definition = Definitions.ByPlatformId[reason.achievementId]
@@ -108,7 +108,7 @@ function Tap:RetryLater(code, message)
     self.lastError = tostring(code) .. "：" .. message
     sdk:SetAchievementToastEnabled(true)
     print("TAPTAP_ACHIEVEMENT_RETRY " .. entry.platformId .. " " .. self.lastError)
-    self:Status("成就尚未同步到 TapTap，将自动重试。")
+    self:Status("成就记录尚未同步，将自动重试。")
 end
 
 function Tap:Update(dt)
@@ -127,7 +127,7 @@ function Tap:Update(dt)
             self.inflight, self.deadline = definition.id, self.clock + 20
             entry.requested = true
             sdk:SetAchievementToastEnabled(not entry.quiet)
-            self:Status("正在同步成就到 TapTap…")
+            self:Status("正在同步成就记录…")
             print("TAPTAP_ACHIEVEMENT_REQUEST " .. entry.platformId)
             sdk:UnlockAchievement(entry.platformId)
             return

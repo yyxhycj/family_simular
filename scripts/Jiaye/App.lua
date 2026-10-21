@@ -288,8 +288,8 @@ function App:SyncTapAchievements(profile, added)
 end
 
 function App:TapAchievementStatus()
-    if self.tapAchievementUnavailable then return "当前运行环境暂不支持平台成就。" end
-    return self.tapAchievements and self.tapAchievements.message or "登录 TapTap 后可同步和查看平台成就。"
+    if self.tapAchievementUnavailable then return "当前暂时无法同步成就记录。" end
+    return self.tapAchievements and self.tapAchievements.message or "登录账号后可同步成就记录。"
 end
 
 function App:RefreshTapAchievementStatus()
