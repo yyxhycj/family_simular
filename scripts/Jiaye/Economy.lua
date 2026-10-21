@@ -35,7 +35,8 @@ local function HasRelic(run, id)
 end
 
 local function EffectiveJobMoney(run, member, job, period, place)
-    local money = math.floor((job.money or 0) * period.wage)
+    local periodMoney = math.floor((job.money or 0) * period.wage)
+    local money = periodMoney
     if member.jobId ~= "farm" then money = math.floor(money * (place.incomeMultiplier or 1)) end
     if member.jobId == "craft" and place.id == "mountain" then money = math.floor(money * 1.1) end
     if member.jobId == "doctor" and place.id == "mountain" then money = math.floor(money * 1.1) end
@@ -47,7 +48,8 @@ local function EffectiveJobMoney(run, member, job, period, place)
     if member.jobId == "teach" and run.tieId == "teacher" then money = money + 2 end
     if member.jobId == "doctor" and run.tieId == "healer" then money = money + 2 end
     if member.jobId == "trade" then money = money + math.floor((member.stats.trade or 0) / 20) end
-    return money
+    return money, { base = job.money or 0, afterPeriod = periodMoney,
+        periodMultiplier = period.wage, placeMultiplier = place.incomeMultiplier or 1 }
 end
 
 local function JobGrain(run, member, place)
@@ -162,9 +164,10 @@ local function NewMemberRow(run, snapshot, period, place, incomeCollected)
     if not eligible then row.reason = eligibilityReason .. "本年度未执行。"; return row end
     local effects = RelicState.EffectsFor(run, snapshot)
     row.relicSources = RelicSourceRows(effects)
-    local effectiveMoney = EffectiveJobMoney(run, snapshot, job, period, place)
+    local effectiveMoney, moneyCalculation = EffectiveJobMoney(run, snapshot, job, period, place)
     local payment = math.max(0, -effectiveMoney)
     row.requiredPayment = payment
+    if payment > 0 then row.paymentCalculation = moneyCalculation end
     if payment > 0 and run.money < payment then
         row.reason = "现银不足，无法支付本年度 " .. tostring(payment) .. " 两培养费；未扣款、未计训练。"
         return row
@@ -221,6 +224,7 @@ local function ApplyLegacyIncome(run, member, job, period, place)
     local initialHealth = member.health
     local growth = { stat = job.stat, amount = 0, health = 0, focusGrowth = 0 }
     money = math.floor(money * period.wage)
+    local periodMoney = money
     if member.jobId ~= "farm" then money = math.floor(money * (place.incomeMultiplier or 1)) end
     if member.jobId == "craft" and place.id == "mountain" then money = math.floor(money * 1.1) end
     if member.jobId == "doctor" and place.id == "mountain" then money = math.floor(money * 1.1) end
@@ -267,7 +271,9 @@ local function ApplyLegacyIncome(run, member, job, period, place)
         member.health = math.min(100, member.health + recovery)
         growth.stat = "health"; growth.health = member.health - initialHealth; growth.gain = (job.gain or 0) + recovery
     end
-    return { baseMoney = baseMoney, money = money, grain = grain, growth = growth }
+    return { baseMoney = baseMoney, money = money, grain = grain, growth = growth,
+        moneyCalculation = { base = baseMoney, afterPeriod = periodMoney,
+            periodMultiplier = period.wage, placeMultiplier = place.incomeMultiplier or 1 } }
 end
 
 local function StandardAnnualFoodNeedFor(run, living)
@@ -297,22 +303,47 @@ local function ResolveLivingCosts(run, living, period, place, marriage)
     local ledger = { foodCost = 0, boughtGrain = 0, grainSold = 0, saleIncome = 0 }
     local home = Data.Home(run.homeId)
     local baseExpense, carers = home.upkeep, 0
+    local costs = { home = home.name, upkeep = home.upkeep, members = {}, carers = {}, adults = 0, children = 0,
+        period = period.name, place = place.name, periodMultiplier = period.expense,
+        placeMultiplier = place.expenseMultiplier or 1, multiplier = period.expense * (place.expenseMultiplier or 1) }
     for _, member in ipairs(living) do
-        baseExpense = baseExpense + (State.IsAdult(member) and 4 or 2)
-        if member.jobId == "home" then carers = carers + 1 end
+        local adult = State.IsAdult(member)
+        local expense, food = adult and 4 or 2, adult and 2 or 1
+        baseExpense = baseExpense + expense
+        if adult then costs.adults = costs.adults + 1 else costs.children = costs.children + 1 end
+        table.insert(costs.members, { memberId = member.id, name = member.name, age = member.age,
+            adult = adult, expense = expense, food = food })
+        if member.jobId == "home" then carers = carers + 1; table.insert(costs.carers, member.name) end
     end
+    costs.baseExpense = baseExpense
     local expense = math.floor(baseExpense * period.expense * (place.expenseMultiplier or 1))
+    costs.adjustedExpense = expense
+    costs.careDiscount = math.min(expense, carers * 3)
     expense = math.max(0, expense - carers * 3)
+    costs.afterCare = expense
+    local beforeFrugal = expense
     if run.habitId == "frugal" then expense = math.floor(expense * 0.9) end
+    costs.frugalMultiplier = run.habitId == "frugal" and 0.9 or 1
+    costs.afterFrugal = expense
+    costs.frugalDiscount = beforeFrugal - expense
+    costs.marriageThrift = marriage and marriage.thrift or 0
+    costs.marriageDiscount = math.min(expense, marriage and marriage.thrift or 0)
     expense = math.max(0, expense - (marriage and marriage.thrift or 0))
+    ledger.livingCosts = costs
     ledger.livingExpense = expense
     run.money = run.money - expense
     local foodNeed = StandardAnnualFoodNeedFor(run, living)
+    ledger.foodAvailable = run.grain
+    ledger.foodMoneyAvailable = run.money
+    ledger.foodBasePrice = period.food
+    ledger.foodPriceMultiplier = place.foodMultiplier or 1
+    ledger.foodPurchaseQuote = 0
     ledger.foodNeed = foodNeed; ledger.foodShortfall = math.max(0, foodNeed - run.grain)
     ledger.foodSatisfied = run.grain >= foodNeed
     if ledger.foodSatisfied then run.grain = run.grain - foodNeed else
         local missing = foodNeed - run.grain; run.grain = 0
         local price = GrainPurchasePrice(run, missing)
+        ledger.foodPurchaseQuote = price
         if run.money >= price then
             run.money = run.money - price
             ledger.foodSatisfied = true; ledger.foodCost = price; ledger.boughtGrain = missing
@@ -346,7 +377,8 @@ local function SettleLegacy(run)
         local outcome = ApplyLegacyIncome(run, member, job, period, place)
         local delta = run.money - money
         income = income + math.max(0, delta); training = training + math.max(0, -delta)
-        table.insert(rows, { memberId = member.id, name = member.name, jobId = member.jobId, job = job.name, money = delta, grain = run.grain - grain, executed = true, paid = math.max(0, -delta), growth = outcome.growth, relicSources = {} })
+        table.insert(rows, { memberId = member.id, name = member.name, jobId = member.jobId, job = job.name, money = delta, grain = run.grain - grain, executed = true, paid = math.max(0, -delta), growth = outcome.growth, relicSources = {},
+            requiredPayment = math.max(0, -delta), paymentCalculation = delta < 0 and outcome.moneyCalculation or nil })
         member.jobYears[member.jobId] = (member.jobYears[member.jobId] or 0) + 1
         if member.jobId == "official" then run.reputation = run.reputation + 1 end
     end
