@@ -63,4 +63,6 @@
 
 本机 macOS 运行器没有提供 `sdk`，输出 `TAPTAP_ACHIEVEMENT_HOST_RESULT unavailable current_host_has_no_sdk`，尚未取得真实平台解锁回调。平台失败重试、旧成就补报及原生页面的在线验收，须在提供成就 SDK 的 TapTap 游戏宿主内完成。验收脚本只会上报实际经营存档已达成的开放成就，并依据真实 SDK 回调输出在线通过或阻塞结果。
 
+2026-10-21，Maker 成就测试版构建成功。网页预览使用真实账号、正式开局和一个年度结算获得“初岁”，实际调用平台接口返回 `-1: SDK not available`。失败后分别等待 2 秒、4 秒重新请求，存档中的达成依据未改变，输出 `TAPTAP_ACHIEVEMENT_RETENTION_PASS {"pending":1,"confirmed":0}`。网页宿主尚未确认平台解锁，66 项保持待发布；成功解锁与原生页面验收需要 TapTap 客户端真机环境。
+
 2026-10-21，`scripts/QA/CloudSave.lua` 在 Maker 在线预览使用真实 TapTap 账号完成全部五项云端检查，输出 `CLOUD_ACCEPTANCE_ALL_PASS`。真实年度解锁、空白存储会话恢复、选择云端或本机后保留双方成就、家族经历以及上传期间的新安排均通过实际 `clientCloud` 上传和回读。验收使用独立云变量，正式玩家存档保持不变。记录见 `docs/CloudSave.md`。

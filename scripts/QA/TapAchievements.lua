@@ -48,13 +48,15 @@ function Start()
     assert(#rows == 66, "关闭剧情进入了平台配置。")
     print("TAPTAP_ACHIEVEMENT_CONFIG " .. cjson.encode(rows))
     app = App.New()
+    app.tapAchievementUnavailable = sdk == nil
     app:Render()
     app:OpenAchievements()
     local owner = CloudSave.GetOwnerId()
     if not sdk then
         response = "unavailable current_host_has_no_sdk"
     elseif owner ~= "" and type(clientCloud.mapName) == "string" and clientCloud.mapName ~= "" then
-        reporter = Tap.New(function() end)
+        reporter = Tap.New(function() app:RefreshTapAchievementStatus() end)
+        app.tapAchievements = reporter
         reporter:Bind(saved.profile, owner, clientCloud.mapName)
     else
         -- 使用真实 SDK 检查当前宿主回调，只有实际获得的初岁会被提交。
