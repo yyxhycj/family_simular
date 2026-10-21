@@ -7,6 +7,7 @@ local RelicDefinitions = require "Jiaye.RelicDefinitions"
 local RelicState = require "Jiaye.RelicState"
 local Art = require "Jiaye.Art"
 local Skin = require "Jiaye.QianjiajiSkin"
+local OpeningTabs = require "Jiaye.OpeningTabs"
 
 local View = {}
 local C = Skin.Colors
@@ -122,87 +123,11 @@ local function ledger(app)
     return run and Economy.Preview(run) or nil
 end
 
-local function sectionHeading(title, action, label, id)
-    return row({Skin.Text(title, {fontSize = 21}), UI.Panel {flex = 1}, Skin.TextAction(label or "查看 ›", action, {id = id, fontSize = 15})}, {alignItems = "center"})
-end
-
 function View.Summary(app)
     app.openingDetailHistory = {}
-    local draft = app.draft
-    local period, place = Data.Period(draft.periodId), Data.Place(draft.placeId)
-    local background = State.BackgroundDefinition(draft)
-    local relicIds = selectedRelics(draft) or {}
-    local forecast = ledger(app)
-    local adults = 0
-    for _, member in ipairs(draft.members) do if State.IsAdult(member) then adults = adults + 1 end end
-    local hero = UI.Panel {width = "100%", height = 330, flexShrink = 0, children = {
-        Skin.Image(Skin.Art.world, {position = "absolute", left = -24, right = -24, top = -12, height = 160}),
-        UI.Panel {position = "absolute", left = 0, right = 0, bottom = 0, gap = 6, children = {
-            Skin.Text("大晟历 " .. draft.calendar .. " 年 · " .. place.short, {fontSize = 14}),
-            row({Skin.Text(draft.family .. "氏家谱", {fontSize = 36, fontWeight = "bold"}), Skin.IconAction("edit", function() app:BeginOpeningEdit("name") end, {id = "opening-edit-name"})}, {alignItems = "center", gap = 8}),
-            note(period.name .. " · " .. (background and background.name or Data.Origin(draft.originId).name)),
-            row({Skin.TextAction("改写出身 ›", function() app:BeginOpeningEdit("origin") end, {id = "opening-edit-origin", fontSize = 15}),
-                UI.Panel {flex = 1}, Skin.TextAction("另择一姓", function() app:RandomFamilyName() end, {id = "opening-random-name", fontSize = 15})}),
-        }},
-    }}
-    local home = Data.Home(draft.homeId)
-    local assets = {}
-    for _, item in ipairs({{"现银", draft.money .. " 两"}, {"存粮", draft.grain .. " 石"}, {"田地", draft.land .. " 亩"}}) do
-        assets[#assets + 1] = UI.Panel {flex = 1, minWidth = 0, gap = 5, alignItems = "center", children = {note(item[1]), Skin.Text(item[2], {fontSize = 22})}}
-    end
-    local family = {}
-    for index = 1, math.min(4, #draft.members) do
-        local member = draft.members[index]
-        family[#family + 1] = UI.Panel {id = "opening-person-" .. member.id, flex = 1, minWidth = 0, gap = 5, alignItems = "center", pointerEvents = "box-only",
-            onClick = function() app:OpenOpeningDetail("person", member.id) end, children = {
-                Skin.Image(Art.Portrait(member), {width = "100%", height = 104}),
-                Skin.Text(member.name, {fontSize = 17, textAlign = "center", width = "100%"}),
-                Skin.Text(member.age .. "岁 · " .. Data.Jobs[member.jobId].name, {fontSize = 12, fontColor = C.muted, textAlign = "center", width = "100%"}),
-                Skin.Text(member.id == draft.leaderId and "首任族长" or ("资质 " .. member.talent .. "/5"), {fontSize = 12, fontColor = member.id == draft.leaderId and C.red or C.muted}),
-            }}
-    end
-    local relicNames = {}
-    for _, id in ipairs(relicIds) do relicNames[#relicNames + 1] = relicInfo(draft, id).name end
-    local children = {
-        hero,
-        UI.Panel {gap = 10, flexShrink = 0, children = {
-            sectionHeading("家业", function() app:BeginOpeningEdit("estate") end, "置办 ›", "opening-edit-estate"),
-            row({UI.Panel {flex = 1, minWidth = 0, gap = 6, justifyContent = "center", children = {Skin.Text(home.name, {fontSize = 22}),
-                note((draft.workshop and "有作坊" or "无作坊") .. " · " .. (draft.shop and "有商铺" or "无商铺"))}},
-                Skin.Image(Art.House(draft.homeId, "normal"), {width = "56%", height = 128})}, {alignItems = "center"}),
-            row(assets), Skin.Line(),
-        }},
-        UI.Panel {gap = 10, flexShrink = 0, children = {
-            row({Skin.Text("家中 " .. #draft.members .. " 人", {fontSize = 21}), UI.Panel {flex = 1}, note(adults .. " 成人 · " .. (#draft.members - adults) .. " 孩子")}, {alignItems = "center"}),
-            row(family, {gap = 10}),
-            Skin.TextAction("查看全家 " .. #draft.members .. " 人 ›", function() app:OpenOpeningDetail("people") end, {id = "opening-family-detail", alignSelf = "flex-end", fontSize = 15}),
-        }},
-        UI.Panel {id = "opening-relic-detail", minHeight = 88, pointerEvents = "box-only", onClick = function() app:OpenOpeningDetail("relics") end,
-            borderTopWidth = 1, borderTopColor = C.rule, borderBottomWidth = 1, borderBottomColor = C.rule, borderRadius = 0, paddingVertical = 10, children = {
-                row({#relicIds > 0 and Skin.Image(Art.Relic(relicIds[1]), {width = 76, height = 76}) or Skin.Icon("book", 42),
-                    UI.Panel {flex = 1, minWidth = 0, gap = 5, children = {Skin.Text("家传旧物", {fontSize = 21}), note(#relicNames > 0 and table.concat(relicNames, " · ") or "空手开篇，家史待续")}},
-                    Skin.Icon("chevron_right", 18)}, {alignItems = "center"}),
-            }},
-        UI.Panel {id = "opening-ledger-detail", minHeight = 52, pointerEvents = "box-only", onClick = function() app:OpenOpeningDetail("ledger") end, children = {
-            row({UI.Panel {flex = 1, gap = 3, children = {Skin.Text("首年预计", {fontSize = 19}), note("不含突发")}},
-                Skin.Text(forecast and (signed(forecast.netMoney) .. " 两  " .. signed(forecast.netGrain) .. " 石") or "请先修正草案", {fontSize = 20}),
-                Skin.Icon("chevron_right", 18)}, {alignItems = "center"}),
-        }},
-        editLink(app, "时世与地域", period.name .. " · " .. place.short, "world", "opening-edit-world"),
-    }
-    local issues = State.ValidateDraft(draft, app.profile, false)
-    local footer = {
-        UI.Panel {id = "opening-points-detail", minHeight = 36, pointerEvents = "box-only", onClick = function() app:OpenOpeningDetail("points") end, children = {
-            row({Skin.Text("开局点数 " .. State.TotalPoints(draft) .. " / " .. Data.LIMIT, {fontSize = 14, fontColor = #issues > 0 and C.red or C.muted}), UI.Panel {flex = 1}, note("明细 ›")}, {alignItems = "center"}),
-        }},
-        Skin.Button("就从这家开始  →", function() app:StartRun() end, {id = "opening-start", width = "100%", height = 52, fontSize = 19, disabled = #issues > 0}),
-        row({Skin.TextAction("另择一家", function() app:ChangeHouse() end, {id = "opening-change-house", flex = 1}),
-            app.houseUndo and Skin.TextAction("恢复上一家", function() app:UndoHouse() end, {id = "opening-undo-house", flex = 1}) or UI.Panel {width = 0},
-            app.previousDraft and Skin.TextAction("回原家谱", function() app:CancelNewRun() end, {flex = 1}) or UI.Panel {width = 0}}, {gap = 8}),
-    }
-    if #issues > 0 then table.insert(footer, 2, Skin.Text(table.concat(issues, "\n"), {fontSize = 13, fontColor = C.red})) end
-    return page(app, "开卷立家", children, {pageId = "summary", subtitle = "凡世王朝 · " .. Data.WORLD_NAME,
-        onBack = function() app:ReturnToCover() end, backText = "首页", backId = "opening-home", gap = 18, footer = footer})
+    local relics = {}
+    for _, id in ipairs(selectedRelics(app.draft) or {}) do relics[#relics + 1] = relicInfo(app.draft, id) end
+    return OpeningTabs.Build(app, {relics = relics, forecast = ledger(app)})
 end
 
 local function worldEditor(app)

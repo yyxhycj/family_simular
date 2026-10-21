@@ -13,6 +13,8 @@ local V7 = require "Jiaye.V7"
 ---@field openingView string
 ---@field openingPage string
 ---@field openingFeedback string
+---@field openingTab string
+---@field openingTabScroll table<string, number>
 ---@field openingReturn string|nil
 ---@field openingDetailHistory table
 ---@field openingEditReturn table|nil
@@ -74,6 +76,7 @@ function OpeningEditor.Init(app)
     app.openingView = app.openingView or "summary"
     app.openingFeedback = app.openingFeedback or ""
     app.openingDetailHistory = {}
+    app.openingTab, app.openingTabScroll = "overview", {}
     app.undo = app.undo or {}
     app.openingEditDraft = nil
     app.editBackup = nil
@@ -183,6 +186,7 @@ function OpeningEditor.ChangeHouse(self)
         self.editHouseUndo = nil
         self.undo = {}
         self.openingFeedback = "已换一家；可以恢复上一家。"
+        self.openingTab, self.openingTabScroll = "overview", {}
     else
         self.openingFeedback = issue
     end
@@ -200,6 +204,7 @@ function OpeningEditor.UndoHouse(self)
     self.editHouseUndo = nil
     self.undo = {}
     self.openingFeedback = "已恢复上一家。"
+    self.openingTab, self.openingTabScroll = "overview", {}
     render(self)
 end
 
