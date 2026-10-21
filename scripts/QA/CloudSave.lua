@@ -79,6 +79,20 @@ local function synced()
         and app.cloud.state == "synced" and not app.cloud.localPayload.cloudSync.pendingRevision
 end
 
+local function confirmChoice(useCloud)
+    local before = snapshot()
+    local savedBefore = State.Copy(assert(State.Load()))
+    assert(app.cloudChoice == nil and app.root:FindById("cloud-save-confirm").props.disabled, "冲突页不得预选进度")
+    local choice = assert(app.root:FindById(useCloud and "cloud-save-use-remote" or "cloud-save-use-local"))
+    choice.props.onClick(choice)
+    assert(app.cloud.conflict and not app.cloud.busy and app.cloudChoice == useCloud, "选择家谱提前触发了同步")
+    equalPayload(snapshot(), before)
+    assert(Opening.Equal(State.Load(), savedBefore), "确认前改写了本机家谱")
+    local confirm = assert(app.root:FindById("cloud-save-confirm"))
+    assert(not confirm.props.disabled)
+    confirm.props.onClick(confirm)
+end
+
 function Start()
     UI.Init({ theme = Visual.Theme(), scale = UI.Scale.DEFAULT })
     key = "jiaye_cloud_acceptance_" .. tostring(os.time()) .. "_" .. tostring(math.random(1, 2147483647))
@@ -158,7 +172,7 @@ function CloudAcceptanceUpdate(_, eventData)
         equalPayload(app.cloud.localPayload, localBranch)
         equalPayload(app.cloud.remote.payload, remoteBranch)
         assert(app.root:FindById("cloud-save-use-local") and app.root:FindById("cloud-save-use-remote"))
-        app.cloud:Resolve(true)
+        confirmChoice(true)
         step(10, "确认使用云端家谱")
     elseif phase == 10 and synced() then
         mergedChoice(remoteBranch, localBranch)
@@ -182,7 +196,7 @@ function CloudAcceptanceUpdate(_, eventData)
     elseif phase == 13 and app.cloud.conflict then
         equalPayload(app.cloud.localPayload, localBranch)
         equalPayload(app.cloud.remote.payload, remoteBranch)
-        app.cloud:Resolve(false)
+        confirmChoice(false)
         assert(app.cloud.blocked, "选择本机后仍需先核对云端版本")
         step(14, "本机选择上传并回读")
     elseif phase == 14 and synced() then

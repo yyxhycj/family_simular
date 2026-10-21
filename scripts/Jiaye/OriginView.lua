@@ -339,7 +339,6 @@ function View.OpenAction(app, actionId, parentModal)
     }, { padding = 14, gap = 9 }))
     modal:AddContent(ModalLayout.Scroll(body))
     modal:SetFooter(UI.Row { gap = 8, children = {
-        button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
         confirmButton,
     } })
     refresh()
@@ -379,7 +378,6 @@ function View.Open(app)
         for _, action in ipairs(actions) do body:AddChild(actionCard(app, modal, action)) end
     end
     modal:AddContent(ModalLayout.Scroll(body))
-    modal:SetFooter(button("关闭", function() modal:Close() end, { width = "100%", role = "secondary" }))
     modal:Open()
     return modal
 end

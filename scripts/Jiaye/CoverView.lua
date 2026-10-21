@@ -3,6 +3,8 @@ local Data = require "Jiaye.Data"
 local Art = require "Jiaye.Art"
 local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
+local CloudSaveView = require "Jiaye.CloudSaveView"
+local Skin = require "Jiaye.QianjiajiSkin"
 
 local View = {}
 local C = V7.Colors
@@ -22,6 +24,7 @@ local function menuEntry(id, text, onClick, primary)
         onPointerCancel = function(_, widget) widget:SetOpacity(0.94) end,
         children = {
             Visual.Text(text, {
+                id = id == "cover-save" and "cover-save-label" or nil,
                 width = "100%", fontSize = primary and 34 or 21,
                 fontFamily = "serif", letterSpacing = primary and 4 or 2,
                 fontColor = primary and { 255, 244, 213, 255 } or { 235, 222, 193, 255 },
@@ -101,6 +104,7 @@ local function comingSoon(app, world)
         borderRadius = 0, pointerEvents = "auto",
         children = {
             UI.SafeAreaView { width = "100%", height = "100%", edges = "all", nativeMenuInset = true, children = {
+                Skin.BackAction(function() app:SelectCoverWorld("mortal") end, {id = "cover-return-mortal", position = "absolute", top = 0, left = 20}),
                 UI.Panel { width = "100%", height = "100%", padding = 28, paddingTop = 180, alignItems = "center", justifyContent = "center", pointerEvents = "box-none", children = {
                     UI.Panel {
                         width = "100%", maxWidth = 360, padding = 28, gap = 14, alignItems = "center",
@@ -110,7 +114,6 @@ local function comingSoon(app, world)
                             UI.Panel { width = 36, height = 1, backgroundColor = C.gold, pointerEvents = "none" },
                             Visual.Text("敬请期待", { id = "cover-coming-soon", width = "100%", fontSize = 36, fontFamily = "serif", textAlign = "center", whiteSpace = "nowrap" }),
                             Visual.Text("该世界尚未开放", { width = "100%", fontSize = 15, fontColor = C.secondary, textAlign = "center" }),
-                            Visual.Button("返回凡世", function() app:SelectCoverWorld("mortal") end, { id = "cover-return-mortal", width = "100%", height = 48, marginTop = 8 }),
                         },
                     },
                 } },
@@ -127,6 +130,10 @@ function View.Build(app)
         table.insert(actions, menuEntry("cover-new-family", "立一部家谱", function() app:PrepareNewRun() end, true))
         if app.run then table.insert(actions, menuEntry("cover-continue", "续写当前家谱", function() app:Load() end, false)) end
         table.insert(actions, menuEntry("cover-achievements", "成就", function() app:OpenAchievements() end, false))
+        table.insert(actions, menuEntry("cover-save", CloudSaveView.EntryText(app), function() app:OpenSaveDetails() end, false))
+        if app.loginMode then
+            table.insert(actions, menuEntry("cover-account", app.loginMode == "taptap" and "TapTap · 账号云存档" or "游客 · 仅本机存档", function() app:ShowLogin() end, false))
+        end
         if app.openingGenerationFailed then
             table.insert(actions, 1, Visual.Text(app.openingFeedback, { width = "100%", fontSize = 14, fontColor = { 255, 196, 172, 255 }, textAlign = "center", whiteSpace = "normal", lineHeight = 1.5 }))
         end

@@ -1,5 +1,6 @@
 local UI = require "urhox-libs/UI"
 local V7 = require "Jiaye.V7"
+local Skin = require "Jiaye.QianjiajiSkin"
 
 local ModalLayout = {}
 
@@ -27,14 +28,23 @@ function ModalLayout.New(title, props)
         footer = nil,
         drawer = nil,
         destroyed = false,
+        onBack = props.onBack,
     }
 
     function sheet:AddContent(content)
         self.content = content
+        if self.body then
+            self.body:ClearChildren()
+            self.body:AddChild(content)
+        end
     end
 
     function sheet:SetFooter(footer)
         self.footer = footer
+    end
+
+    function sheet:SetBack(onBack)
+        self.onBack = onBack
     end
 
     function sheet:Destroy()
@@ -59,9 +69,8 @@ function ModalLayout.New(title, props)
         for key, value in pairs(self.props) do drawerProps[key] = value end
         drawerProps.position = "bottom"
         drawerProps.size = sheetHeight(self.props.sheet or "detail")
-        drawerProps.header = self.title
-        drawerProps.headerHeight = self.props.headerHeight or 52
-        drawerProps.showCloseButton = true
+        drawerProps.header = nil
+        drawerProps.showCloseButton = false
         drawerProps.showOverlay = true
         drawerProps.overlayOpacity = self.props.overlayOpacity or 0.58
         drawerProps.animationDuration = self.props.animationDuration or 0.22
@@ -72,32 +81,24 @@ function ModalLayout.New(title, props)
         drawerProps.borderWidth = self.props.borderWidth or 1
         drawerProps.borderColor = self.props.borderColor or C.gold
         drawerProps.borderRadius = self.props.borderRadius or V7.Tokens.sheetTopRadius
-        drawerProps.contentPadding = self.props.contentPadding or { 12, 14 }
-        drawerProps.footerPadding = self.props.footerPadding or { 4, 14 }
-        local content = UI.Panel {
-            width = "100%", height = "100%", minHeight = 0, overflow = "hidden",
-            children = self.content and { self.content } or {},
+        drawerProps.contentPadding = 0
+        self.body = UI.Panel {width = "100%", flexGrow = 1, flexShrink = 1, flexBasis = 0, minHeight = 0,
+            padding = self.props.contentPadding or {12, 14}, overflow = "hidden",
+            children = self.content and {self.content} or {}}
+        local children = {
+            Skin.Header {title = self.title, onBack = function()
+                if self.onBack then self.onBack() else self:Close() end
+            end, backId = (self.props.id or "sheet") .. "-back"},
+            self.body,
         }
-        local footer = self.footer
-        if footer and type(footer) ~= "string" and type(footer) ~= "function" then
-            footer = UI.Panel {
-                width = "100%", height = "100%", padding = drawerProps.footerPadding,
-                justifyContent = "center", children = { footer },
-            }
+        if self.footer then
+            table.insert(children, UI.Panel {width = "100%", flexShrink = 0,
+                padding = self.props.footerPadding or {8, 14}, children = {self.footer}})
         end
+        local content = UI.SafeAreaView {width = "100%", height = "100%", edges = {"bottom", "left", "right"},
+            minHeight = 0, overflow = "hidden", children = children}
         drawerProps.content = content
-        if type(footer) == "string" or type(footer) == "function" then
-            drawerProps.footer = footer
-        elseif footer then
-            drawerProps.footer = function(nvg, x, y, width, height)
-                YGNodeCalculateLayout(footer.node, width, height, YGDirectionLTR)
-                footer.renderOffsetX_ = x
-                footer.renderOffsetY_ = y
-                footer.renderWidth_ = width
-                footer.renderHeight_ = height
-                UI.RenderWidgetSubtree(footer, nvg)
-            end
-        end
+        drawerProps.footer = nil
         drawerProps.onClose = function()
             if self.props.onClose then self.props.onClose(self) end
             if not self.destroyed then self:Destroy() end
@@ -114,15 +115,11 @@ function ModalLayout.New(title, props)
             self.size_ = sheetHeight(self.props.sheet or "detail")
             updateDrawer(self, dt)
             updateContent(content, dt)
-            if footer and type(footer) ~= "function" and type(footer) ~= "string" then
-                updateContent(footer, dt)
-            end
         end
         local closeOnOverlay = self.props.closeOnOverlay ~= false
         function drawer:GetHitTestChildren()
             local children = {}
             if content and type(content) ~= "function" then table.insert(children, content) end
-            if footer and type(footer) ~= "function" and type(footer) ~= "string" then table.insert(children, footer) end
             return children
         end
         function drawer:OnClick(event)

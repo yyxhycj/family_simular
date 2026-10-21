@@ -22,18 +22,18 @@ end
 
 function Start()
     local localDevelopment = IsLocalDevelopment()
-    if localDevelopment then State.UseDevelopmentStorage() end
+    if localDevelopment then State.UseDevelopmentStorage() else State.UseGuestStorage() end
     graphics.windowTitle = localDevelopment and "千家纪 · 本地开发" or "千家纪 · 凡世王朝"
     UI.Init({
         theme = Visual.Theme(),
         scale = UI.Scale.DEFAULT,
     })
     app_ = App.New()
-    if not localDevelopment then app_:EnableCloudSave() end
-    app_:Render()
+    app_.localDevelopment = localDevelopment
+    app_:ShowLogin()
     SubscribeToEvent("Update", "HandleCloudSaveUpdate")
     SubscribeToEvent("InputFocus", "HandleCloudSaveFocus")
-    print(localDevelopment and "《千家纪》已启动：本地开发，进度自动保存到本机。" or "《千家纪》已启动：TapTap 账号云存档。")
+    print("《千家纪》已启动：请选择 TapTap 登录或游客登录。")
 end
 
 function HandleCloudSaveUpdate(_, eventData)
@@ -47,5 +47,6 @@ end
 function Stop()
     if app_ then app_:AutoSave() end
     if app_ and app_.cloud then app_.cloud:Stop() end
+    if app_ and app_.tapAchievements then app_.tapAchievements:Stop() end
     UI.Shutdown()
 end

@@ -570,6 +570,7 @@ end
 ---@field draft table
 ---@field run table?
 ---@field saveRevision integer?
+---@field savedAt integer?
 ---@field importReceipt string?
 ---@field cloudSync table?
 
@@ -846,6 +847,9 @@ end
 local function ValidateSavePayloadInternal(value)
     local version, versionMessage = ResolveCurrentSaveVersion(value)
     if not version then return false, versionMessage end
+    if value.savedAt ~= nil and (not IsNonNegativeInteger(value.savedAt) or value.savedAt > 253402300799) then
+        return false, "存档保存时间无效。"
+    end
     local profile, draft, run = value.profile, value.draft, value.run
     local profileOk, profileMessage = ValidateProfile(profile)
     if not profileOk then return false, profileMessage end
@@ -989,12 +993,21 @@ function State.UseDevelopmentStorage()
     failedSavePath = nil
 end
 
+function State.UseGuestStorage()
+    SAVE_PATHS = { "jiaye_save.json", "jiaye_save.backup.json" }
+    exportPath = "jiaye_export.json"
+    externalExportName = "jiaye-backup.json"
+    failedSavePath = nil
+end
+
 function State.UsePlayerStorage(ownerId, namespace)
     assert(type(ownerId) == "string" and ownerId:match("^%d+$") and ownerId ~= "0", "存档账号无效。")
     namespace = namespace or "save_v1"
     assert(namespace:match("^[%w_-]+$"), "存档命名空间无效。")
     local prefix = "jiaye_" .. namespace .. "_" .. ownerId
     SAVE_PATHS = { prefix .. ".json", prefix .. ".backup.json" }
+    exportPath = prefix .. ".export.json"
+    externalExportName = prefix .. ".json"
     failedSavePath = nil
 end
 
@@ -1089,6 +1102,7 @@ function State.Save(profile, draft, run, metadata)
     local payload = {
         saveSchemaVersion = State.SAVE_SCHEMA_VERSION, profile = State.Copy(profile), draft = State.Copy(draft), run = State.Copy(run),
         saveRevision = (previous and previous.saveRevision or 0) + 1,
+        savedAt = os.time(),
     }
     if type(metadata) == "table" and type(metadata.importReceipt) == "string" then payload.importReceipt = metadata.importReceipt end
     payload.cloudSync = State.Copy(metadata and metadata.cloudSync or (previous and previous.cloudSync))

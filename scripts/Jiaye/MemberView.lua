@@ -6,6 +6,7 @@ local V7 = require "Jiaye.V7"
 local Visual = require "Jiaye.Visual"
 local RelicState = require "Jiaye.RelicState"
 local MarriageView = require "Jiaye.MarriageView"
+local ModalLayout = require "Jiaye.ModalLayout"
 
 local MemberView = {}
 
@@ -539,7 +540,6 @@ function MemberView.Open(app, memberId)
                 children = {
                     BuildDrawerIdentity(app, member),
                     UI.Row { gap = 8, alignItems = "center", children = {
-                        Button("返回分类", function() setPage("routes") end, { height = 36, fontSize = 13, role = "secondary" }),
                         Text(route.title, { flex = 1, fontSize = 18, fontWeight = "bold", textAlign = "right" }),
                     } },
                     UI.ScrollView {
@@ -583,32 +583,20 @@ function MemberView.Open(app, memberId)
                 },
             }
         end
-        drawer:SetContent(content)
+        drawer:AddContent(content)
     end
 
-    drawer = UI.Drawer {
+    drawer = ModalLayout.New("人生安排 · " .. member.name, {
         id = "member-arrangement-drawer",
-        position = "bottom", size = math.floor(UI.GetHeight() * 0.91),
-        showOverlay = true, overlayOpacity = 0.58, animationDuration = 0.22,
-        showCloseButton = true, closeIconColor = C.ink,
+        sheet = "full", overlayOpacity = 0.58, animationDuration = 0.22,
         backgroundColor = C.paper, backgroundImage = V7.Images.paperTexture,
         backgroundImageOpacity = 1, backgroundFit = "cover",
         borderWidth = 1, borderColor = C.gold, borderRadius = V7.Tokens.sheetTopRadius,
         contentPadding = { 20, 20 },
-        onClose = function(selfDrawer) selfDrawer:Destroy() end,
-    }
-    local updateDrawer = drawer.Update
-    local function updateContent(widget, dt)
-        if widget.Update then widget:Update(dt) end
-        for _, child in ipairs(widget:GetChildren()) do updateContent(child, dt) end
-    end
-    function drawer:Update(dt)
-        self.size_ = math.floor(UI.GetHeight() * 0.91)
-        updateDrawer(self, dt)
-        for _, child in ipairs(self:GetHitTestChildren()) do updateContent(child, dt) end
-    end
-    local root = assert(UI.GetRoot(), "人生安排抽屉缺少游戏根节点。")
-    root:AddChild(drawer)
+    })
+    drawer:SetBack(function()
+        if page == "routes" then drawer:Close() else setPage("routes") end
+    end)
     render()
     drawer:Open()
 end

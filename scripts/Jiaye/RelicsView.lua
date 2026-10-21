@@ -92,7 +92,6 @@ local function actionModal(app, title, detail, action, confirmText, extra)
     end
     local submitted = false
     modal:SetFooter(UI.Row { gap = 8, children = {
-        Visual.Button("返回", function() modal:Close() end, { role = "secondary", flex = 1, height = 48 }),
         Visual.Button(confirmText or "确认执行", function()
             if submitted then return end
             submitted = true

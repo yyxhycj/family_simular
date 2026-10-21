@@ -1,4 +1,5 @@
 local UI = require "urhox-libs/UI"
+local ImageCache = require "urhox-libs/UI/Core/ImageCache"
 
 local Skin = {}
 local ROOT = "Textures/Qianjiaji/"
@@ -46,15 +47,21 @@ function Skin.Image(path, props)
     p.pointerEvents = p.pointerEvents or "none"
     p.flexShrink = p.flexShrink or 0
     p.borderRadius = p.borderRadius or 0
+    cache:GetResourceAsync("Texture2D", path, function(resource)
+        assert(resource, "插画无法加载：" .. path)
+        ImageCache.Release(path)
+    end)
     local panel = UI.Panel(p)
     if p.backgroundFit == "contain" then
-        local source = assert(cache:GetResource("Texture2D", path), "插画无法加载：" .. path)
-        local ratio = source.width / source.height
         function panel:Render(nvg)
+            if ImageCache.Get(path) <= 0 then return end
+            local sourceWidth, sourceHeight = ImageCache.GetSize(path)
+            if sourceWidth <= 0 or sourceHeight <= 0 then return end
+            local ratio = sourceWidth / sourceHeight
             local rect = self:GetAbsoluteLayout()
             local width = math.min(rect.w, rect.h * ratio)
             local height = width / ratio
-            self:RenderBackgroundImage(nvg, path, {x = rect.x + (rect.w - width) / 2, y = rect.y + (rect.h - height) / 2, w = width, h = height}, "fill")
+            self:RenderBackgroundImage(nvg, path, {x = rect.x + (rect.w - width) / 2, y = rect.y + (rect.h - height) / 2, w = width, h = height}, "fill", nil, nil, nil, self.props.backgroundImageOpacity)
         end
     end
     return panel
@@ -224,28 +231,50 @@ function Skin.Tabs(tabs, activeId, onSelect)
     return UI.Row {width = "100%", flexShrink = 0, children = children}
 end
 
+function Skin.BackAction(onBack, props)
+    local p = copy(props)
+    p.id, p.width, p.minHeight = p.id or "page-back", 76, 44
+    p.flexShrink, p.pointerEvents, p.onClick = 0, "box-only", onBack
+    p.justifyContent = "center"
+    p.children = {UI.Row {alignItems = "center", gap = 6, pointerEvents = "none", children = {
+        Skin.Icon("back", 20), Skin.Text(p.text or "返回", {fontSize = 16}),
+    }}}
+    return UI.Panel(p)
+end
+
 function Skin.Header(spec)
+    local nativeRight = 0
+    local nativeSdk = sdk --[[@as any]]
+    if nativeSdk and nativeSdk.GetNativeExitMenuRect then
+        local menu = nativeSdk:GetNativeExitMenuRect()
+        if menu and menu.right > menu.left then nativeRight = (1 - menu.left) * UI.GetWidth() + 12 end
+    end
     local left = UI.Panel {width = 76, height = 44, pointerEvents = "none"}
     if spec.onBack then
-        left = UI.Panel {id = spec.backId, width = 76, minHeight = 44, pointerEvents = "box-only", onClick = spec.onBack, justifyContent = "center", children = {
-            UI.Row {alignItems = "center", gap = 6, children = {Skin.Icon("back", 20), Skin.Text(spec.backText or "返回", {fontSize = 16})}},
-        }}
+        left = Skin.BackAction(spec.onBack, {id = spec.backId, text = spec.backText})
     end
-    local right = spec.onEdit and Skin.IconAction("edit", spec.onEdit, {id = spec.editId}) or UI.Panel {width = 44, height = 44, pointerEvents = "none"}
+    local right = spec.right or (spec.onEdit and Skin.IconAction("edit", spec.onEdit, {id = spec.editId})) or UI.Panel {width = 44, height = 44, pointerEvents = "none"}
+    local title = UI.Panel {flex = 1, minWidth = 0, gap = 2, children = {
+        Skin.Text(spec.title, {width = "100%", fontSize = 23, textAlign = "center"}),
+        Skin.Text(spec.subtitle, {width = "100%", fontSize = 12, fontColor = Skin.Colors.muted, textAlign = "center"}),
+    }}
+    local middle = title
+    if nativeRight > 0 then
+        middle = UI.Row {flex = 1, minWidth = 0, gap = 8, alignItems = "center", children = {title, right}}
+        right = UI.Panel {width = 0, height = 44, pointerEvents = "none"}
+    end
     return UI.Panel {width = "100%", flexShrink = 0, children = {
         UI.Row {width = "100%", minHeight = 68, paddingHorizontal = 20, paddingVertical = 8, alignItems = "center", gap = 8, children = {
             left,
-            UI.Panel {flex = 1, minWidth = 0, gap = 2, children = {
-                Skin.Text(spec.title, {width = "100%", fontSize = 23, textAlign = "center"}),
-                Skin.Text(spec.subtitle, {width = "100%", fontSize = 12, fontColor = Skin.Colors.muted, textAlign = "center"}),
-            }},
-            UI.Panel {width = 76, alignItems = "flex-end", children = {right}},
+            middle,
+            UI.Panel {width = math.max(76, nativeRight), flexShrink = 0, alignItems = "flex-end", children = {right}},
         }},
         Skin.Line({marginHorizontal = 24}),
     }}
 end
 
 function Skin.Page(spec)
+    if spec.editing then spec.onBack, spec.backId = spec.onCancel, "opening-cancel" end
     local content = {}
     if spec.feedback and spec.feedback ~= "" then content[#content + 1] = Skin.Text(spec.feedback, {fontSize = 14, fontColor = Skin.Colors.red}) end
     for _, child in ipairs(spec.children or {}) do content[#content + 1] = child end
@@ -261,7 +290,6 @@ function Skin.Page(spec)
     if spec.editing then
         if spec.footerNote then footer[#footer + 1] = Skin.Text(spec.footerNote, {fontSize = 13, fontColor = Skin.Colors.muted, textAlign = "right"}) end
         footer[#footer + 1] = UI.Row {gap = 20, alignItems = "center", children = {
-            Skin.TextAction("取消", spec.onCancel, {id = "opening-cancel", width = 72}),
             UI.Panel {flex = 1},
             Skin.Button(spec.saveLabel or "保存", spec.onSave, {id = "opening-save", width = 120, disabled = spec.saveDisabled == true}),
         }}

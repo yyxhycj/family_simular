@@ -20,9 +20,13 @@ local OriginView = require "Jiaye.OriginView"
 local ModalLayout = require "Jiaye.ModalLayout"
 local CloudSave = require "Jiaye.CloudSave"
 local CloudSaveView = require "Jiaye.CloudSaveView"
+local LoginView = require "Jiaye.LoginView"
 local Achievements = require "Jiaye.Achievements"
 local AchievementDefinitions = require "Jiaye.AchievementDefinitions"
 local AchievementsView = require "Jiaye.AchievementsView"
+local TapAchievements = require "Jiaye.TapAchievements"
+local Skin = require "Jiaye.QianjiajiSkin"
+local EndingView = require "Jiaye.EndingView"
 
 local App = {}
 App.__index = App
@@ -141,6 +145,12 @@ function App.New()
 end
 
 function App:Init()
+    self.localDevelopment = false
+    self.loginRequired = false
+    self.loginMode = nil
+    self.loginMessage = ""
+    self.loginOwner = ""
+    self.loginProject = ""
     self.profile = State.NewProfile()
     self.draft = State.NewDraft()
     self.run = nil
@@ -160,6 +170,10 @@ function App:Init()
     self.historyPage = 1
     self.unsaved = false
     self.saveMessage = ""
+    self.cloudFailureNotified = false
+    self.cloudGateState = ""
+    ---@type table?
+    self.saveDetails = nil
     ---@type JiayeSavePayload?
     local saved, message, status = State.Load()
     if saved then self.profile, self.draft, self.run = saved.profile, saved.draft, saved.run end
@@ -167,6 +181,8 @@ function App:Init()
     self.autoSaveSnapshot = saved and State.Copy({ profile = self.profile, draft = self.draft, run = self.run }) or nil
     if saved and saved.migratedFromSaveSchemaVersion then self.autoSaveSnapshot = nil end
     self.newAchievementIds = {}
+    ---@type Label?
+    self.tapAchievementStatusLabel = nil
     self.storageBlocked = status == "invalid"
     if status == "invalid" or status == "recovered" then self.saveMessage = message end
     if not saved and not self.storageBlocked then
@@ -187,17 +203,103 @@ function App:Notify(message, variant)
     UI.Toast.Show(message, { variant = variant or "info", duration = 2.2, showClose = false })
 end
 
-function App:EnableCloudSave(key)
-    local legacy = key == nil and State.Load() or nil
+function App:ShowLogin(message)
+    if self.loginMode then self:AutoSave() end
+    if self.unsaved then self:Notify("请先保存当前安排，再切换登录方式。", "warning"); return false end
+    if self.cloud then self.cloud:Stop(); self.cloud = nil end
+    if self.tapAchievements then self.tapAchievements:Stop(); self.tapAchievements = nil end
+    self.tapAchievementUnavailable = false
+    self.cloudNoticeUntil, self.cloudChoice = nil, nil
+    self.cloudFailureNotified, self.saveErrorExpanded = false, false
+    UI.Toast.GetGlobal():DismissAll()
+    self.loginRequired, self.loginMode = true, nil
+    self.loginOwner, self.loginProject = "", ""
+    self.loginMessage = message or ""
+    self:Render()
+    return true
+end
+
+function App:LoginGuest()
+    if not self.loginRequired then return end
+    if self.localDevelopment then State.UseDevelopmentStorage() else State.UseGuestStorage() end
+    local payload, message, status = State.Load()
+    if payload and payload.cloudSync then
+        self.loginMessage = "本机旧存档属于 TapTap 账号，请使用 TapTap 登录继续。"
+        self:Render()
+        return
+    end
+    self.loginRequired, self.loginMode, self.loginMessage = false, "guest", ""
+    self.screen = "cover"
+    self:ApplyCloudSave(payload, message, status)
+end
+
+function App:LoginTapTap()
+    if not self.loginRequired then return end
+    local owner = CloudSave.GetOwnerId()
+    if owner == "" then
+        self.loginMessage = "当前尚未取得 TapTap 授权，请通过 TapTap 打开游戏并完成登录后重试。"
+        self:Render()
+        return
+    end
+    if type(clientCloud.mapName) ~= "string" or not clientCloud.mapName:find("%S") then
+        self.loginMessage = "当前游戏的云存档连接尚未就绪，请重新打开游戏后重试。"
+        self:Render()
+        return
+    end
+    self.loginRequired, self.loginMode, self.loginMessage = false, "taptap", ""
+    self.loginOwner, self.loginProject = owner, clientCloud.mapName
+    self.screen = "cover"
+    self.storageBlocked, self.unsaved, self.saveMessage = false, false, ""
+    self:EnableCloudSave(nil, false)
+    self:EnableTapAchievements()
+    self:Render()
+end
+
+function App:IsLoginCurrent()
+    return self.loginMode ~= "taptap" or (CloudSave.GetOwnerId() == self.loginOwner
+        and clientCloud.mapName == self.loginProject)
+end
+
+function App:EnableCloudSave(key, includeGuest)
+    assert(not self.loginRequired and self.loginMode ~= "guest", "请使用 TapTap 登录后开启云存档。")
+    local legacy = key == nil and includeGuest ~= false and State.Load() or nil
     self.cloud = CloudSave.New(legacy, function(payload) self:ApplyCloudSave(payload) end, function() self:CloudChanged() end, key)
-    self.cloud.legacyInvalid = key == nil and self.storageBlocked
+    self.cloud.legacyInvalid = key == nil and includeGuest ~= false and self.storageBlocked
     self.cloudWasBlocked = true
     self.cloudConflictRevision = ""
+    self.cloudChoice = nil
+    self.cloudFailureNotified = false
     self.autoSaveElapsed = 0
     self.autoSaveSnapshot = nil
 end
 
-function App:ApplyCloudSave(payload)
+function App:EnableTapAchievements()
+    assert(self.cloud, "平台成就需要账号存档完成初始化。")
+    if self.tapAchievements then self.tapAchievements:Stop() end
+    self.tapAchievementUnavailable = sdk == nil
+    if self.tapAchievementUnavailable then self.tapAchievements = nil; return end
+    self.tapAchievements = TapAchievements.New(function() self:RefreshTapAchievementStatus() end)
+end
+
+function App:SyncTapAchievements(profile, added)
+    if self.tapAchievements and self.cloud.ready and not self.cloud.blocked then
+        self.tapAchievements:Bind(profile, self.cloud.owner, self.cloud.project, added)
+    end
+end
+
+function App:TapAchievementStatus()
+    if self.tapAchievementUnavailable then return "当前运行环境暂不支持平台成就。" end
+    return self.tapAchievements and self.tapAchievements.message or "登录 TapTap 后可同步和查看平台成就。"
+end
+
+function App:RefreshTapAchievementStatus()
+    if self.tapAchievementStatusLabel then self.tapAchievementStatusLabel:SetText(self:TapAchievementStatus()) end
+end
+
+function App:ApplyCloudSave(payload, message, status)
+    self.newAchievementIds = {}
+    self.cloudChoice = nil
+    self.endingReviewedRunId = nil
     if payload then
         self.profile, self.draft, self.run = payload.profile, payload.draft, payload.run
     else
@@ -211,22 +313,44 @@ function App:ApplyCloudSave(payload)
     self.openingEditDraft = nil
     self.memberEditing = nil
     self.startConfirmationOpen = false
+    self.editBackup, self.houseUndo = nil, nil
     self.openingGenerationFailed = false
     self.openingFeedback = ""
     self.openingView = "summary"
     self.undo, self.peopleSelected, self.memberLifePages, self.historyPages = {}, {}, {}, {}
     self.familyGeneration, self.historyPage = 0, 1
     self.historySection = "annals"
-    self.storageBlocked, self.unsaved, self.saveMessage = false, false, ""
+    self.storageBlocked, self.unsaved = status == "invalid", false
+    self.saveMessage = (status == "invalid" or status == "recovered") and message or ""
     self.autoSaveSnapshot = payload and State.Copy({ profile = self.profile, draft = self.draft, run = self.run }) or nil
+    self:SyncTapAchievements(self.profile)
     self:Render()
 end
 
 function App:CloudChanged()
     if not self.cloud then return end
     local conflictRevision = self.cloud.conflict and (self.cloud.remote and self.cloud.remote.revision or "missing") or ""
-    if self.cloudWasBlocked ~= self.cloud.blocked or self.cloudConflictRevision ~= conflictRevision then
+    local gateState = self.cloud.blocked and (self.cloud.state .. tostring(self.cloud.busy)) or ""
+    local showNotice = false
+    if self.cloud.lastError == "" then
+        self.cloudFailureNotified, self.cloudNoticeUntil = false, nil
+        self.saveErrorExpanded = false
+    elseif self.cloud.ready and self.cloud.localPayload and not self.cloud.localWriteFailed and not self.unsaved and not self.cloudFailureNotified then
+        self.cloudFailureNotified = true
+        if not self.saveDetails and not self.saveMenuButton and not self.cloud.blocked then
+            self.cloudNoticeUntil = self.cloud.clock + 5
+            showNotice = true
+        end
+    end
+    if self.cloudConflictRevision ~= conflictRevision then self.cloudChoice = nil end
+    if showNotice and self.root then
+        local previous = self.root:FindById("save-cloud-notice")
+        if previous then previous:Destroy() end
+        self.root:AddChild(CloudSaveView.Notice(self))
+    end
+    if self.cloudWasBlocked ~= self.cloud.blocked or self.cloudConflictRevision ~= conflictRevision or self.cloudGateState ~= gateState then
         self.cloudWasBlocked, self.cloudConflictRevision = self.cloud.blocked, conflictRevision
+        self.cloudGateState = gateState
         self:Render()
     else
         CloudSaveView.Refresh(self)
@@ -234,6 +358,7 @@ function App:CloudChanged()
 end
 
 function App:Persist(profile, draft, run)
+    if self.loginRequired or not self:IsLoginCurrent() then return false, "请先完成登录，再保存家谱。" end
     if self.cloud and self.cloud.blocked then return false, self.cloud.message end
     local candidateProfile, candidateRun = State.Copy(profile), State.Copy(run)
     local added = Achievements.Update(candidateProfile, candidateRun)
@@ -246,6 +371,7 @@ function App:Persist(profile, draft, run)
         self.newAchievementIds = added
         self.autoSaveSnapshot = State.Copy({ profile = payload.profile, draft = payload.draft, run = payload.run })
         if self.cloud then self.cloud:Queue(assert(payload)) end
+        self:SyncTapAchievements(payload.profile, added)
     end
     return ok, message
 end
@@ -268,13 +394,21 @@ function App:Save(silent)
     end
     if self.storageBlocked then self:Notify(self.saveMessage, "error"); return false end
     -- 试配新家庭期间，手动存档仍保存旧局的草案；取消不会把候选写进旧局。
+    local wasUnsaved = self.unsaved
     local ok, message = self:Persist(self.profile, self.previousDraft or self.draft, self.run)
     self.unsaved = not ok; self.saveMessage = ok and "" or message
-    if not silent or not ok then self:Render(); self:Notify(ok and self:AchievementMessage(message) or message, ok and "success" or "error") end
+    if not silent or not ok or wasUnsaved then self:Render() else CloudSaveView.Refresh(self) end
+    if ok and not silent then self:Notify(self:AchievementMessage(message), "success") end
     return ok
 end
 
+function App:OpenSaveDetails()
+    self:AutoSave()
+    CloudSaveView.Open(self)
+end
+
 function App:AutoSave()
+    if self.loginRequired or not self:IsLoginCurrent() then return end
     if (self.cloud and self.cloud.blocked) or self.unsaved or self.storageBlocked or self.openingGenerationFailed then return end
     if self.openingEditDraft or self.memberEditing or (not self.run and self.screen ~= "opening") then return end
     local current = { profile = self.profile, draft = self.previousDraft or self.draft, run = self.run }
@@ -282,13 +416,22 @@ function App:AutoSave()
 end
 
 function App:UpdateCloud(dt)
+    if self.loginRequired then return end
+    if not self:IsLoginCurrent() then self:ShowLogin("TapTap 登录状态已变化，请重新选择登录方式。"); return end
     self.autoSaveElapsed = self.autoSaveElapsed + dt
     if self.autoSaveElapsed >= 2 then self.autoSaveElapsed = 0; self:AutoSave() end
     if self.cloud then self.cloud:Update(dt, self.screen == "cover") end
+    if self.tapAchievements then self.tapAchievements:Update(dt) end
+    if self.cloudNoticeUntil and self.cloud and self.cloud.clock >= self.cloudNoticeUntil then
+        self.cloudNoticeUntil = nil
+        CloudSaveView.Refresh(self)
+    end
 end
 
 function App:FlushCloud()
+    if self.loginRequired or not self:IsLoginCurrent() then return end
     self:AutoSave()
+    if self.tapAchievements then self.tapAchievements:Retry() end
     if not self.cloud then return end
     self.cloud:Retry()
     self.cloud:Update(0, true)
@@ -300,20 +443,29 @@ function App:Load()
     local value, message, status = State.Load()
     if not value then self:Notify(message, "warning"); return end
     self.profile, self.draft, self.run = value.profile, value.draft, value.run
+    self.endingReviewedRunId = nil
     self.familyGeneration = 0; self.peopleSelected = {}
     self.openingEditDraft = nil; self.memberEditing = nil; self.memberLifePages = {}; self.historyPages = {}
     self.previousDraft = nil; self.editBackup = nil; self.houseUndo = nil; self.openingView = "summary"; self.undo = {}; self.historyPage = 1; self.historySection = "annals"; self.storageBlocked = false; self.openingGenerationFailed = false
     self.saveMessage = status == "recovered" and message or ""
     self.screen = self.run and "game" or "opening"
+    self:SyncTapAchievements(self.profile)
     self:Render(); self:Notify(message, status == "recovered" and "warning" or "success")
 end
 
 function App:OpenMenu()
-    local modal = ModalLayout.New("家谱事务", { sheet = "menu", closeOnOverlay = true })
+    local modal = ModalLayout.New("家谱事务", { sheet = "menu", closeOnOverlay = true,
+        onClose = function() self.saveMenuButton = nil end })
+    self.saveMenuButton = Button(CloudSaveView.EntryText(self), function() modal:Close(); self:OpenSaveDetails() end,
+        { id = "menu-save", width = "100%" })
     modal:AddContent(ModalLayout.Scroll(UI.Panel { gap = 8, children = {
-        Button("保存家谱", function() modal:Close(); self:Save() end, { width = "100%" }),
+        self.saveMenuButton,
         Button("立新家谱", function() modal:Close(); self:PrepareNewRun() end, { width = "100%", role = "secondary" }),
         Button("成就", function() modal:Close(); self:OpenAchievements() end, { width = "100%", role = "secondary" }),
+        self.run and self.run.ending and Button("终章回顾", function()
+            self.endingReviewedRunId = nil; self.screen = "game"; self:Render()
+        end, {width = "100%", role = "secondary"}) or UI.Panel {height = 0},
+        self.loginMode and LoginView.Status(self) or UI.Panel {height = 0},
     } }))
     modal:Open()
 end
@@ -404,7 +556,6 @@ function App:StartRun()
     })
     modal:AddContent(Label("当前家谱将由眼前这份新草案替换，旧局进度会被覆盖。已解锁收藏与终章档案保留。", { whiteSpace = "normal", fontSize = 16 }))
     modal:SetFooter(UI.Row { gap = 8, children = {
-        Button("取消", function() modal:Close() end, { flex = 1, backgroundColor = C.pale, textColor = C.green }),
         Button("确认开始", function() modal:Close(); commit() end, { flex = 1 }),
     } })
     modal:Open()
@@ -437,7 +588,10 @@ function App:RunAction(fn)
         self.unsaved = true
         self.saveMessage = "当前安排已在内存中保留，存档未完成：" .. tostring(result)
         self:Render(); self:Notify(self.saveMessage, "error")
-    elseif result then self:Render(); self:Notify(self:AchievementMessage(message), "success") end
+    elseif result then
+        self:Render()
+        if not self.run.ending then self:Notify(self:AchievementMessage(message), "success") end
+    end
     return true
 end
 
@@ -459,7 +613,6 @@ function App:ConfirmRunAction(title, detail, action, confirmText, parentModal, a
     end
     local submitted = false
     modal:SetFooter(UI.Row { gap = 8, children = {
-        Button("返回", function() modal:Close() end, { flex = 1, height = 46, backgroundColor = C.pale, textColor = C.green }),
         Button(confirmText or "确认执行", function()
             if submitted then return end
             submitted = true
@@ -491,17 +644,16 @@ function App:ConfirmEnding(endingId)
 end
 
 function App:BuildHeader(title, subtitle)
-    return UI.Panel {
-        height = 54, flexDirection = "row", alignItems = "center", justifyContent = "space-between", paddingHorizontal = 14,
-        flexShrink = 0, borderBottomWidth = 1, borderBottomColor = C.line,
-        children = {
-            UI.Row { gap = 9, flex = 1, alignItems = "center", children = {
-                Visual.Decor("seal_square", { width = 30, height = 30 }),
-                Label(title, { fontSize = 20, fontFamily = "serif" }),
-                Label(subtitle, { fontSize = 12, fontColor = C.muted }),
-            } },
-            Button(self.unsaved and "重试保存" or "···", function() if self.unsaved then self:Save() else self:OpenMenu() end end, { width = self.unsaved and 84 or 44, height = 44, fontSize = 20, role = "secondary", paddingHorizontal = 0 }),
-        },
+    return Skin.Header {
+        title = title, subtitle = subtitle, backId = "game-home", backText = "首页",
+        onBack = function() self:ReturnToCover() end,
+        right = UI.Panel { width = 48, height = 48, flexShrink = 0, children = {
+            Button("···", function() self:OpenMenu() end, { id = "game-menu", width = 48, height = 48,
+                fontSize = 20, role = "secondary", paddingHorizontal = 0 }),
+            UI.Panel { id = "cloud-save-indicator", position = "absolute", top = 5, right = 5,
+                width = 6, height = 6, borderRadius = 3, backgroundColor = C.gold,
+                visible = CloudSaveView.HasIssue(self), pointerEvents = "none" },
+        } },
     }
 end
 
@@ -598,7 +750,6 @@ function App:BuildFamilyTab()
     local leader = State.FindMember(self.run.members, self.run.leaderId)
     local _, foodNeed = self:GetRunOverview()
     local pending = Simulation.PendingEvents(self.run)
-    local completedEnding = TableValue(self.run.ending)
     local period = Data.Period(self.run.eraId)
     local children = {
         UI.Row { justifyContent = "space-between", children = {
@@ -607,19 +758,9 @@ function App:BuildFamilyTab()
         } },
         Visual.House(self.run.homeId, V7.HouseState(self.run), { height = 116, borderWidth = 1, borderColor = C.gold }),
     }
-    if self.run.ending then
-        local evidenceLines = {}
-        for _, item in ipairs(completedEnding.evidence or {}) do table.insert(evidenceLines, Label(EndingEvidenceText(self.run, item), { fontSize = 11, fontColor = C.muted, whiteSpace = "normal", lineHeight = 1.4 })) end
-        table.insert(children, Card({
-            Label("本局已落笔 · " .. tostring(completedEnding.title or "家谱落笔"), { fontSize = 17, fontWeight = "bold" }),
-            Label(completedEnding.automatic and (Data.Ending(completedEnding.id).automaticHint or "自然终局已自动写入家史。") or "主终章已由家主确认，家史现为只读。", { fontSize = 12, fontColor = C.muted, whiteSpace = "normal" }),
-            Label(tostring(completedEnding["summary"] or "这段家史已被妥善收录。"), { fontSize = 12, whiteSpace = "normal" }),
-            UI.Panel { gap = 4, children = evidenceLines },
-            Button("新立家谱", function() self:PrepareNewRun() end, { height = 36 }),
-        }))
-    elseif #pending > 0 then
+    if not self.run.ending and #pending > 0 then
         for _, event in ipairs(pending) do table.insert(children, self:BuildPendingEvent(event)) end
-    else
+    elseif not self.run.ending then
         for _, instance in ipairs(self.run.relicInstances) do
             local newRelics = RelicState.IsNew(self.run)
             local relic = newRelics and RelicState.Form(instance) or Data.Relic(instance.definitionId)
@@ -823,7 +964,6 @@ function App:OpenBatchJobPlanner(routeId)
         onClose = function(selfModal) selfModal:Destroy() end,
     })
     modal:AddContent(ModalLayout.Scroll(body))
-    modal:SetFooter(Button("返回族人", function() modal:Close() end, { width = "100%", role = "secondary", height = 46 }))
     modal:Open()
 end
 
@@ -1106,25 +1246,31 @@ function App:BuildGame()
 end
 
 function App:Render()
-    self.cloudStatusLabel, self.cloudGateLabel, self.cloudRetryButton = nil, nil, nil
-    if self.cloud and self.cloud.blocked then
+    local overlays = UI.GetOverlayStack()
+    for index = #overlays, 1, -1 do
+        local overlay = overlays[index] --[[@as any]]
+        if overlay.Close then overlay:Close() else UI.PopOverlay(overlay) end
+    end
+    if self.loginRequired then
+        self.root = LoginView.Build(self)
+        UI.SetRoot(self.root, true)
+        return
+    end
+    if self.unsaved or self.storageBlocked or (self.cloud and self.cloud.blocked) then
         self.root = CloudSaveView.Gate(self)
         UI.SetRoot(self.root, true)
         return
     end
     local page = self.screen == "cover" and self:BuildCover() or (self.screen == "opening" and self:BuildOpening() or self:BuildGame())
     local children = {}
-    if self.cloud then table.insert(children, CloudSaveView.Status(self)) end
     if self.saveMessage ~= "" then
-        table.insert(children, UI.Panel { padding = 8, gap = 6, backgroundColor = C.paper, children = {
-            Label(self.saveMessage, { fontSize = 14, fontColor = C.warning, whiteSpace = "normal" }),
-            Button(self.storageBlocked and "重新读取" or "重试保存", function() if self.storageBlocked then self:Load() else self:Save() end end, { width = "100%" }),
-        } })
+        self:Notify(self.saveMessage, "warning")
+        self.saveMessage = ""
     end
     table.insert(children, UI.Panel { flexGrow = 1, flexBasis = 0, minHeight = 0, children = { page } })
     local phoneFrame = UI.Panel {
         width = "100%",
-        height = "100%",
+        flexGrow = 1, flexBasis = 0, minHeight = 0,
         backgroundColor = C.paper,
         backgroundImage = V7.Images.paperTexture,
         backgroundImageOpacity = 1,
@@ -1133,17 +1279,27 @@ function App:Render()
         flexDirection = "column",
         children = children,
     }
-    local Root = self.screen == "cover" and UI.Panel or UI.SafeAreaView
-    self.root = Root {
+    local content = self.screen == "cover" and phoneFrame or UI.SafeAreaView {
+        width = "100%", height = "100%", edges = "all", nativeMenuInset = false,
+        children = {phoneFrame},
+    }
+    self.root = UI.Panel {
+        id = "game-root", pointerEvents = "box-none",
         width = "100%",
         height = "100%",
-        edges = "all",
-        nativeMenuInset = true,
-        backgroundColor = C.dark,
-        alignItems = "center",
-        children = { phoneFrame },
+        backgroundColor = C.paper,
+        children = {content},
     }
+    local saveNotice = CloudSaveView.Notice(self)
+    if saveNotice then self.root:AddChild(saveNotice) end
+    local endingOverlay
+    if self.screen == "game" and self.run.ending and self.endingReviewedRunId ~= self.run.runId then
+        endingOverlay = EndingView.Build(self, EndingEvidenceText)
+        self.root:AddChild(endingOverlay)
+        UI.Toast.GetGlobal():DismissAll()
+    end
     UI.SetRoot(self.root, true)
+    if endingOverlay then UI.PushOverlay(endingOverlay) end
 end
 
 OpeningEditor.Apply(App)

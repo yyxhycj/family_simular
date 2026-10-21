@@ -246,7 +246,6 @@ local function lifecycleModal(app, title, detail, action, confirmText, extra)
     end
     local submitted = false
     modal:SetFooter(UI.Row { gap = 8, children = {
-        button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
         button(confirmText or "确认", function()
             if submitted then return end
             submitted = true
@@ -447,7 +446,6 @@ function View.OpenAction(app, actionId, sourceInput)
             end, { width = "100%", role = "secondary", textAlign = "left" })) end
         end
         picker:AddContent(ModalLayout.Scroll(pickerBody, { height = scrollHeight() }))
-        picker:SetFooter(button("返回", function() picker:Close() end, { width = "100%", role = "secondary" }))
         picker:Open()
         return
     end
@@ -490,7 +488,6 @@ function View.OpenAction(app, actionId, sourceInput)
     table.insert(actionChildren, reasonLabel)
     body:AddChild(Visual.Paper(actionChildren, { padding = 14, gap = 10 }))
     modal:SetFooter(UI.Row { gap = 8, children = {
-        button("返回", function() modal:Close() end, { flex = 1, role = "secondary" }),
         (function()
             confirm = button("确认行动", function()
                 local quote = input._quote or RelicSystem.Quote(app.run, actionId, input)
@@ -655,10 +652,6 @@ function View.Open(app, instanceId)
         body:AddChild(button("选择本家行动", function() View.OpenAction(app, nil, { instanceId = currentInstance.instanceId, familyId = formOf(currentInstance).familyId }) end, { height = 46 }))
     end
     modal:AddContent(ModalLayout.Scroll(body, { height = scrollHeight() }))
-    modal:SetFooter(UI.Row { gap = 8, children = {
-        button("关闭", function() modal:Close() end, { flex = 1, role = "secondary" }),
-        button("返回藏阁", function() modal:Close() end, { flex = 1 }),
-    } })
     render()
     modal:Open()
 end
@@ -819,7 +812,6 @@ local function openFormCatalog(app)
         end
     end
     modal:AddContent(ModalLayout.Scroll(content, { height = scrollHeight() }))
-    modal:SetFooter(button("返回", function() modal:Close() end, { width = "100%", role = "secondary" }))
     modal:Open()
 end
 

@@ -251,7 +251,7 @@ function MarriageView.Open(app, memberId)
                     else Act(function(current) return Marriage.Marry(current, memberId, input) end) end
                 end, { id = page == "terms" and "marriage-review" or "marriage-confirm", role = "primary", disabled = not quote.affordable }))
             else table.insert(children, Text(reason, { fontColor = C.danger })) end
-            table.insert(footer, Button(page == "terms" and "返回访亲" or "返回商议", function() Go(page == "terms" and "candidates" or "terms") end))
+            sheet:SetBack(function() Go(page == "terms" and "candidates" or "terms") end)
         elseif page == "choose" then
             table.insert(children, Text(chooser.title, { fontSize = 23 }))
             for _, person in ipairs(run.members) do
@@ -263,20 +263,20 @@ function MarriageView.Open(app, memberId)
                     end, { disabled = not ok }) }))
                 end
             end
-            table.insert(footer, Button("返回", function() Go(chooser.back) end))
+            sheet:SetBack(function() Go(chooser.back) end)
         elseif page == "heritage" then
             table.insert(children, Text("家法与传承", { fontSize = 26 })); Heritage(run, children)
-            table.insert(footer, Button("返回婚约", function() Go("family") end))
+            sheet:SetBack(function() Go("family") end)
         else
             table.insert(children, Text("婚约与亲家", { fontSize = 26 })); ContractCards(run, children); Affairs(run, children)
             if Marriage.Reason(run, memberId) then table.insert(children, Button("托媒访亲", function() Go("candidates") end)) end
             table.insert(footer, Button("家法与物件传承", function() Go("heritage") end))
         end
-        if #footer == 0 then table.insert(footer, Button("返回家谱", function() sheet:Close() end)) end
         sheet:AddContent(ModalLayout.Scroll(UI.Panel { width = "100%", gap = 12, paddingBottom = 12, children = children }, { id = "marriage-scroll" }))
         local footerCells = {}
         for _, button in ipairs(footer) do table.insert(footerCells, UI.Panel { flex = 1, minWidth = 0, children = { button } }) end
-        sheet:SetFooter(UI.Row { gap = 8, children = footerCells }); sheet:Open()
+        if #footerCells > 0 then sheet:SetFooter(UI.Row { gap = 8, children = footerCells }) end
+        sheet:Open()
         return sheet
     end
     return render()

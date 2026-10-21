@@ -7,9 +7,12 @@ CloudSave.__index = CloudSave
 CloudSave.KEY = "jiaye_save_v1"
 
 local function ownerId()
-    if not clientCloud or type(clientCloud.userId) ~= "number" or clientCloud.userId <= 0 then return "" end
+    if not clientCloud or type(clientCloud.userId) ~= "number" or clientCloud.userId <= 0
+        or clientCloud.userId >= math.huge or clientCloud.userId ~= math.floor(clientCloud.userId) then return "" end
     return tostring(math.floor(clientCloud.userId))
 end
+
+CloudSave.GetOwnerId = ownerId
 
 local function revision(envelope)
     return envelope and envelope.revision or ""
@@ -33,7 +36,8 @@ local function decode(value, owner)
     if type(value) ~= "table" or value.format ~= 1 or value.ownerId ~= owner
         or type(value.revision) ~= "string" or value.revision == "" or #value.revision > 200
         or type(value.parentRevision) ~= "string" or type(value.updatedAt) ~= "number"
-        or value.updatedAt ~= value.updatedAt or value.updatedAt < 0 or value.updatedAt >= math.huge or type(value.data) ~= "string" then
+        or value.updatedAt < 0 or value.updatedAt > 253402300799 or value.updatedAt ~= math.floor(value.updatedAt)
+        or type(value.data) ~= "string" then
         return nil, "云端存档信息无效，已停止同步，请重试。"
     end
     local payload = State.PreflightImport(value.data)
@@ -87,14 +91,19 @@ function CloudSave:Init(legacy, onLoad, onChange, key)
     self.stopped = false
     self.forceRead = false
     self.chooseCloud = false
+    self.lastError = ""
+    self.localWriteFailed = false
 end
 
 function CloudSave:Status(state, message)
     self.state, self.message = state, message
+    if state == "synced" or state == "ready" or state == "conflict" then self.lastError = "" end
+    if state == "invalid" then self.lastError = message end
     self.onChange()
 end
 
 function CloudSave:Fail(message)
+    self.lastError = message
     self.busy = false
     self.requestId = self.requestId + 1
     self.attempts = self.attempts + 1
@@ -159,11 +168,13 @@ function CloudSave:Cache(payload, sync)
         cloudSync = sync, allowRecoveryOverwrite = true,
     })
     if not ok then
+        self.localWriteFailed = true
         self.blocked = true
         self:Fail("本机存档写入失败：" .. message)
         return false
     end
     self.localPayload = saved
+    self.localWriteFailed = false
     self.localInvalid = false
     return true
 end
@@ -355,6 +366,7 @@ function CloudSave:Update(dt, allowRefresh)
         self.requestId = self.requestId + 1
         self.owner, self.ready, self.blocked, self.busy = owner, false, true, false
         self.conflict, self.sending, self.remote, self.chooseCloud = false, nil, nil, false
+        self.lastError, self.localWriteFailed = "", false
         self.nextAttempt, self.attempts, self.retryUntil, self.nextUploadAt = self.clock, 0, 0, 0
         if owner == "" then
             self.stopped = true

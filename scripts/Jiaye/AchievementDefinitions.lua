@@ -87,14 +87,17 @@ local rows = {
     { "history.two_families", "人间两户", "两个不同家族各实际经营至少10年。重开界面、导入同一局副本不算新家族。" },
 }
 
-D.All, D.ById = {}, {}
+D.All, D.ById, D.ByPlatformId = {}, {}, {}
 local limits = { 10, 19, 27, 35, 41, 64, 78, 83 }
 for index, row in ipairs(rows) do
     local group = 1
     while index > limits[group] do group = group + 1 end
     local definition = { id = row[1], name = row[2], condition = row[3], index = index, group = D.Groups[group], hidden = group == 7,
-        enabled = not (index >= 33 and index <= 35 or index >= 65 and index <= 78) }
+        enabled = not (index >= 33 and index <= 35 or index >= 65 and index <= 78),
+        platformId = "JY" .. row[1]:gsub("[^a-zA-Z0-9]", "") }
     assert(not D.ById[definition.id], "成就 ID 重复。")
+    assert(#definition.platformId <= 40 and not D.ByPlatformId[definition.platformId], "平台成就 ID 长度或唯一性无效。")
+    D.ByPlatformId[definition.platformId] = definition
     D.All[index], D.ById[definition.id] = definition, definition
 end
 assert(#D.All == 83, "成就定义数量应为83项。")

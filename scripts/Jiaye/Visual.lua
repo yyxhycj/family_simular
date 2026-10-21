@@ -237,11 +237,9 @@ function Visual.Portrait(member, props)
     local status = member.alive == false and "deceased" or (member.health and member.health < 35 and "sick" or nil)
     local path = Art.Portrait(member)
     local children = {
-        UI.Panel {
+        Skin.Image(requireAsset(path, "人物 artId 或年龄阶段无效：" .. tostring(member.artId)), {
             position = "absolute", left = 0, top = 0, width = "100%", height = "100%",
-            backgroundImage = requireAsset(path, "人物 artId 或年龄阶段无效：" .. tostring(member.artId)),
-            backgroundFit = "contain", pointerEvents = "none",
-        },
+        }),
     }
     if status == "sick" then
         table.insert(children, UI.Panel {
@@ -258,9 +256,9 @@ function Visual.Portrait(member, props)
             fontFamily = "serif", fontColor = V7.Colors.paperLight, pointerEvents = "none",
         })
     end
-    if result.selected then table.insert(children, UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundImage = requireAsset(V7.Art.SelectedOverlay(), "selected 头像叠层未登记。"), backgroundFit = "contain", pointerEvents = "none" }) end
-    if result.focus and V7.Art.FocusOverlay then table.insert(children, UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundImage = requireAsset(V7.Art.FocusOverlay(), "focus 头像叠层未登记。"), backgroundFit = "contain", pointerEvents = "none" }) end
-    if result.leader then table.insert(children, UI.Panel { position = "absolute", left = 0, top = 0, width = "100%", height = "100%", backgroundImage = requireAsset(V7.Art.LeaderOverlay(), "族长头像叠层未登记。"), backgroundFit = "contain", pointerEvents = "none" }) end
+    if result.selected then table.insert(children, Skin.Image(requireAsset(V7.Art.SelectedOverlay(), "selected 头像叠层未登记。"), {position = "absolute", left = 0, top = 0, width = "100%", height = "100%"})) end
+    if result.focus and V7.Art.FocusOverlay then table.insert(children, Skin.Image(requireAsset(V7.Art.FocusOverlay(), "focus 头像叠层未登记。"), {position = "absolute", left = 0, top = 0, width = "100%", height = "100%"})) end
+    if result.leader then table.insert(children, Skin.Image(requireAsset(V7.Art.LeaderOverlay(), "族长头像叠层未登记。"), {position = "absolute", left = 0, top = 0, width = "100%", height = "100%"})) end
     result.width = result.width or size
     result.height = result.height or size
     result.flexShrink = 0
@@ -275,20 +273,18 @@ end
 
 function Visual.Icon(name, size, tone)
     local actualSize = size or 24
-    return UI.Panel {
+    return Skin.Image(requireAsset(V7.Art.Icon(name, tone or "ink"), "图标未登记：" .. tostring(name)), {
         width = actualSize, height = actualSize,
-        backgroundImage = requireAsset(V7.Art.Icon(name, tone or "ink"), "图标未登记：" .. tostring(name)),
-        backgroundFit = "contain", pointerEvents = "none",
-    }
+    })
 end
 
 function Visual.Relic(id, size)
     local actualSize = size or 56
     return UI.Panel {
         width = actualSize, height = actualSize, padding = 5,
-        backgroundColor = V7.Colors.paperLight, backgroundImage = requireAsset(Art.Relic(id), "信物未登记：" .. tostring(id)),
-        backgroundFit = "contain", borderWidth = Tokens.border, borderColor = V7.Colors.gold,
+        backgroundColor = V7.Colors.paperLight, borderWidth = Tokens.border, borderColor = V7.Colors.gold,
         borderRadius = Tokens.buttonRadius,
+        children = {Skin.Image(requireAsset(Art.Relic(id), "信物未登记：" .. tostring(id)), {width = "100%", height = "100%"})},
     }
 end
 
@@ -327,10 +323,9 @@ end
 
 function Visual.Decor(name, props)
     local result = copyProps(props)
-    result.backgroundImage = requireAsset(V7.Art.Decor(name), "装饰未登记：" .. tostring(name))
     result.backgroundFit = result.backgroundFit or "contain"
     result.pointerEvents = "none"
-    return UI.Panel(result)
+    return Skin.Image(requireAsset(V7.Art.Decor(name), "装饰未登记：" .. tostring(name)), result)
 end
 
 return Visual

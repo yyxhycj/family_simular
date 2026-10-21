@@ -1,0 +1,530 @@
+[
+  {
+    "incremental": false,
+    "name": "初岁",
+    "hidden": false,
+    "localId": "family.first_year",
+    "achievementId": "JYfamilyfirstyear",
+    "description": "完成新家族的第一次完整年度结算。"
+  },
+  {
+    "incremental": false,
+    "name": "二十春秋",
+    "hidden": false,
+    "localId": "family.twenty_years",
+    "achievementId": "JYfamilytwentyyears",
+    "description": "同一家族实际经营20年，开局年号不计入。"
+  },
+  {
+    "incremental": false,
+    "name": "当家人",
+    "hidden": false,
+    "localId": "family.succession",
+    "achievementId": "JYfamilysuccession",
+    "description": "完成一次真实交接；前任任职过完整一年，新任随后也完成一年。"
+  },
+  {
+    "incremental": false,
+    "name": "闲时一盏茶",
+    "hidden": false,
+    "localId": "family.retired_leader",
+    "achievementId": "JYfamilyretiredleader",
+    "description": "一位族长卸任后，仍在家中按自己的安排生活满2年。休养和照料家人同样算。"
+  },
+  {
+    "incremental": false,
+    "name": "三任一门",
+    "hidden": false,
+    "localId": "family.three_leaders",
+    "achievementId": "JYfamilythreeleaders",
+    "description": "同一局有三位不同族长，每人均实际任职至少2年。"
+  },
+  {
+    "incremental": false,
+    "name": "新席",
+    "hidden": false,
+    "localId": "family.new_member",
+    "achievementId": "JYfamilynewmember",
+    "description": "婚入、收养或旁支归家后，新成员在这个家完成一个年度。"
+  },
+  {
+    "incremental": false,
+    "name": "当年小小",
+    "hidden": false,
+    "localId": "family.grown_here",
+    "achievementId": "JYfamilygrownhere",
+    "description": "一位未成年成员在本局经历至少5年生活，随后真正成年。"
+  },
+  {
+    "incremental": false,
+    "name": "三世同堂",
+    "hidden": false,
+    "localId": "family.three_generations",
+    "achievementId": "JYfamilythreegenerations",
+    "description": "实际经营至少5年，三代人仍在世；其中至少一代由本局出生或合法收养形成，不能全靠开局配置。"
+  },
+  {
+    "incremental": false,
+    "name": "一家百样",
+    "hidden": false,
+    "localId": "family.varied_lives",
+    "achievementId": "JYfamilyvariedlives",
+    "description": "至少三位成员连续两年执行三种不同安排，包含求学、照料、休养等生活方式。"
+  },
+  {
+    "incremental": false,
+    "name": "衣钵",
+    "hidden": false,
+    "localId": "family.shared_vocation",
+    "achievementId": "JYfamilysharedvocation",
+    "description": "前后两代先后从事同一种谋生职业，各完成3个实际工作年度。"
+  },
+  {
+    "incremental": false,
+    "name": "一技之长",
+    "hidden": false,
+    "localId": "growth.learn_to_earn",
+    "achievementId": "JYgrowthlearntoearn",
+    "description": "同一人实际学习一门对应本领至少2年，随后靠它完成第一个谋生年度。"
+  },
+  {
+    "incremental": false,
+    "name": "行家里手",
+    "hidden": false,
+    "localId": "growth.expert",
+    "achievementId": "JYgrowthexpert",
+    "description": "一项本领达到70，且其中至少20点由本局实际成长获得。"
+  },
+  {
+    "incremental": false,
+    "name": "人生岔路",
+    "hidden": false,
+    "localId": "growth.new_vocation",
+    "achievementId": "JYgrowthnewvocation",
+    "description": "做过一种谋生工作至少2年，后来转入另一种，并实际做满2年。"
+  },
+  {
+    "incremental": false,
+    "name": "半生书缘",
+    "hidden": false,
+    "localId": "growth.late_reader",
+    "achievementId": "JYgrowthlatereader",
+    "description": "在凡世，年满40岁后开始一段此前没有的读书安排，累计读满3个有效年度。"
+  },
+  {
+    "incremental": false,
+    "name": "桃李",
+    "hidden": false,
+    "localId": "growth.student_teacher",
+    "achievementId": "JYgrowthstudentteacher",
+    "description": "本局实际读书至少2年，之后教书至少2年，均为同一个人。"
+  },
+  {
+    "incremental": false,
+    "name": "一身两艺",
+    "hidden": false,
+    "localId": "growth.two_skills",
+    "achievementId": "JYgrowthtwoskills",
+    "description": "两项本领达到50，各自在本局增长至少15点，并分别有一次对应的实际使用。"
+  },
+  {
+    "incremental": false,
+    "name": "水滴石穿",
+    "hidden": false,
+    "localId": "growth.persistence",
+    "achievementId": "JYgrowthpersistence",
+    "description": "初始资质位于最低两档的成员，靠实际学习与工作，使一项本领增长30点。"
+  },
+  {
+    "incremental": false,
+    "name": "金榜题名",
+    "hidden": false,
+    "localId": "growth.exam",
+    "achievementId": "JYgrowthexam",
+    "description": "本局真正参加并通过一次应试。"
+  },
+  {
+    "incremental": false,
+    "name": "歇脚之后",
+    "hidden": false,
+    "localId": "growth.return_after_rest",
+    "achievementId": "JYgrowthreturnafterrest",
+    "description": "做过至少2年某项工作，休养满一个年度后，再完成一个该工作的年度。无需先让人物生病。"
+  },
+  {
+    "incremental": false,
+    "name": "三载无饥",
+    "hidden": false,
+    "localId": "estate.full_meals",
+    "achievementId": "JYestatefullmeals",
+    "description": "连续3个年度足额满足全家口粮，读取当时的生活结算，年后补粮不回改结果。"
+  },
+  {
+    "incremental": false,
+    "name": "家计自足",
+    "hidden": false,
+    "localId": "estate.self_sufficient",
+    "achievementId": "JYestateselfsufficient",
+    "description": "连续3年，正常谋生收入足以承担当年的生活、购粮和已安排培养费用，且这些开支确实付足。"
+  },
+  {
+    "incremental": false,
+    "name": "陌上新禾",
+    "hidden": false,
+    "localId": "estate.bought_harvest",
+    "achievementId": "JYestateboughtharvest",
+    "description": "局内购入一块田，随后产生真实收成。开局带入的田不触发购买经历。"
+  },
+  {
+    "incremental": false,
+    "name": "自家门面",
+    "hidden": false,
+    "localId": "estate.business",
+    "achievementId": "JYestatebusiness",
+    "description": "局内置办作坊或商铺，并有人实际经营满2年。"
+  },
+  {
+    "incremental": false,
+    "name": "新檐",
+    "hidden": false,
+    "localId": "estate.home_upgrade",
+    "achievementId": "JYestatehomeupgrade",
+    "description": "实际完成一次住宅升等，并在新住宅生活一个年度。"
+  },
+  {
+    "incremental": false,
+    "name": "细水并流",
+    "hidden": false,
+    "localId": "estate.two_incomes",
+    "achievementId": "JYestatetwoincomes",
+    "description": "连续3年，至少两位成员通过两种不同谋生方式取得收入。"
+  },
+  {
+    "incremental": false,
+    "name": "前店后坊",
+    "hidden": false,
+    "localId": "estate.shop_workshop",
+    "achievementId": "JYestateshopworkshop",
+    "description": "作坊与商铺在同两个年度都有合格成员实际经营。"
+  },
+  {
+    "incremental": false,
+    "name": "银货两讫",
+    "hidden": false,
+    "localId": "estate.settled_order",
+    "achievementId": "JYestatesettledorder",
+    "description": "一项委托完成验收，约定应收全部实际到账。欠条和“待领取”不算。"
+  },
+  {
+    "incremental": false,
+    "name": "他乡初灯",
+    "hidden": false,
+    "localId": "travel.first_year",
+    "achievementId": "JYtravelfirstyear",
+    "description": "完成迁居，并在新地点生活一个年度。"
+  },
+  {
+    "incremental": false,
+    "name": "此心安处",
+    "hidden": false,
+    "localId": "travel.settled",
+    "achievementId": "JYtravelsettled",
+    "description": "迁居后连续3年留在该地，期间生活和口粮都得到满足。"
+  },
+  {
+    "incremental": false,
+    "name": "山水故人",
+    "hidden": false,
+    "localId": "travel.old_contact",
+    "achievementId": "JYtraveloldcontact",
+    "description": "搬家后，与同一位旧联系人发生一次实际的新往来；联系人身份和原地址保留。"
+  },
+  {
+    "incremental": false,
+    "name": "千里一诺",
+    "hidden": false,
+    "localId": "travel.kept_order",
+    "achievementId": "JYtravelkeptorder",
+    "description": "搬家前已接受的订单，在搬家后按约完成，并由原买家结清。"
+  },
+  {
+    "incremental": false,
+    "name": "来往有信",
+    "hidden": false,
+    "localId": "travel.returned_loan",
+    "achievementId": "JYtravelreturnedloan",
+    "description": "获准借用的同一件物品，实际回到约定接收人手中，借用记录结束。"
+  },
+  {
+    "incremental": false,
+    "name": "河埠新穗",
+    "hidden": false,
+    "localId": "origin.seed",
+    "achievementId": "JYoriginseed",
+    "description": "河埠换种：试种实际完成，收获到账，并决定这批粮种的去向。"
+  },
+  {
+    "incremental": false,
+    "name": "老坊回声",
+    "hidden": false,
+    "localId": "origin.workshop",
+    "achievementId": "JYoriginworkshop",
+    "description": "旧坊修缮：完工后选择现金或置办优惠，完成相应结算。"
+  },
+  {
+    "incremental": false,
+    "name": "陈账新银",
+    "hidden": false,
+    "localId": "origin.accounts",
+    "achievementId": "JYoriginaccounts",
+    "description": "旧账重开：通过结清或续单路线，实际收回旧欠。只完成对账不算。"
+  },
+  {
+    "incremental": false,
+    "name": "借来的书香",
+    "hidden": false,
+    "localId": "origin.scroll",
+    "achievementId": "JYoriginscroll",
+    "description": "旧卷借阅：至少完成一个有效借阅年度，随后实际归还；押金按当时合同结清。"
+  },
+  {
+    "incremental": false,
+    "name": "驿路无虞",
+    "hidden": false,
+    "localId": "origin.escort",
+    "achievementId": "JYoriginescort",
+    "description": "旧营护送：稳路或急件成功交付，报酬实际结算。稳路也能获得。"
+  },
+  {
+    "incremental": false,
+    "name": "故交余荫",
+    "hidden": false,
+    "localId": "origin.referral",
+    "achievementId": "JYoriginreferral",
+    "description": "旧客重访：接待完成后，引荐对象真正享受过一次有效帮助。"
+  },
+  {
+    "incremental": false,
+    "name": "旧物新章",
+    "hidden": false,
+    "localId": "relic.upgraded",
+    "achievementId": "JYrelicupgraded",
+    "description": "通用：首次在本局完成任意一件信物的真实升阶。"
+  },
+  {
+    "incremental": false,
+    "name": "掌中春秋",
+    "hidden": false,
+    "localId": "relic.handed_down",
+    "achievementId": "JYrelichandeddown",
+    "description": "通用：同一信物经真实转交，由先后两代各实际使用至少一年。"
+  },
+  {
+    "incremental": false,
+    "name": "未竟有继",
+    "hidden": false,
+    "localId": "relic.task_successor",
+    "achievementId": "JYrelictasksuccessor",
+    "description": "通用：同一信物任务已有工作进度，换人后完成剩余工作，沿用原任务与费用。"
+  },
+  {
+    "incremental": false,
+    "name": "匠门旧印",
+    "hidden": false,
+    "localId": "relic.ruler.mark",
+    "achievementId": "JYrelicrulermark",
+    "description": "木尺：完成匠号查访，形成确证记录。"
+  },
+  {
+    "incremental": false,
+    "name": "尺外遗图",
+    "hidden": false,
+    "localId": "relic.ruler.plan",
+    "achievementId": "JYrelicrulerplan",
+    "description": "木尺：根据本局已查明的木尺线索，实际誊得一阶营造图。"
+  },
+  {
+    "incremental": false,
+    "name": "一尺千秋",
+    "hidden": false,
+    "localId": "relic.ruler.heirloom",
+    "achievementId": "JYrelicrulerheirloom",
+    "description": "木尺：在本局满足使用、工程和传承条件，完成三阶升级。"
+  },
+  {
+    "incremental": false,
+    "name": "榫间薪火",
+    "hidden": false,
+    "localId": "relic.ruler.teaching",
+    "achievementId": "JYrelicrulerteaching",
+    "description": "木尺：完成一次真实的师徒传艺，双方的参与和成长已经结算。"
+  },
+  {
+    "incremental": false,
+    "name": "谱中故人",
+    "hidden": false,
+    "localId": "relic.genealogy.pages",
+    "achievementId": "JYrelicgenealogypages",
+    "description": "族谱：核实缺页后实际补入，原族谱实例升阶。"
+  },
+  {
+    "incremental": false,
+    "name": "同根异枝",
+    "hidden": false,
+    "localId": "relic.genealogy.branch",
+    "achievementId": "JYrelicgenealogybranch",
+    "description": "族谱：已核实的旁支成员真正加入家族。"
+  },
+  {
+    "incremental": false,
+    "name": "世系长卷",
+    "hidden": false,
+    "localId": "relic.genealogy.lineage",
+    "achievementId": "JYrelicgenealogylineage",
+    "description": "族谱：完成三阶续修，有两代修谱人的实际记录。"
+  },
+  {
+    "incremental": false,
+    "name": "一家春秋",
+    "hidden": false,
+    "localId": "relic.genealogy.chronicle",
+    "achievementId": "JYrelicgenealogychronicle",
+    "description": "族谱：编成一次家史，内容引用真实人物与家事。"
+  },
+  {
+    "incremental": false,
+    "name": "尺素有归",
+    "hidden": false,
+    "localId": "relic.letter.delivery",
+    "achievementId": "JYrelicletterdelivery",
+    "description": "家书：原信实际交付，取得送达与回音事实。查到地址还不算。"
+  },
+  {
+    "incremental": false,
+    "name": "隔世之诺",
+    "hidden": false,
+    "localId": "relic.letter.promise",
+    "achievementId": "JYrelicletterpromise",
+    "description": "家书：旧托付真正履行完毕，送书、送粮两条路线共用。"
+  },
+  {
+    "incremental": false,
+    "name": "墨线成形",
+    "hidden": false,
+    "localId": "relic.plan.repair",
+    "achievementId": "JYrelicplanrepair",
+    "description": "营造图：完成一项旧图修缮活，工程和报酬均已结算。"
+  },
+  {
+    "incremental": false,
+    "name": "旧图新墨",
+    "hidden": false,
+    "localId": "relic.plan.amended",
+    "achievementId": "JYrelicplanamended",
+    "description": "营造图：在本局完成二阶增订。"
+  },
+  {
+    "incremental": false,
+    "name": "一图两代",
+    "hidden": false,
+    "localId": "relic.plan.heirloom",
+    "achievementId": "JYrelicplanheirloom",
+    "description": "营造图：完成三阶编订，所需工程与代际使用都有依据。"
+  },
+  {
+    "incremental": false,
+    "name": "两岸通途",
+    "hidden": false,
+    "localId": "relic.plan.bridge",
+    "achievementId": "JYrelicplanbridge",
+    "description": "营造图：修桥任务完整完成，验收及竣工事实落定。"
+  },
+  {
+    "incremental": false,
+    "name": "半璧旧缘",
+    "hidden": false,
+    "localId": "relic.jade.origin",
+    "achievementId": "JYrelicjadeorigin",
+    "description": "玉佩：核实半佩来历，确认具体旧交。"
+  },
+  {
+    "incremental": false,
+    "name": "两家一缘",
+    "hidden": false,
+    "localId": "relic.jade.reunion",
+    "achievementId": "JYrelicjadereunion",
+    "description": "玉佩：实际完成相认并确定终形；合璧、各执共用成就，记录各自结果。"
+  },
+  {
+    "incremental": false,
+    "name": "杏林旧卷",
+    "hidden": false,
+    "localId": "relic.notes.acquired",
+    "achievementId": "JYrelicnotesacquired",
+    "description": "医案：达到职业取得条件后，真正接收医案。"
+  },
+  {
+    "incremental": false,
+    "name": "医者手记",
+    "hidden": false,
+    "localId": "relic.notes.case",
+    "achievementId": "JYrelicnotescase",
+    "description": "医案：完成一则独立病例的补记。重复打开旧病例不计。"
+  },
+  {
+    "incremental": false,
+    "name": "旧案新注",
+    "hidden": false,
+    "localId": "relic.notes.revised",
+    "achievementId": "JYrelicnotesrevised",
+    "description": "医案：本局完成二阶校订。"
+  },
+  {
+    "incremental": false,
+    "name": "医脉绵长",
+    "hidden": false,
+    "localId": "relic.notes.heirloom",
+    "achievementId": "JYrelicnotesheirloom",
+    "description": "医案：完成三阶编订，家传与刊行共用成就，各自保存实际去向。"
+  },
+  {
+    "incremental": false,
+    "name": "家事一章",
+    "hidden": false,
+    "localId": "history.story",
+    "achievementId": "JYhistorystory",
+    "description": "完成一条连续故事的有效收束，至少经过两个实际决策节点。纯等待和自动错过通知不算。"
+  },
+  {
+    "incremental": false,
+    "name": "五味家常",
+    "hidden": false,
+    "localId": "history.five_stories",
+    "achievementId": "JYhistoryfivestories",
+    "description": "完成五个不同故事ID的有效收束。换名字、走同一故事另一条分支不增加数量。"
+  },
+  {
+    "incremental": false,
+    "name": "一卷既成",
+    "hidden": false,
+    "localId": "history.ending",
+    "achievementId": "JYhistoryending",
+    "description": "达到条件后，玩家正式确认一次发展终章。"
+  },
+  {
+    "incremental": false,
+    "name": "别样人家",
+    "hidden": false,
+    "localId": "history.different_endings",
+    "achievementId": "JYhistorydifferentendings",
+    "description": "在两个不同家族中，分别完成不同的发展终章。"
+  },
+  {
+    "incremental": false,
+    "name": "人间两户",
+    "hidden": false,
+    "localId": "history.two_families",
+    "achievementId": "JYhistorytwofamilies",
+    "description": "两个不同家族各实际经营至少10年。重开界面、导入同一局副本不算新家族。"
+  }
+]

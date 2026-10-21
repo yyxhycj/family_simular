@@ -14,7 +14,15 @@
       "Jiaye/V7/characters/**",
       "Jiaye/V7/icons/**",
       "Jiaye/V7/events/**",
-      "Jiaye/V7/relics/**"
+      "Jiaye/V7/relics/**",
+      "Jiaye/V7/decor/**",
+      "Jiaye/V7/textures/**",
+      "Jiaye/InkV2/**",
+      "Jiaye/Opening/**",
+      "Jiaye/WorldEntry/**",
+      "Textures/Qianjiaji/**",
+      "Fonts/Qianjiaji/**",
+      "image/portrait_*.png"
     ]
   }
 }

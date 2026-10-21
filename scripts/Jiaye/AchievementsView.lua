@@ -19,7 +19,11 @@ function View.Open(app)
             if app.profile.achievements[definition.id] then completed = completed + 1 end
         end
     end
-    local modal = ModalLayout.New("成就 · 家史留名", { sheet = "full" })
+    ---@type Label?
+    local platformStatus = nil
+    local modal = ModalLayout.New("成就 · 家史留名", { sheet = "full", onClose = function()
+        if app.tapAchievementStatusLabel == platformStatus then app.tapAchievementStatusLabel = nil end
+    end })
     local body = UI.Panel { id = "achievements", width = "100%", height = "100%", minHeight = 0, gap = 10 }
     local group, status, page = "all", "all", 1
     local options = { { value = "all", label = "全部类别" } }
@@ -30,7 +34,19 @@ function View.Open(app)
     end
     local function Render()
         body:RemoveAllChildren()
+        app.tapAchievementStatusLabel = nil
         body:AddChild(Visual.Text("已记 " .. completed .. " / " .. total .. " 项", { id = "achievements-summary", fontSize = 22, fontFamily = "serif", fontColor = C.primary }))
+        platformStatus = Visual.Text(app:TapAchievementStatus(), { id = "achievements-platform-status", fontSize = 12, fontColor = C.secondary, whiteSpace = "normal" })
+        app.tapAchievementStatusLabel = platformStatus
+        body:AddChild(platformStatus)
+        body:AddChild(UI.Row { width = "100%", gap = 8, children = {
+            Visual.Button("TapTap 成就", function()
+                if not app.tapAchievements or not app.tapAchievements:Show() then app:Notify(app:TapAchievementStatus(), "warning") end
+            end, { id = "achievements-platform-open", flex = 1, minWidth = 0, height = 36, role = "secondary" }),
+            Visual.Button("重试同步", function()
+                if app.tapAchievements then app.tapAchievements:Retry() else app:Notify(app:TapAchievementStatus(), "warning") end
+            end, { id = "achievements-platform-retry", width = 96, height = 36, role = "secondary" }),
+        } })
         body:AddChild(UI.Dropdown { id = "achievements-group", width = "100%", height = 42, options = options, value = group,
             onChange = function(_, value) group, page = value, 1; Render() end })
         local tabs = {}
