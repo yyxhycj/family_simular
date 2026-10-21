@@ -4,6 +4,7 @@ local State = require "Jiaye.State"
 local Opening = require "Jiaye.Opening"
 local Simulation = require "Jiaye.Simulation"
 local Visual = require "Jiaye.Visual"
+local OriginState = require "Jiaye.OriginState"
 local cjson = require "cjson"
 
 ---@type table
@@ -24,6 +25,29 @@ local function equalPayload(payload, wanted)
     assert(payload and Opening.Equal(payload.profile, wanted.profile), "收藏不一致")
     assert(Opening.Equal(payload.draft, wanted.draft), "开局草案不一致")
     assert(Opening.Equal(payload.run, wanted.run), "家谱进度不一致")
+end
+
+local function mergedChoice(chosen, other)
+    assert(Opening.Equal(app.draft, chosen.draft) and Opening.Equal(app.run, chosen.run), "冲突选择改变了所选家谱")
+    for _, profile in ipairs({ chosen.profile, other.profile }) do
+        for id in pairs(profile.achievements) do
+            local record = app.profile.achievements[id]
+            assert(record and (Opening.Equal(record, chosen.profile.achievements[id]) or Opening.Equal(record, other.profile.achievements[id])), "冲突选择丢失已达成成就：" .. id)
+        end
+        for id, family in pairs(profile.achievementFamilies) do
+            assert(app.profile.achievementFamilies[id] and app.profile.achievementFamilies[id].years >= family.years, "冲突选择丢失家族经营经历")
+        end
+        for id in pairs(profile.achievementStories) do assert(app.profile.achievementStories[id], "冲突选择丢失已收束故事") end
+    end
+end
+
+local function year()
+    while #Simulation.PendingEvents(app.run) > 0 do
+        local event = Simulation.PendingEvents(app.run)[1]
+        assert(event.type ~= "leader", "验收家族缺少族长")
+        assert(app:RunAction(function(run, profile) return Simulation.ResolveEvent(run, event.instanceId, "defer", profile) end))
+    end
+    assert(app:RunAction(function(run, profile) return Simulation.AdvanceYear(run, profile) end))
 end
 
 local function step(nextPhase, name)
@@ -71,13 +95,31 @@ function CloudAcceptanceUpdate(_, eventData)
     if phase == 1 and app.cloud.ready then
         assert(not app.run and not app.cloud.localPayload, "独立验收账号空间已有进度")
         app:PrepareNewRun()
+        ---@type table
+        local draft = State.NewDraft()
+        draft.family, draft.money, draft.grain, draft.land = "云验", 200, 40, 1
+        draft.rulesVersion, draft.relicRulesVersion, draft.originRulesVersion = 2, "1.2", OriginState.VERSION
+        draft.members = { draft.members[1], draft.members[2] }
+        draft.members[1].age, draft.members[2].age = 26, 24
+        draft.members[1].jobId, draft.members[2].jobId = "craft", "farm"
+        for _, member in ipairs(draft.members) do member.experienceId = "craft" end
+        draft.selectedRelicFormIds, draft.relicUsers = { "ruler.1" }, { ["ruler.1"] = 1 }
+        draft.selectedRelicIds = nil
+        draft.originId = "artisan"
+        app.draft = draft
         app:StartRun()
         assert(app.run, "新家谱未建立")
+        for _, member in ipairs(app.run.members) do
+            local id = member.id
+            assert(app:RunAction(function(run) return Simulation.SetBirthPlan(run, id, false) end))
+        end
         expected = snapshot()
         step(2, "新局自动上传并回读")
     elseif phase == 2 and synced() then
         equalPayload(app.cloud.localPayload, expected)
         changeJob()
+        year()
+        assert(app.profile.achievements["family.first_year"], "真实年度成就未保存")
         expected = snapshot()
         step(3, "人物安排自动上传")
     elseif phase == 3 and synced() then
@@ -96,12 +138,17 @@ function CloudAcceptanceUpdate(_, eventData)
         equalPayload(snapshot(), expected)
         print("CLOUD_ACCEPTANCE_PASS existing_device_refreshes_remote_progress")
         changeJob()
+        while app.run.yearIndex < 20 do year() end
+        assert(app.profile.achievements["family.twenty_years"], "本机分叉未达成二十春秋")
         localBranch = snapshot()
         switchDevice("b")
         step(7, "保留未上传本机进度，另一台设备继续")
     elseif phase == 7 and synced() then
         local excluded = State.FindMember(localBranch.run.members, localBranch.run.leaderId).jobId
         changeJob(excluded)
+        assert(app:RunAction(function(run) return Simulation.MoveFamily(run, "border") end))
+        year()
+        assert(app.profile.achievements["travel.first_year"] and not app.profile.achievements["family.twenty_years"], "云端分叉成就未形成独立经历")
         remoteBranch = snapshot()
         step(8, "另一台设备保存分叉进度")
     elseif phase == 8 and synced() then
@@ -114,7 +161,8 @@ function CloudAcceptanceUpdate(_, eventData)
         app.cloud:Resolve(true)
         step(10, "确认使用云端家谱")
     elseif phase == 10 and synced() then
-        equalPayload(snapshot(), remoteBranch)
+        mergedChoice(remoteBranch, localBranch)
+        remoteBranch = snapshot()
         print("CLOUD_ACCEPTANCE_PASS conflict_select_remote")
         changeJob()
         localBranch = snapshot()
@@ -123,6 +171,9 @@ function CloudAcceptanceUpdate(_, eventData)
     elseif phase == 11 and synced() then
         local excluded = State.FindMember(localBranch.run.members, localBranch.run.leaderId).jobId
         changeJob(excluded)
+        assert(app:RunAction(function(run) return Simulation.UpgradeHome(run) end))
+        year()
+        assert(app.profile.achievements["estate.home_upgrade"], "云端分叉未达成新檐")
         remoteBranch = snapshot()
         step(12, "保存第二份云端分叉")
     elseif phase == 12 and synced() then
@@ -135,7 +186,8 @@ function CloudAcceptanceUpdate(_, eventData)
         assert(app.cloud.blocked, "选择本机后仍需先核对云端版本")
         step(14, "本机选择上传并回读")
     elseif phase == 14 and synced() then
-        equalPayload(snapshot(), localBranch)
+        mergedChoice(localBranch, remoteBranch)
+        localBranch = snapshot()
         switchDevice("c")
         step(15, "全新本机确认冲突选择结果")
     elseif phase == 15 and synced() then

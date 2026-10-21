@@ -1,5 +1,6 @@
 local State = require "Jiaye.State"
 local cjson = require "cjson"
+local Achievements = require "Jiaye.Achievements"
 
 local CloudSave = {}
 CloudSave.__index = CloudSave
@@ -55,6 +56,10 @@ function CloudSave.New(legacy, onLoad, onChange, key)
 end
 
 function CloudSave:Init(legacy, onLoad, onChange, key)
+    assert(ownerId() ~= "", "启动云存档需要引擎完成 TapTap 登录。")
+    assert(type(clientCloud.mapName) == "string" and clientCloud.mapName:find("%S"),
+        "当前运行环境缺少游戏项目标识，无法使用云存档。")
+    self.project = clientCloud.mapName
     self.key = key or CloudSave.KEY
     self.storageNamespace = self.key
     self.legacy = legacy
@@ -73,8 +78,8 @@ function CloudSave:Init(legacy, onLoad, onChange, key)
     self.busy = false
     self.ready = false
     self.blocked = true
-    self.state = "login"
-    self.message = "正在连接 TapTap 账号，请稍候…"
+    self.state = "reading"
+    self.message = "正在读取云端家谱…"
     self.localPayload = nil
     self.remote = nil
     self.sending = nil
@@ -99,13 +104,16 @@ function CloudSave:Fail(message)
 end
 
 function CloudSave:Request(send, done)
+    assert(ownerId() == self.owner and clientCloud.mapName == self.project,
+        "云存档账号或游戏项目已变化，请重新打开游戏。")
     self.requestId = self.requestId + 1
     local id, owner, settled = self.requestId, self.owner, false
     self.busy = true
     self.deadline = self.clock + 20
     self.onChange()
     local function current()
-        return not settled and not self.stopped and self.requestId == id and ownerId() == owner
+        return not settled and not self.stopped and self.requestId == id
+            and ownerId() == owner and clientCloud.mapName == self.project
     end
     send({
         ok = function(...)
@@ -114,8 +122,11 @@ function CloudSave:Request(send, done)
             self.busy = false
             done(...)
         end,
-        error = function()
-            if current() then settled = true; self:Fail("云端连接中断，当前进度尚未完成同步。") end
+        error = function(code, reason)
+            if current() then
+                settled = true
+                self:Fail("云端存档读取或保存失败（" .. tostring(code) .. "）：" .. tostring(reason))
+            end
         end,
         timeout = function()
             if current() then settled = true; self:Fail("云端同步超时，当前进度尚未完成同步。") end
@@ -161,16 +172,24 @@ function CloudSave:Adopt(remote)
     local previous = self.localPayload and self.localPayload.cloudSync
     local alreadyLoaded = self.ready and previous
         and (previous.pendingRevision == remote.revision or (not previous.pendingRevision and previous.baseRevision == remote.revision))
+    local payload = State.Copy(remote.payload)
+    local merged = Achievements.Merge(payload.profile, self.localPayload and self.localPayload.profile)
+    local _, updated = Achievements.Update(payload.profile, payload.run)
     local sync = { ownerId = self.owner, baseRevision = remote.revision, savedAt = remote.updatedAt }
-    if not self:Cache(remote.payload, sync) then return end
+    if merged or updated then
+        self.serial = self.serial + 1
+        sync.pendingRevision = self.session .. "-" .. tostring(self.serial)
+        sync.savedAt = os.time()
+    end
+    if not self:Cache(payload, sync) then return end
     self.ready, self.blocked, self.conflict = true, false, false
     self.sending = nil
     self.chooseCloud = false
     self.attempts = 0
     self.retryUntil = 0
-    self.nextAttempt = self.clock + 30
-    if not alreadyLoaded then self.onLoad(self.localPayload) end
-    self:Status("synced", "家谱已与云端同步")
+    self.nextAttempt = self.clock + (sync.pendingRevision and 0.5 or 30)
+    if not alreadyLoaded or merged or updated then self.onLoad(self.localPayload) end
+    self:Status(sync.pendingRevision and "pending" or "synced", sync.pendingRevision and "正在同步合并后的成就…" or "家谱已与云端同步")
 end
 
 function CloudSave:Conflict(remote)
@@ -303,12 +322,15 @@ function CloudSave:Resolve(useCloud)
     if not self.conflict or self.busy then return end
     self.chooseCloud = useCloud
     if not useCloud then
-        local payload = assert(self.localPayload)
+        local payload = State.Copy(assert(self.localPayload))
+        Achievements.Merge(payload.profile, self.remote and self.remote.payload.profile)
+        Achievements.Update(payload.profile, payload.run)
         self.blocked = false
         local metadata = self:NextMetadata()
         metadata.baseRevision, metadata.previousRevision = revision(self.remote), nil
         if not self:Cache(payload, metadata) then return end
         self.conflict = false
+        self.onLoad(self.localPayload)
         self.blocked = true
     end
     self:Sync()
@@ -322,6 +344,11 @@ end
 
 function CloudSave:Update(dt, allowRefresh)
     if self.stopped then return end
+    if not clientCloud or clientCloud.mapName ~= self.project then
+        self:Stop()
+        self.blocked = true
+        error("云存档游戏项目已变化，请重新打开游戏。")
+    end
     self.clock = self.clock + dt
     local owner = ownerId()
     if owner ~= self.owner then
@@ -330,8 +357,8 @@ function CloudSave:Update(dt, allowRefresh)
         self.conflict, self.sending, self.remote, self.chooseCloud = false, nil, nil, false
         self.nextAttempt, self.attempts, self.retryUntil, self.nextUploadAt = self.clock, 0, 0, 0
         if owner == "" then
-            self:Status("login", "请登录 TapTap，登录后自动读取家谱。")
-            return
+            self.stopped = true
+            error("TapTap 登录会话已结束，请重新启动游戏完成引擎登录。")
         end
         State.UsePlayerStorage(owner, self.storageNamespace)
         local payload, _, status = State.Load()
@@ -348,7 +375,7 @@ function CloudSave:Update(dt, allowRefresh)
         end
         self:Status("connecting", "正在读取 TapTap 账号中的家谱…")
     end
-    if owner == "" or (self.state == "invalid" and not self.forceRead) then return end
+    if self.state == "invalid" and not self.forceRead then return end
     if self.busy then
         if self.clock >= self.deadline then self:Fail("云端同步超时，当前进度尚未完成同步。") end
         return

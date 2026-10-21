@@ -29,7 +29,7 @@ end
 function View.Gate(app)
     local cloud = app.cloud
     local children = {
-        Visual.Text(cloud.conflict and "选择继续的家谱" or "账号家谱", {
+        Visual.Text(cloud.conflict and "选择继续的家谱" or "云端家谱", {
             width = "100%", fontSize = 26, fontFamily = "serif", fontColor = C.primary,
         }),
     }
@@ -56,7 +56,7 @@ function View.Gate(app)
             }))
         end
     end
-    app.cloudRetryButton = Visual.Button("重新连接", function() cloud:Retry() end, {
+    app.cloudRetryButton = Visual.Button("重试同步", function() cloud:Retry() end, {
         id = "cloud-save-retry", width = "100%", height = 48, role = "secondary", disabled = cloud.busy,
     })
     table.insert(children, app.cloudRetryButton)
