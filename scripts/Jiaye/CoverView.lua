@@ -121,7 +121,7 @@ end
 
 function View.Build(app)
     local world = assert(Data.Find(Data.Worlds, app.coverWorldId), "主页世界未登记。")
-    local image = assert(cache:GetResource("Image", Art.Opening("landscape")), "主页背景图片缺失。")
+    local image = assert(cache:GetResource("Texture2D", Art.Opening("landscape")), "主页背景图片缺失。")
     local actions = {}
     if world.available then
         table.insert(actions, menuEntry("cover-new-family", "立一部家谱", function() app:PrepareNewRun() end, true))

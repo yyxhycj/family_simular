@@ -48,7 +48,7 @@ function Skin.Image(path, props)
     p.borderRadius = p.borderRadius or 0
     local panel = UI.Panel(p)
     if p.backgroundFit == "contain" then
-        local source = assert(cache:GetResource("Image", path), "插画无法加载：" .. path)
+        local source = assert(cache:GetResource("Texture2D", path), "插画无法加载：" .. path)
         local ratio = source.width / source.height
         function panel:Render(nvg)
             local rect = self:GetAbsoluteLayout()
